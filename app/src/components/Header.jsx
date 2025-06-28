@@ -38,28 +38,44 @@ const Header = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  // Close menu on navigation
+  const handleNavClick = () => {
+    setIsMenuOpen(false);
+    setLoansDropdown(false);
+  };
+
   return (
     <header className="header">
       <div className="nav-wrapper">
-        <div className="nav-left-group" style={{display: 'flex', alignItems: 'center', gap: 32}}>
-          <Link to="/" className="logo" style={{display: 'flex', alignItems: 'center'}}>
-            <img src={skmtLogo} alt="SKMT Logo" style={{height: '80px', width: '100px', objectFit: 'contain'}} />
-            <span className="logo-text" style={{ color: '#111' }}>SKMT Finance</span>
+        <div className="nav-left-group">
+          <Link to="/" className="logo" aria-label="SKMT Finance Home">
+            <img src={skmtLogo} alt="SKMT Logo" className="logo-img" />
+            <span className="logo-title-modern">SKMT <span>Finance</span></span>
           </Link>
         </div>
-        <div className="nav-right-group" style={{display: 'flex', alignItems: 'center', gap: 20}}>
-          <nav className={`nav ${isMenuOpen ? 'nav-open' : ''}`}>
+        <button
+          className={`mobile-menu-btn${isMenuOpen ? ' open' : ''}`}
+          aria-label="Toggle navigation menu"
+          aria-expanded={isMenuOpen}
+          onClick={toggleMenu}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div className="nav-right-group">
+          <nav className={`nav${isMenuOpen ? ' nav-open' : ''}`} aria-label="Main navigation">
             <Link 
               to="/" 
-              className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
-              onClick={() => setIsMenuOpen(false)}
+              className={`nav-link${location.pathname === '/' ? ' active' : ''}`}
+              onClick={handleNavClick}
             >
               Home
             </Link>
             <Link 
               to="/products" 
-              className={`nav-link ${location.pathname === '/products' ? 'active' : ''}`}
-              onClick={() => setIsMenuOpen(false)}
+              className={`nav-link${location.pathname === '/products' ? ' active' : ''}`}
+              onClick={handleNavClick}
             >
               Vehicles
             </Link>
@@ -67,13 +83,16 @@ const Header = () => {
               className="nav-link loans-dropdown-wrapper" 
               onMouseEnter={() => setLoansDropdown(true)} 
               onMouseLeave={() => setLoansDropdown(false)}
+              tabIndex={0}
+              aria-haspopup="true"
+              aria-expanded={loansDropdown}
               style={{ position: 'relative' }}
             >
               <Link
                 to="/loans"
                 className={location.pathname === '/loans' ? 'active' : ''}
                 style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}
-                onClick={() => setIsMenuOpen(false)}
+                onClick={handleNavClick}
               >
                 Loans ▾
               </Link>
@@ -84,7 +103,7 @@ const Header = () => {
                       key={loan.title} 
                       to={`/loans/${loan.id}`}
                       className="dropdown-item"
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={handleNavClick}
                     >
                       {loan.title}
                     </Link>
@@ -94,75 +113,74 @@ const Header = () => {
             </div>
             <Link 
               to="/services" 
-              className={`nav-link ${location.pathname === '/services' ? 'active' : ''}`}
-              onClick={() => setIsMenuOpen(false)}
+              className={`nav-link${location.pathname === '/services' ? ' active' : ''}`}
+              onClick={handleNavClick}
             >
               Services
             </Link>
             <Link 
               to="/about" 
-              className={`nav-link ${location.pathname === '/about' ? 'active' : ''}`}
-              onClick={() => setIsMenuOpen(false)}
+              className={`nav-link${location.pathname === '/about' ? ' active' : ''}`}
+              onClick={handleNavClick}
             >
               About
             </Link>
             <Link 
               to="/contact" 
-              className={`nav-link ${location.pathname === '/contact' ? 'active' : ''}`}
-              onClick={() => setIsMenuOpen(false)}
+              className={`nav-link${location.pathname === '/contact' ? ' active' : ''}`}
+              onClick={handleNavClick}
             >
               Contact
             </Link>
+
+            {/* Mobile: Show login/register/profile in menu */}
+            <div className="mobile-auth-actions">
+              {user ? (
+                <>
+                  <span
+                    className={`profile-link${location.pathname === '/profile' ? ' active' : ''}`}
+                    onClick={() => { navigate('/profile'); handleNavClick(); }}
+                    title="View Profile"
+                    tabIndex={0}
+                    role="button"
+                    aria-label="View Profile"
+                  >
+                    <span className="profile-avatar">{user.username ? user.username[0].toUpperCase() : '?'}</span>
+                    {user.username}
+                  </span>
+                  <button className="btn btn-primary" style={{width: '100%', marginTop: 8}} onClick={handleLogout}>Logout</button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="btn btn-outline blur-login" style={{width: '100%', marginTop: 8}} onClick={handleNavClick}>Login</Link>
+                  <Link to="/register" className="btn btn-secondary" style={{width: '100%', marginTop: 8}} onClick={handleNavClick}>Register</Link>
+                </>
+              )}
+            </div>
           </nav>
+          {/* Desktop: Show login/register/profile in header bar */}
           <div className="header-actions">
             {user ? (
               <>
                 <span
-                  style={{
-                    fontWeight: 600,
-                    color: '#1e3a8a',
-                    marginRight: 16,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    borderRadius: 20,
-                    padding: '6px 16px',
-                    background: location.pathname === '/profile' ? 'linear-gradient(90deg, #e0e7ff 0%, #fff 100%)' : 'transparent',
-                    boxShadow: location.pathname === '/profile' ? '0 2px 8px #1e3a8a22' : 'none',
-                    transition: 'background 0.2s, box-shadow 0.2s',
-                  }}
-                  onClick={() => navigate('/profile')}
+                  className={`profile-link${location.pathname === '/profile' ? ' active' : ''}`}
+                  onClick={() => { navigate('/profile'); handleNavClick(); }}
                   title="View Profile"
+                  tabIndex={0}
+                  role="button"
+                  aria-label="View Profile"
                 >
-                  <span style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #c7d2fe 0%, #f0fdfa 100%)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 700,
-                    fontSize: 18,
-                    color: '#1e3a8a',
-                  }}>{user.username ? user.username[0].toUpperCase() : '?'}</span>
+                  <span className="profile-avatar">{user.username ? user.username[0].toUpperCase() : '?'}</span>
                   {user.username}
                 </span>
                 <button className="btn btn-primary" onClick={handleLogout}>Logout</button>
               </>
             ) : (
               <>
-                <Link to="/login" className="btn btn-outline blur-login" style={{marginRight: 8}}>Login</Link>
-                <Link to="/register" className="btn btn-secondary" style={{marginRight: 8}}>Register</Link>
+                <Link to="/login" className="btn btn-outline blur-login" onClick={handleNavClick}>Login</Link>
+                <Link to="/register" className="btn btn-secondary" onClick={handleNavClick}>Register</Link>
               </>
             )}
-            {/* <Link to="/contact" className="btn btn-primary">Apply Now</Link>
-            <button className="mobile-menu-btn" onClick={toggleMenu}>
-              <span></span>
-              <span></span>
-              <span></span>
-            </button> */}
           </div>
         </div>
       </div>
