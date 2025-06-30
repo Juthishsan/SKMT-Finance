@@ -7,7 +7,18 @@ import AboutSlideshow from '../components/AboutSlideshow';
 const About = () => {
   return (
     <div className="about">
+
       {/* Hero Section */}
+      <section className="page-hero">
+        <div className="container">
+          <div className="text-center">
+            <h1>About SKMT Finance</h1>
+            <p>Empowering dreams and transforming lives through innovative financial solutions.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* about Section */}
       <section className="about-hero">
         <div className="container">
           <div className="hero-content">
@@ -172,11 +183,11 @@ const About = () => {
               <h4>Trust</h4>
               <p>Building lasting relationships through transparency, honesty, and reliability in all our interactions</p>
             </div>
-            <div className="value-card">
+            {/* <div className="value-card">
               <div className="value-icon">⚡</div>
               <h4>Innovation</h4>
               <p>Continuously evolving our services through cutting-edge technology and creative solutions</p>
-            </div>
+            </div> */}
             <div className="value-card">
               <div className="value-icon">🎯</div>
               <h4>Excellence</h4>

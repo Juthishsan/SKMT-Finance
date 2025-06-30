@@ -28,11 +28,11 @@ const Services = () => {
   return (
     <div className="services">
       {/* Hero Section */}
-      <section className="services-hero">
+      <section className="page-hero">
         <div className="container">
           <div className="text-center">
             <h1>Our Services</h1>
-            <p>Comprehensive financial services designed to make your journey smoother and more convenient</p>
+            <p>Comprehensive financial services designed to make your journey smoother and more convenient.</p>
           </div>
         </div>
       </section>

@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -54,6 +55,88 @@ const ProductDetails = () => {
       currency: 'INR',
       maximumFractionDigits: 0
     }).format(price);
+  };
+
+  // Place Order handler
+  const handlePlaceOrder = async () => {
+    if (!product.stock) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Out of stock',
+        text: 'Sorry, this product is out of stock.',
+        confirmButtonColor: '#dc3545',
+      });
+      return;
+    }
+    // Get user from localStorage
+    let user = null;
+    try {
+      user = JSON.parse(localStorage.getItem('user'));
+    } catch {}
+    if (!user) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Login required',
+        text: 'Please log in to place an order.',
+        confirmButtonColor: '#1e3a8a',
+      });
+      return;
+    }
+    // Fetch the full product object again to guarantee freshness
+    let freshProduct = product;
+    try {
+      const res = await fetch(`http://localhost:5000/api/products/${id}`);
+      if (res.ok) {
+        freshProduct = await res.json();
+      }
+    } catch {}
+    const userSnapshot = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      address: user.address,
+      city: user.city,
+      state: user.state,
+      pincode: user.pincode,
+    };
+    // Use the freshly fetched product object
+    const productSnapshot = { ...freshProduct };
+    const orderData = {
+      userSnapshot,
+      productSnapshot,
+    };
+    console.log('Order data being sent:', orderData);
+    try {
+      const res = await fetch('http://localhost:5000/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Order placed!',
+          text: 'We will contact you soon.',
+          confirmButtonColor: '#1e3a8a',
+        });
+      } else {
+        const data = await res.json();
+        Swal.fire({
+          icon: 'error',
+          title: 'Order failed',
+          text: data.error || 'Could not place order.',
+          confirmButtonColor: '#dc3545',
+        });
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Order failed',
+        text: err.message || 'Could not place order.',
+        confirmButtonColor: '#dc3545',
+      });
+    }
   };
 
   return (
@@ -148,7 +231,7 @@ const ProductDetails = () => {
             </ul>
           </div>
           <div style={{display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24}}>
-            <Link to="/contact" className="btn btn-primary" style={{fontSize: '1.1rem', minWidth: 160}}>Contact to Buy</Link>
+            <button type="button" className="btn btn-primary" style={{fontSize: '1.1rem', minWidth: 160}} onClick={handlePlaceOrder}>Place Order</button>
             <a href={window.location.href} className="btn btn-outline" style={{fontSize: '1.1rem', minWidth: 120}} target="_blank" rel="noopener noreferrer">Share</a>
           </div>
           {/* Trust/Why Buy Section */}

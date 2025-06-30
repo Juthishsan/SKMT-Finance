@@ -16,6 +16,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 import Profile from './pages/Profile';
+import SellVehicle from './pages/SellVehicle.jsx';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/sell-vehicle" element={<SellVehicle />} />
           </Routes>
         </main>
         <Footer />

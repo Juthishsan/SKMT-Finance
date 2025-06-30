@@ -582,7 +582,7 @@ p {
     transform: translateY(-100%);
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+  transition: all 0.3s ease;
     gap: 16px;
     margin-left: 0;
     justify-content: flex-start;
@@ -3762,3 +3762,286 @@ html, body {
     height: 8px;
   }
 }
+
+.mobile-menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s;
+  animation: menuIconPop 0.35s cubic-bezier(.4,0,.2,1);
+}
+@keyframes menuIconPop {
+  0% { transform: scale(0.7); opacity: 0.5; }
+  80% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.nav-icon {
+  margin-right: 0.7em;
+  font-size: 1.15em;
+  vertical-align: middle;
+  color: #232946;
+  opacity: 0.92;
+  transition: color 0.2s, transform 0.2s;
+}
+.nav-link.active .nav-icon,
+.nav-link:hover .nav-icon,
+.dropdown-item:hover .nav-icon {
+  color: #1e3a8a;
+  transform: scale(1.18);
+}
+.dropdown-item .nav-icon {
+  margin-right: 0.5em;
+  font-size: 1.1em;
+}
+
+.menu-animated {
+  animation: menuBounceIn 0.45s cubic-bezier(.4,0,.2,1);
+  transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s;
+}
+.menu-animated.open {
+  animation: menuRotateIn 0.45s cubic-bezier(.4,0,.2,1);
+}
+@keyframes menuBounceIn {
+  0% { transform: scale(0.7) rotate(-20deg); opacity: 0.5; }
+  60% { transform: scale(1.15) rotate(10deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes menuRotateIn {
+  0% { transform: scale(0.7) rotate(0deg); opacity: 0.5; }
+  60% { transform: scale(1.15) rotate(180deg); opacity: 1; }
+  100% { transform: scale(1) rotate(180deg); opacity: 1; }
+}
+@media (max-width: 900px) {
+  .nav {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(60px);
+    transition: right 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s, transform 0.35s;
+  }
+  .nav.nav-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+    animation: navFadeIn 0.45s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes navFadeIn {
+    0% { opacity: 0; transform: translateX(60px); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+  .nav-link, .dropdown-item {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: menuItemFadeIn 0.5s cubic-bezier(.4,0,.2,1) forwards;
+    animation-delay: 0.15s;
+  }
+  .nav.nav-open .nav-link, .nav.nav-open .dropdown-item {
+    opacity: 1;
+    transform: translateY(0);
+    animation-delay: 0.25s;
+  }
+  @keyframes menuItemFadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+}
+.nav-icon {
+  margin-right: 0.7em;
+  font-size: 1.25em;
+  vertical-align: middle;
+  color: #232946;
+  opacity: 0.92;
+  transition: color 0.2s, transform 0.2s;
+}
+.nav-link.active .nav-icon,
+.nav-link:hover .nav-icon,
+.dropdown-item:hover .nav-icon {
+  color: #1e3a8a;
+  transform: scale(1.18);
+}
+.dropdown-item .nav-icon {
+  margin-right: 0.5em;
+  font-size: 1.1em;
+}
+
+.custom-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 28px;
+  height: 28px;
+  position: relative;
+  z-index: 130;
+}
+.bar {
+  width: 18px;
+  height: 3.5px;
+  background: #232946;
+  border-radius: 2px;
+  margin: 3.2px 0;
+  transition: all 0.38s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 1px 4px 0 rgba(30,58,138,0.08);
+}
+.mobile-menu-btn.open .custom-hamburger .bar:nth-child(1) {
+  transform: translateY(6.5px) rotate(45deg);
+}
+.mobile-menu-btn.open .custom-hamburger .bar:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0.5);
+}
+.mobile-menu-btn.open .custom-hamburger .bar:nth-child(3) {
+  transform: translateY(-6.5px) rotate(-45deg);
+}
+.custom-hamburger .bar {
+  will-change: transform, opacity;
+}
+.mobile-menu-btn:active .custom-hamburger .bar {
+  transform: scaleX(0.95);
+}
+
+@media (max-width: 900px) {
+  .contact-content {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .branch-locator {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+@media (max-width: 600px) {
+  .contact-hero {
+    padding: 40px 0;
+  }
+  .contact-hero h1 {
+    font-size: 1.3rem;
+  }
+  .contact-hero p {
+    font-size: 1rem;
+  }
+  .contact-content {
+    gap: 18px;
+  }
+  .contact-form-section h2,
+  .contact-info-section h2 {
+    font-size: 1.1rem;
+  }
+  .contact-form,
+  .contact-info-section,
+  .locator-form {
+    padding: 16px;
+    border-radius: 10px;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .branches-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .branch-card {
+    padding: 12px;
+    border-radius: 8px;
+  }
+}
+
+/* --- Vehicles Dropdown --- */
+.vehicles-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.vehicles-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 210px;
+  background: var(--color-bg-elevated, #fff);
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.13);
+  border-radius: 10px;
+  z-index: 1000;
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  animation: dropdownFadeIn 0.18s;
+}
+.vehicles-dropdown-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.7rem 1.2rem;
+  color: var(--color-text, #222);
+  text-decoration: none;
+  font-size: 1rem;
+  transition: background 0.13s, color 0.13s;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.vehicles-dropdown-menu .dropdown-item:hover,
+.vehicles-dropdown-menu .dropdown-item:focus {
+  background: var(--color-primary-fade, #f0f6ff);
+  color: var(--color-primary, #1a4fa3);
+}
+@media (max-width: 900px) {
+  .vehicles-dropdown-menu {
+    position: static;
+    min-width: 0;
+    box-shadow: none;
+    border-radius: 0;
+    margin-top: 0;
+    background: none;
+    padding: 0;
+  }
+  .vehicles-dropdown-menu .dropdown-item {
+    padding: 0.9rem 1.2rem;
+    font-size: 1.08rem;
+    border-radius: 0;
+    background: none;
+  }
+}
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* --- End Vehicles Dropdown --- */
+
+/* --- Unified Hero Section --- */
+.page-hero {
+  background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%);
+  color: #fff;
+  padding: 64px 0 48px 0;
+  margin-bottom: 0;
+  position: relative;
+  width: 100%;
+}
+.page-hero .container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.page-hero .text-center {
+  text-align: center;
+}
+.page-hero h1 {
+  font-size: 2.6rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #fff;
+  letter-spacing: 1px;
+}
+.page-hero p {
+  font-size: 1.18rem;
+  color: #e0e7ef;
+  font-weight: 500;
+  margin-bottom: 0;
+}
+@media (max-width: 600px) {
+  .page-hero {
+    padding: 38px 0 28px 0;
+  }
+  .page-hero h1 {
+    font-size: 1.5rem;
+  }
+  .page-hero p {
+    font-size: 1rem;
+  }
+}
+/* --- End Unified Hero Section --- */

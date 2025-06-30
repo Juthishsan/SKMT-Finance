@@ -42,7 +42,8 @@ const Products = () => {
 
   return (
     <div className="products">
-      <section className="products-hero">
+      {/* Hero Section */}
+      <section className="page-hero">
         <div className="container">
           <div className="text-center">
             <h1>Automobiles for Sale</h1>

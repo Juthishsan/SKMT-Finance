@@ -59,30 +59,22 @@ const Users = () => {
       cell: (row) => (
         <i className='bi bi-eye-fill action-btn-view' style={{ color: '#1e3a8a', fontSize: 20, cursor: 'pointer', marginRight: 8 }} onClick={() => openModal(row)} title="View details"></i>
       ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
     },
     {
       name: '',
       cell: (row) => (
         <i className='bi bi-trash-fill action-btn-delete' style={{ color: '#ef4444', fontSize: 20, cursor: 'pointer' }} onClick={() => deleteUser(row._id)} title="Delete user"></i>
       ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
     },
     {
       name: 'Username',
       selector: row => row.username,
       sortable: true,
-      grow: 2,
     },
     {
       name: 'Email',
       selector: row => row.email,
       sortable: true,
-      grow: 3,
     },
   ];
 
@@ -179,26 +171,64 @@ const Users = () => {
                 <div className="modal-body" >
                   <div className='d-flex flex-row justify-content-between pb-3'>
                     <h5 className='animate__animated animate__fadeInDown text-center fw-bold' style={{ color: '#1e3a8a' }}>
-                      User Info
+                      User Information
                     </h5>
                     <h5 className='animate__animated animate__fadeInUp ' onClick={() => setModalOpen(false)} style={{ cursor: 'pointer', color: '#ef4444' }}>
                       <i className="bi bi-x-circle-fill"></i>
                     </h5>
                   </div>
                   <div>
-                    <div className='container border p-3 rounded-3 users-modal-inner' style={{ background: '#f9fafb' }}>
-                      <div className='row'>
-                        <div className='col-md-6 mb-2'>
-                          <label className='fw-bold text-primary'>UID</label>
-                          <p style={{ color: '#1e3a8a', fontWeight: 600 }}> {selectedRowData._id}</p>
+                    <div className='container border p-4 rounded-3 users-modal-inner' style={{ background: '#f8fafc' }}>
+                      <div className='row g-3'>
+                        <div className='col-md-6'>
+                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>User ID</label>
+                          <p style={{ color: '#6b7280', fontWeight: 600, fontSize: 15, margin: 0 }}>{selectedRowData._id}</p>
                         </div>
-                        <div className='col-md-6 mb-2'>
-                          <label className='fw-bold text-primary'>Username</label>
-                          <p style={{ color: '#1e3a8a', fontWeight: 600 }}> {selectedRowData.username}</p>
+                        <div className='col-md-6'>
+                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Username</label>
+                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.username}</p>
                         </div>
-                        <div className='col-md-6 mb-2'>
-                          <label className='fw-bold text-primary'>Email</label>
-                          <p style={{ color: '#1e3a8a', fontWeight: 600 }}> {selectedRowData.email}</p>
+                        <div className='col-md-6'>
+                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Email</label>
+                          <p style={{ color: '#2563eb', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.email}</p>
+                        </div>
+                        <div className='col-md-6'>
+                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Phone</label>
+                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.phone || 'Not provided'}</p>
+                        </div>
+                        <div className='col-12'>
+                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Address</label>
+                          <div style={{ background: '#fff', borderRadius: 10, padding: 12, border: '1px solid #e2e8f0' }}>
+                            <p style={{ color: '#222', fontWeight: 500, fontSize: 15, margin: 0 }}>{selectedRowData.address || 'Not provided'}</p>
+                          </div>
+                        </div>
+                        <div className='col-md-4'>
+                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>City</label>
+                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.city || 'Not provided'}</p>
+                        </div>
+                        <div className='col-md-4'>
+                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>State</label>
+                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.state || 'Not provided'}</p>
+                        </div>
+                        <div className='col-md-4'>
+                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>PIN Code</label>
+                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.pincode || 'Not provided'}</p>
+                        </div>
+                        <div className='col-md-6'>
+                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Registration Date</label>
+                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>
+                            {selectedRowData.createdAt ? new Date(selectedRowData.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            }) : 'Not available'}
+                          </p>
+                        </div>
+                        <div className='col-md-6'>
+                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Account Status</label>
+                          <p style={{ color: '#10b981', fontWeight: 700, fontSize: 16, margin: 0 }}>
+                            Active
+                          </p>
                         </div>
                       </div>
                     </div>

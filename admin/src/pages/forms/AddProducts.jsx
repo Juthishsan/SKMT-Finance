@@ -1,17 +1,6 @@
 import React, { useRef, useState } from 'react';
 import Swal from 'sweetalert2';
 
-function generateRandomString(length) {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-
-    for (let i = 0; i < length; i++) {
-        const randomIndex = Math.floor(Math.random() * characters.length);
-        result += characters.charAt(randomIndex);
-    }
-    return result;
-}
-
 const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
     const productname = useRef();
     const productprice = useRef();
@@ -23,7 +12,6 @@ const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
     const insurance = useRef();
     const [files, setFiles] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
-    const [focusedField, setFocusedField] = useState(null);
     const [productType, setProductType] = useState('');
     const [isNewProductType, setIsNewProductType] = useState(false);
     const [newProductType, setNewProductType] = useState('');
@@ -101,8 +89,6 @@ const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
                     type="file"
                     onChange={handleFileChange}
                     className="input-field"
-                    onFocus={() => setFocusedField('images')}
-                    onBlur={() => setFocusedField(null)}
                     required
                     id="images"
                     multiple
@@ -117,11 +103,11 @@ const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
             </div>
             <div className="form-group">
                 <label className="mb-2 fw-bold text-primary-blue">Product Name</label>
-                <input className="input-field" placeholder="Product Name" ref={productname} required onFocus={() => setFocusedField('name')} onBlur={() => setFocusedField(null)} />
+                <input className="input-field" placeholder="Product Name" ref={productname} required />
             </div>
             <div className="form-group">
                 <label className="mb-2 fw-bold text-primary-blue">Product Stock</label>
-                <select className="input-field" ref={productstock} required onFocus={() => setFocusedField('stock')} onBlur={() => setFocusedField(null)}>
+                <select className="input-field" ref={productstock} required>
                     <option value="">Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
@@ -129,7 +115,7 @@ const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
             </div>
             <div className="form-group">
                 <label className="mb-2 fw-bold text-primary-blue">Product Price</label>
-                <input className="input-field" placeholder="Product Price" ref={productprice} type="number" min="0" required onFocus={() => setFocusedField('price')} onBlur={() => setFocusedField(null) } />
+                <input className="input-field" placeholder="Product Price" ref={productprice} type="number" min="0" required />
             </div>
             <div className="form-group">
                 <label className="mb-2 fw-bold text-primary-blue">Product Type</label>
@@ -153,19 +139,19 @@ const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
             </div>
             <div className="form-group">
                 <label className="mb-2 fw-bold text-primary-blue">Model Year</label>
-                <input className="input-field" placeholder="Model Year" ref={modelYear} type="number" min="1900" max={new Date().getFullYear()} required onFocus={() => setFocusedField('modelYear')} onBlur={() => setFocusedField(null) } />
+                <input className="input-field" placeholder="Model Year" ref={modelYear} type="number" min="1900" max={new Date().getFullYear()} required />
             </div>
             <div className="form-group">
                 <label className="mb-2 fw-bold text-primary-blue">No. of Owners</label>
-                <input className="input-field" placeholder="No. of Owners" ref={owners} type="number" min="1" required onFocus={() => setFocusedField('owners')} onBlur={() => setFocusedField(null) } />
+                <input className="input-field" placeholder="No. of Owners" ref={owners} type="number" min="1" required />
             </div>
             <div className="form-group">
                 <label className="mb-2 fw-bold text-primary-blue">FC Years</label>
-                <input className="input-field" placeholder="FC Years" ref={fcYears} type="number" min="0" required onFocus={() => setFocusedField('fcYears')} onBlur={() => setFocusedField(null) } />
+                <input className="input-field" placeholder="FC Years" ref={fcYears} type="number" min="0" required />
             </div>
             <div className="form-group">
                 <label className="mb-2 fw-bold text-primary-blue">Insurance</label>
-                <select className="input-field" ref={insurance} required onFocus={() => setFocusedField('insurance')} onBlur={() => setFocusedField(null) }>
+                <select className="input-field" ref={insurance} required>
                     <option value="">Select</option>
                     <option value="true">Yes</option>
                     <option value="false">No</option>
@@ -173,7 +159,7 @@ const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
             </div>
             <div className="form-group full-width">
                 <label className="mb-2 fw-bold text-primary-blue">Product Description</label>
-                <textarea className="input-field pt-2" placeholder="Product Description" ref={productinfo} required rows={4} onFocus={() => setFocusedField('description')} onBlur={() => setFocusedField(null) }></textarea>
+                <textarea className="input-field pt-2" placeholder="Product Description" ref={productinfo} required rows={4}></textarea>
             </div>
             <div className="col-md-12 mb-4 px-5 text-center full-width">
                 <button

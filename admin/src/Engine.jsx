@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Navbar from './components/Navbar';
 import Account from './pages/Account';
-import ScrollToTop from './ScrollToTop';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
 import Users from './pages/Users';
@@ -9,11 +8,11 @@ import Admins from './pages/Admins';
 import Dashboard from './pages/Dashboard';
 import Loans from './pages/Loans';
 import ContactMessages from './pages/ContactMessages';
-import {
-BsGrid1X2Fill, BsFillArchiveFill, BsFillGrid3X3GapFill, BsPeopleFill,
-BsListCheck, BsMenuButtonWideFill, BsFillGearFill, BsPersonCircle, BsCartFill, BsCurrencyRupee, BsBell
-}
-    from 'react-icons/bs'
+import VehicleSales from './pages/VehicleSales';
+import { BsGrid1X2Fill, BsPeopleFill, BsPersonCircle, BsCartFill, BsCurrencyRupee, BsBell, BsCarFrontFill } from 'react-icons/bs';
+import { HiMenuAlt3 } from 'react-icons/hi';
+import skmtLogo from './assets/skmt logo (1).png';
+import Swal from 'sweetalert2';
 
 const Engine = ({ component, componentrender }) => {
     // Global loan notification logic
@@ -56,14 +55,31 @@ const Engine = ({ component, componentrender }) => {
                 return <Account />;
             case "ContactMessages":
                 return <ContactMessages />;
+            case "VehicleSales":
+                return <VehicleSales />;
             case "Dashboard":
             default:
-                return <Dashboard />;
+                return <Dashboard componentrender={componentrender} />;
         }
     };
 
+    // Find the logout logic from Navbar
+    const logout = async () => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Logged out',
+          text: 'You have been logged out successfully.',
+          showConfirmButton: false,
+          timer: 1200,
+        });
+        localStorage.removeItem('adminEmail');
+        componentrender('Login');
+        // Close the offcanvas if open
+        document.querySelector('#offcanvasDarkNavbar .btn-close')?.click();
+    };
+
     return (
-        <div className='container-fluid z'>
+        <div className='container-fluid z' style={{ display: 'flex', flexDirection: 'row', minHeight: '100vh', padding: 0 }}>
             {/* Global Loan Notification Banner */}
             {loanNotification && (
                 <div
@@ -73,57 +89,88 @@ const Engine = ({ component, componentrender }) => {
                     <BsBell size={22} /> {loanNotification}
                 </div>
             )}
-            <div className='row'>
-                <div className='col-12 col-lg-2 d-lg-block d-none'>
-                    <div>
-                        <Navbar componentrender={componentrender} component={component} />
-                    </div>
+            {/* Fixed Sidebar */}
+            <div style={{ width: 240, minWidth: 220, maxWidth: 260, height: '100vh', position: 'fixed', left: 0, top: 0, zIndex: 101, background: '#fff', borderRight: '1.5px solid #e5e7eb', boxShadow: '2px 0 16px rgba(30,58,138,0.06)' }} className='d-none d-lg-block'>
+                <Navbar componentrender={componentrender} component={component} />
+            </div>
+            {/* Main Content Area */}
+            <div
+                style={{ marginLeft: 240, flex: 1, minWidth: 0 }}
+                className='pt-0 pb-0 main-content-area'
+            >
+                <div className='mt-lg-4 container mt-5 pt-3'>
+                    {render()}
                 </div>
-                <div className='col-12 col-lg-10'>
-                    <div className='mt-lg-4 container mt-5 pt-3'>
-                        {render()}
-                    </div>
-                </div>
-                <div className="d-lg-none d-block">
-                    <nav className="navbar text-bg-white fixed-top">
-                        <div className="container-fluid">
+            </div>
+            {/* Mobile Navbar */}
+            <div className="d-lg-none d-block" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', zIndex: 1200 }}>
+                <div style={{ background: '#fff', border: '4px solid #fff', borderRadius: 24, boxShadow: '0 2px 24px rgba(30,58,138,0.13)', margin: 6, padding: 0 }}>
+                    <nav className="navbar text-bg-white" style={{ boxShadow: 'none', minHeight: 60, borderRadius: 24, padding: 0 }}>
+                        <div className="container-fluid d-flex align-items-center justify-content-between" style={{ padding: '0 10px' }}>
                             <div>
-                                <img className="" src="Images/logo2.png" width="150px" alt="Logo" />
+                                <img src={skmtLogo} width="60" height="60" alt="Logo" style={{ objectFit: 'contain', borderRadius: 16, boxShadow: '0 4px 16px #1e3a8a22', border: '3px solid #fff' }} />
                             </div>
                             <div className='d-flex flex-row justify-content-center'>
-                                <h5 className="text-coral" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
-                                    <span className="navbar-toggler-icon"></span>
-                                </h5>
+                                <button className="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation" style={{ border: 'none', background: 'none', fontSize: 32, color: '#1e3a8a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, margin: 0, height: 60, width: 60, boxShadow: 'none' }}>
+                                    <HiMenuAlt3 size={38} />
+                                </button>
                             </div>
-                            <div className="offcanvas offcanvas-end text-bg-white w-75" tabIndex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
-                                <div className="offcanvas-header">
-                                    <img className="" src="Images/logo2.png" width="150px" alt="Logo" />
+                            <div className="offcanvas offcanvas-end custom-offcanvas w-75" tabIndex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel" style={{ borderRadius: 24, border: '4px solid #fff', boxShadow: '0 2px 24px rgba(30,58,138,0.13)' }}>
+                                <div className="offcanvas-header" style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                    <img src={skmtLogo} width="60" height="60" alt="Logo" style={{ objectFit: 'contain', borderRadius: 16, boxShadow: '0 4px 16px #1e3a8a22', border: '3px solid #fff' }} />
                                     <button type="button" className="btn-close btn-close-dark" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                                 </div>
-                                <div className="offcanvas-body">
-                                    <ul className="navbar-nav justify-content-end gap-3 flex-grow-1 pe-3">
-                                        <h5 className={` ${component === 'Dashboard' ? 'text-coral' : ''} sidebar-list-item`} onClick={() => componentrender('Dashboard')}>
-                                            <BsGrid1X2Fill className='icon' />  Dashboard
-                                        </h5>
-                                        <h5 className={` ${component === 'Products' ? 'text-coral' : ''} sidebar-list-item`} onClick={() => componentrender('Products')}>
-                                            <BsFillArchiveFill className='icon' />  Products
-                                        </h5>
-                                        <h5 className={` ${component === 'Orders' ? 'text-coral' : ''} sidebar-list-item`} onClick={() => componentrender('Orders')}>
-                                            <BsCartFill className='icon' />   Orders
-                                        </h5>
-                                        <h5 className={` ${component === 'Loans' ? 'text-coral' : ''} sidebar-list-item`} onClick={() => componentrender('Loans')}>
+                                <div className="offcanvas-body p-0" style={{ padding: 0 }}>
+                                    <ul className="navbar-nav gap-2 flex-grow-1 pe-3" style={{ padding: 16 }}>
+                                        <li className={`sidebar-list-item py-3 px-2 ${component === 'Dashboard' ? 'text-coral' : ''}`} style={{ borderRadius: 10, fontWeight: 600, fontSize: 18, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.18s' }} onClick={() => { componentrender('Dashboard'); document.querySelector('#offcanvasDarkNavbar .btn-close')?.click(); }}>
+                                            <BsGrid1X2Fill className='icon' /> Dashboard
+                                        </li>
+                                        <li className={`sidebar-list-item py-3 px-2 ${component === 'Products' ? 'text-coral' : ''}`} style={{ borderRadius: 10, fontWeight: 600, fontSize: 18, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.18s' }} onClick={() => { componentrender('Products'); document.querySelector('#offcanvasDarkNavbar .btn-close')?.click(); }}>
+                                            <BsGrid1X2Fill className='icon' /> Products
+                                        </li>
+                                        <li className={`sidebar-list-item py-3 px-2 ${component === 'Orders' ? 'text-coral' : ''}`} style={{ borderRadius: 10, fontWeight: 600, fontSize: 18, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.18s' }} onClick={() => { componentrender('Orders'); document.querySelector('#offcanvasDarkNavbar .btn-close')?.click(); }}>
+                                            <BsCartFill className='icon' /> Orders
+                                        </li>
+                                        <li className={`sidebar-list-item py-3 px-2 ${component === 'Loans' ? 'text-coral' : ''}`} style={{ borderRadius: 10, fontWeight: 600, fontSize: 18, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.18s' }} onClick={() => { componentrender('Loans'); document.querySelector('#offcanvasDarkNavbar .btn-close')?.click(); }}>
                                             <BsCurrencyRupee className='icon' /> Loans
-                                        </h5>
-                                        <h5 className={` ${component === 'Users' ? 'text-coral' : ''} sidebar-list-item`} onClick={() => componentrender('Users')}>
+                                        </li>
+                                        <li className={`sidebar-list-item py-3 px-2 ${component === 'Users' ? 'text-coral' : ''}`} style={{ borderRadius: 10, fontWeight: 600, fontSize: 18, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.18s' }} onClick={() => { componentrender('Users'); document.querySelector('#offcanvasDarkNavbar .btn-close')?.click(); }}>
                                             <BsPeopleFill className='icon' /> Users
-                                        </h5>
-                                        <h5 className={` ${component === 'Profile' ? 'text-coral' : ''} sidebar-list-item`} onClick={() => componentrender('Profile')}>
+                                        </li>
+                                        <li className={`sidebar-list-item py-3 px-2 ${component === 'VehicleSales' ? 'text-coral' : ''}`} style={{ borderRadius: 10, fontWeight: 600, fontSize: 18, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.18s' }} onClick={() => { componentrender('VehicleSales'); document.querySelector('#offcanvasDarkNavbar .btn-close')?.click(); }}>
+                                            <BsCarFrontFill className='icon' /> Vehicle Sales
+                                        </li>
+                                        <li className={`sidebar-list-item py-3 px-2 ${component === 'Profile' ? 'text-coral' : ''}`} style={{ borderRadius: 10, fontWeight: 600, fontSize: 18, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.18s' }} onClick={() => { componentrender('Profile'); document.querySelector('#offcanvasDarkNavbar .btn-close')?.click(); }}>
                                             <BsPersonCircle className='icon' /> Profile
-                                        </h5>
-                                        <h5 className={` ${component === 'Admins' ? 'text-coral' : ''} sidebar-list-item`} onClick={() => componentrender('Admins')}>
-                                            <BsPeopleFill className='icon' />   Admins
-                                        </h5>
+                                        </li>
+                                        <li className={`sidebar-list-item py-3 px-2 ${component === 'Admins' ? 'text-coral' : ''}`} style={{ borderRadius: 10, fontWeight: 600, fontSize: 18, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.18s' }} onClick={() => { componentrender('Admins'); document.querySelector('#offcanvasDarkNavbar .btn-close')?.click(); }}>
+                                            <BsPeopleFill className='icon' /> Admins
+                                        </li>
+                                        <li className={`sidebar-list-item py-3 px-2 ${component === 'ContactMessages' ? 'text-coral' : ''}`} style={{ borderRadius: 10, fontWeight: 600, fontSize: 18, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.18s' }} onClick={() => { componentrender('ContactMessages'); document.querySelector('#offcanvasDarkNavbar .btn-close')?.click(); }}>
+                                            <BsBell className='icon' /> Contact Messages
+                                        </li>
                                     </ul>
+                                    <button
+                                      onClick={logout}
+                                      style={{
+                                        width: '90%',
+                                        margin: '24px auto 18px auto',
+                                        display: 'block',
+                                        background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: 8,
+                                        padding: '14px 0',
+                                        fontWeight: 700,
+                                        fontSize: 18,
+                                        letterSpacing: 1,
+                                        boxShadow: '0 2px 8px rgba(30,58,138,0.08)',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.2s, transform 0.2s',
+                                      }}
+                                    >
+                                      Logout
+                                    </button>
                                 </div>
                             </div>
                         </div>

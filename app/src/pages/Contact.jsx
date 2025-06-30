@@ -45,7 +45,7 @@ const Contact = () => {
   return (
     <div className="contact">
       {/* Hero Section */}
-      <section className="contact-hero">
+      <section className="page-hero">
         <div className="container">
           <div className="text-center">
             <h1>Contact Us</h1>
@@ -189,7 +189,7 @@ const Contact = () => {
       </section>
 
       {/* Branch Locator */}
-      <section className="section section-bg-light">
+      {/* <section className="section section-bg-light">
         <div className="container">
           <div className="text-center mb-16">
             <h2>Find a Branch Near You</h2>
@@ -243,7 +243,7 @@ const Contact = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* FAQ Section */}
       <section className="section">

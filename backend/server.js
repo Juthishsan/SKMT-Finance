@@ -9,6 +9,7 @@ const Admin = require('./models/Admin');
 const Order = require('./models/Order');
 const LoanApplication = require('./models/LoanApplication');
 const ContactMessage = require('./models/ContactMessage');
+const VehicleSale = require('./models/VehicleSale');
 
 const app = express();
 app.use(express.json());
@@ -382,6 +383,136 @@ app.get('/api/user-loan-applications', async (req, res) => {
     if (!email) return res.status(400).json({ error: 'Email is required' });
     const applications = await LoanApplication.find({ email }).sort({ createdAt: -1 });
     res.json(applications);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// === Vehicle Sale APIs ===
+
+// Create a new vehicle sale (user)
+app.post('/api/vehicle-sales', upload.array('images', 10), async (req, res) => {
+  try {
+    const { user, brand, year, fuel, transmission, kmDriven, owners, title, description, price } = req.body;
+    const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+    const sale = new VehicleSale({
+      user,
+      brand,
+      year,
+      fuel,
+      transmission,
+      kmDriven,
+      owners,
+      title,
+      description,
+      price,
+      images
+    });
+    await sale.save();
+    res.status(201).json(sale);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Get all vehicle sales (admin)
+app.get('/api/vehicle-sales', async (req, res) => {
+  try {
+    const sales = await VehicleSale.find().populate('user', 'username email phone address city state pincode createdAt');
+    res.json(sales);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Get vehicle sales by user
+app.get('/api/vehicle-sales/user/:userId', async (req, res) => {
+  try {
+    const sales = await VehicleSale.find({ user: req.params.userId });
+    res.json(sales);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Update vehicle sale status (admin approve/reject)
+app.put('/api/vehicle-sales/:id', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const updated = await VehicleSale.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ error: 'Not found' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Delete a vehicle sale (admin)
+app.delete('/api/vehicle-sales/:id', async (req, res) => {
+  try {
+    const deleted = await VehicleSale.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Not found' });
+    res.json({ message: 'Vehicle sale deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Create a new order with user and product snapshots
+app.post('/api/orders', async (req, res) => {
+  try {
+    console.log('Order POST body:', req.body); // Debug log
+    const { userSnapshot, productSnapshot } = req.body;
+    if (!userSnapshot || !productSnapshot) {
+      return res.status(400).json({ error: 'User and product details are required.' });
+    }
+    const order = new Order({ userSnapshot, productSnapshot });
+    await order.save();
+    res.status(201).json(order);
+  } catch (err) {
+    console.error('Order save error:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Get all orders (admin)
+app.get('/api/orders', async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ orderDate: -1 });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Update order status
+app.put('/api/orders/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const updated = await Order.findByIdAndUpdate(
+      req.params.id,
+      { orderstatus: status },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ error: 'Order not found' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Delete an order
+app.delete('/api/orders/:id', async (req, res) => {
+  try {
+    const deletedOrder = await Order.findByIdAndDelete(req.params.id);
+    if (!deletedOrder) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    res.json({ message: 'Order deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message || 'Internal server error' });
   }

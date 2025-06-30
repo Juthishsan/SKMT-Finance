@@ -43,7 +43,8 @@ const AuthProvider = () => {
                 "Users",
                 "Admins",
                 "Profile",
-                "ContactMessages"
+                "ContactMessages",
+                "VehicleSales"
             ].includes(componentName)
         ) {
             setcomponent("Engine");

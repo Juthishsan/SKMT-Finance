@@ -1,10 +1,29 @@
 const mongoose = require('mongoose');
 
 const OrderSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  userSnapshot: {
+    _id: String,
+    username: String,
+    email: String,
+    phone: String,
+    address: String,
+    city: String,
+    state: String,
+    pincode: String,
+  },
+  productSnapshot: {
+    _id: String,
+    name: String,
+    price: Number,
+    type: String,
+    modelYear: String,
+    owners: String,
+    fcYears: String,
+    insurance: mongoose.Schema.Types.Mixed,
+    images: [String],
+    description: String,
+  },
   orderDate: { type: Date, default: Date.now },
-  grandTotal: { type: Number, required: true },
-  paymentMethod: { type: String },
   orderstatus: { type: String, default: 'Pending' }
 });
 

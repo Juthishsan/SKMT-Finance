@@ -2,7 +2,7 @@ import React from 'react';
 import skmtLogo from '../assets/skmt logo (1).png';
 import Swal from 'sweetalert2';
 import {
-  BsGrid1X2Fill, BsFillArchiveFill, BsPeopleFill, BsPersonCircle, BsCartFill, BsCurrencyRupee, BsEnvelopeFill
+  BsGrid1X2Fill, BsFillArchiveFill, BsPeopleFill, BsPersonCircle, BsCartFill, BsCurrencyRupee, BsEnvelopeFill, BsCarFrontFill
 } from 'react-icons/bs';
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Orders', icon: <BsCartFill size={22} />, key: 'Orders' },
   { label: 'Loans', icon: <BsCurrencyRupee size={22} />, key: 'Loans' },
   { label: 'Users', icon: <BsPeopleFill size={22} />, key: 'Users' },
+  { label: 'Vehicle Sales', icon: <BsCarFrontFill size={22} />, key: 'VehicleSales' },
   { label: 'Profile', icon: <BsPersonCircle size={22} />, key: 'Profile' },
   { label: 'Admins', icon: <BsPeopleFill size={22} />, key: 'Admins' },
   { label: 'Contact Messages', icon: <BsEnvelopeFill size={22} />, key: 'ContactMessages' },

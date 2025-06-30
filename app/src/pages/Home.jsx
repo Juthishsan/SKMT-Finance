@@ -12,6 +12,30 @@ const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentHero, setCurrentHero] = useState(0);
+
+  const heroSlides = [
+    {
+      heading: 'Drive Your Dreams with Our Car Loans',
+      paragraph: 'Get behind the wheel of your dream car with flexible car loan options, low interest rates, and quick approvals. Experience hassle-free financing for new and used cars at SKMT Finance.'
+    },
+    {
+      heading: 'Personal Loans for Every Need',
+      paragraph: 'Whether it\'s a wedding, travel, education, or emergency, our personal loans offer fast disbursal, minimal paperwork, and competitive rates. Fulfill your aspirations with SKMT Finance.'
+    },
+    {
+      heading: 'Make Your Dream Home a Reality',
+      paragraph: 'Our home loans come with attractive interest rates, easy EMIs, and expert guidance. Turn your dream of owning a home into reality with SKMT Finance.'
+    },
+    {
+      heading: 'Unlock the Value of Your Property',
+      paragraph: 'Leverage your residential or commercial property for a high-value loan. Enjoy long tenure, low rates, and multi-purpose usage with SKMT Finance property loans.'
+    },
+    {
+      heading: 'Bike Loans for Every Rider',
+      paragraph: 'Finance your new or used bike with SKMT Finance. Enjoy quick approvals, low EMIs, and flexible repayment options for all types of two-wheelers.'
+    }
+  ];
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -33,6 +57,15 @@ const Home = () => {
     fetchProducts();
   }, []);
 
+  // Sync hero text with slideshow (assuming Slideshow exposes a callback or you can control the index)
+  // For this example, we'll auto-cycle every 5s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentHero(prev => (prev + 1) % heroSlides.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -45,15 +78,13 @@ const Home = () => {
     <div className="home">
       {/* Hero Section */}
       <section className="hero">
-              <Slideshow />
+        <Slideshow currentIndex={currentHero} />
         {/* Gradient overlay for blend effect */}
         <div className="hero-gradient-overlay" />
         <div className="hero-text-overlay">
           <div>
-            <h1 className="hero-title">Your Financial Dreams, Our Priority</h1>
-            <p className="hero-subtitle">
-              Empowering your financial journey with trusted solutions, competitive rates, and personalized service. Experience the difference with SKMT finance.
-            </p>
+            <h1 className="hero-title">{heroSlides[currentHero].heading}</h1>
+            <p className="hero-subtitle">{heroSlides[currentHero].paragraph}</p>
             <Link to="/loans" className="btn btn-primary hero-cta-btn">Explore Loans</Link>
           </div>
         </div>
@@ -276,8 +307,8 @@ const Home = () => {
             </div>
             <div className="card feature-card">
               <div className="feature-icon">🏠</div>
-              <h3>Home Loans</h3>
-              <p>Make your dream home a reality with our attractive home loan packages and quick approval process.</p>
+              <h3>Property Loans</h3>
+              <p>Make your dream property a reality with our attractive property loan packages and quick approval process.</p>
             </div>
             <div className="card feature-card">
               <div className="feature-icon">💼</div>

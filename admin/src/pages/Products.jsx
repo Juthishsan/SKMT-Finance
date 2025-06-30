@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import DataTable from 'react-data-table-component';
 import AddProducts from './forms/AddProducts';
 import Swal from 'sweetalert2';
 import { BsEyeFill, BsPencilFill, BsTrashFill } from 'react-icons/bs';
@@ -14,21 +13,9 @@ const Products = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState(null);
   const [selectedType, setSelectedType] = useState('');
-  const [notificationSent, setNotificationSent] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [slideshowIndex, setSlideshowIndex] = useState(0);
   const uniqueProductTypes = [...new Set(tableData.map(product => product.type))];
-
-  function generateRandomString(length) {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      result += characters.charAt(randomIndex);
-    }
-    return result;
-  }
-  
 
   useEffect(() => {
     fetchProducts();
@@ -42,14 +29,6 @@ const Products = () => {
   }, [editdata]);
 
 
-  useEffect(() => {
-    // Check if notification needs to be sent when tableData changes
-    if (tableData.length > 0 && !notificationSent) {
-      checkAndSendNotification();
-    }
-  }, [tableData, notificationSent]);
-
-
   const fetchProducts = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/products');
@@ -60,10 +39,6 @@ const Products = () => {
     }
   };
 
-
-  const checkAndSendNotification = () => {
-    // Removed firebase database related logic
-  };
 
   const getproducts = () => {
     fetchProducts();
@@ -185,85 +160,6 @@ const Products = () => {
     }
   };
 
-
-
-  const handleStockUpdate = (key, newStock) => {
-    // Convert newStock to a number
-    const stockValue = parseInt(newStock);
-
-    // Check if the stock value is less than 0
-    if (stockValue < 0) {
-      // Show a warning message
-      Swal.fire('Warning', 'Stock value cannot be less than 0', 'warning');
-    } else {
-      // Proceed with updating the stock value if it's not less than 0
-      // Removed firebase database related logic
-    }
-  };
-
-
-
-  const columns = [
-    {
-      name: 'Images',
-      cell: (row) => (
-        <div style={{ display: 'flex', gap: 6 }}>
-          {(row.images || []).slice(0, 2).map((img, idx) => (
-            <img
-              key={idx}
-              src={img ? `http://localhost:5000${img}` : ''}
-              alt="Product"
-              style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }}
-              loading="lazy"
-            />
-          ))}
-          {row.images && row.images.length > 2 && <span style={{ color: 'var(--primary-blue)', fontWeight: 600 }}>+{row.images.length - 2}</span>}
-        </div>
-      ),
-    },
-    { name: 'Type', selector: 'type' },
-    { name: 'Name', selector: 'name' },
-    { name: 'Price', selector: (row) => `₹ ${row.price}`, sortable: true },
-    { name: 'Stock', selector: 'stock' },
-    { name: 'Model Year', selector: 'modelYear' },
-    {
-      name: 'Action',
-      cell: (row) => (
-        <div className="d-flex flex-row gap-2">
-          <button
-            className="btn btn-sm action-btn-view"
-            style={{ background: 'none', color: '#2563eb', border: 'none', padding: 6, display: 'flex', alignItems: 'center' }}
-            onClick={() => openModal(row)}
-            title="View"
-          >
-            <BsEyeFill size={20} />
-          </button>
-          <button
-            className="btn btn-sm action-btn-edit"
-            style={{ background: 'none', color: '#ea580c', border: 'none', padding: 6, display: 'flex', alignItems: 'center' }}
-            onClick={() => handleEdit(row)}
-            title="Edit"
-          >
-            <BsPencilFill size={18} />
-          </button>
-          <button
-            className="btn btn-sm action-btn-delete"
-            style={{ background: 'none', color: '#dc2626', border: 'none', padding: 6, display: 'flex', alignItems: 'center' }}
-            onClick={() => handleDelete(row._id)}
-            title="Delete"
-          >
-            <BsTrashFill size={18} />
-          </button>
-        </div>
-      ),
-    },
-  ];
-
-  const paginationOptions = {
-    rowsPerPageText: 'Rows per page:',
-    rangeSeparatorText: 'of',
-  };
-
   const handleSearch = (searchQuery, selectedType) => {
     let filteredItems = tableData;
 
@@ -353,7 +249,7 @@ const Products = () => {
                     <tr key={product._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: 12, textAlign: 'center' }}>
                         {(product.images && product.images.length > 0) ? (
-                          <img src={`http://localhost:5000${product.images[0]}`} alt={product.name} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+                          <img src={`http://localhost:5000${product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
                         ) : (
                           <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                         )}
@@ -574,7 +470,7 @@ const Products = () => {
                       className="admin-modal-image"
                       src={`http://localhost:5000${selectedRowData.images[slideshowIndex]}`}
                       loading="lazy"
-                      alt={selectedRowData.name}
+                      alt="Product"
                       style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 18, boxShadow: '0 4px 24px #1e3a8a22', background: '#f1f5f9', objectFit: 'cover' }}
                     />
                     {selectedRowData.images.length > 1 && (

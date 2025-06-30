@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import skmtLogo from '../assets/skmt logo (1).png';
 import { toast } from 'react-toastify';
+import { MdHome, MdDirectionsCar, MdAccountBalance, MdBuild, MdInfo, MdContactPhone } from 'react-icons/md';
 
 const loanOptions = [
   { title: 'Old Bike Loan', id: 1 },
@@ -16,6 +17,7 @@ const loanOptions = [
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loansDropdown, setLoansDropdown] = useState(false);
+  const [vehiclesDropdown, setVehiclesDropdown] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -42,6 +44,7 @@ const Header = () => {
   const handleNavClick = () => {
     setIsMenuOpen(false);
     setLoansDropdown(false);
+    setVehiclesDropdown(false);
   };
 
   return (
@@ -59,9 +62,11 @@ const Header = () => {
           aria-expanded={isMenuOpen}
           onClick={toggleMenu}
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <span className="custom-hamburger">
+            <span className="bar"></span>
+            <span className="bar"></span>
+            <span className="bar"></span>
+          </span>
         </button>
         <div className="nav-right-group">
           <nav className={`nav${isMenuOpen ? ' nav-open' : ''}`} aria-label="Main navigation">
@@ -70,15 +75,45 @@ const Header = () => {
               className={`nav-link${location.pathname === '/' ? ' active' : ''}`}
               onClick={handleNavClick}
             >
-              Home
+              <MdHome className="nav-icon" /> Home
             </Link>
-            <Link 
-              to="/products" 
-              className={`nav-link${location.pathname === '/products' ? ' active' : ''}`}
-              onClick={handleNavClick}
+            <div 
+              className="nav-link vehicles-dropdown-wrapper" 
+              onMouseEnter={() => setVehiclesDropdown(true)} 
+              onMouseLeave={() => setVehiclesDropdown(false)}
+              tabIndex={0}
+              aria-haspopup="true"
+              aria-expanded={vehiclesDropdown}
+              style={{ position: 'relative' }}
+              onClick={() => setVehiclesDropdown((v) => !v)}
             >
-              Vehicles
-            </Link>
+              <Link
+                to="/products"
+                className={location.pathname.startsWith('/products') || location.pathname === '/sell-vehicle' ? 'active' : ''}
+                style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}
+                onClick={() => { handleNavClick(); setVehiclesDropdown(false); }}
+              >
+                <MdDirectionsCar className="nav-icon" /> Vehicles ▾
+              </Link>
+              {vehiclesDropdown && (
+                <div className="vehicles-dropdown-menu">
+                  <Link 
+                    to="/products"
+                    className="dropdown-item"
+                    onClick={() => { handleNavClick(); setVehiclesDropdown(false); }}
+                  >
+                    <MdDirectionsCar className="nav-icon" style={{marginRight: 6}} /> All Vehicles
+                  </Link>
+                  <Link 
+                    to="/sell-vehicle"
+                    className="dropdown-item"
+                    onClick={() => { handleNavClick(); setVehiclesDropdown(false); }}
+                  >
+                    <MdDirectionsCar className="nav-icon" style={{marginRight: 6}} /> Sell Your Vehicle
+                  </Link>
+                </div>
+              )}
+            </div>
             <div 
               className="nav-link loans-dropdown-wrapper" 
               onMouseEnter={() => setLoansDropdown(true)} 
@@ -94,7 +129,7 @@ const Header = () => {
                 style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}
                 onClick={handleNavClick}
               >
-                Loans ▾
+                <MdAccountBalance className="nav-icon" /> Loans ▾
               </Link>
               {loansDropdown && (
                 <div className="loans-dropdown-menu">
@@ -105,32 +140,32 @@ const Header = () => {
                       className="dropdown-item"
                       onClick={handleNavClick}
                     >
-                      {loan.title}
+                      <MdAccountBalance className="nav-icon" style={{marginRight: 6}} /> {loan.title}
                     </Link>
                   ))}
                 </div>
               )}
             </div>
-            <Link 
+            {/* <Link 
               to="/services" 
               className={`nav-link${location.pathname === '/services' ? ' active' : ''}`}
               onClick={handleNavClick}
             >
-              Services
-            </Link>
+              <MdBuild className="nav-icon" /> Services
+            </Link> */}
             <Link 
               to="/about" 
               className={`nav-link${location.pathname === '/about' ? ' active' : ''}`}
               onClick={handleNavClick}
             >
-              About
+              <MdInfo className="nav-icon" /> About
             </Link>
             <Link 
               to="/contact" 
               className={`nav-link${location.pathname === '/contact' ? ' active' : ''}`}
               onClick={handleNavClick}
             >
-              Contact
+              <MdContactPhone className="nav-icon" /> Contact
             </Link>
 
             {/* Mobile: Show login/register/profile in menu */}

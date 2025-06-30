@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { BsEye, BsTrash, BsCheckCircle, BsCircle, BsDownload } from 'react-icons/bs';
+import { BsEye, BsTrash, BsCheckCircle, BsCircle } from 'react-icons/bs';
+import Swal from 'sweetalert2';
 
 const Loans = () => {
   const [applications, setApplications] = useState([]);
@@ -48,6 +49,7 @@ const Loans = () => {
       if (!res.ok) throw new Error('Failed to mark as processed');
       const updated = await res.json();
       setApplications(apps => apps.map(app => app._id === id ? updated : app));
+      Swal.fire({ icon: 'success', title: 'Loan marked as processed!', showConfirmButton: false, timer: 1200 });
     } catch (err) {
       alert('Error: ' + err.message);
     }

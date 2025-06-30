@@ -31,7 +31,7 @@ const Login = ({ componentrender }) => {
       timer: 800,
     });
     try {
-      const res = await axios.post('http://localhost:5000/api/admin-login', formData);
+      await axios.post('http://localhost:5000/api/admin-login', formData);
       localStorage.setItem('adminEmail', formData.email);
       Swal.fire({
         icon: 'success',

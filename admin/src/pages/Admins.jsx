@@ -79,35 +79,26 @@ const Admins = () => {
             cell: (row) => (
                 <i className='bi bi-eye-fill action-btn-view' style={{ color: '#1e3a8a', fontSize: 20, cursor: 'pointer', marginRight: 8 }} onClick={() => openModal(row)} title="View details"></i>
             ),
-            ignoreRowClick: true,
-            allowOverflow: true,
-            button: true,
         },
         {
             name: '',
             cell: (row) => (
                 <i className='bi bi-trash-fill action-btn-delete' style={{ color: '#ef4444', fontSize: 20, cursor: 'pointer' }} onClick={() => deleteAdmin(row._id)} title="Delete admin"></i>
             ),
-            ignoreRowClick: true,
-            allowOverflow: true,
-            button: true,
         },
         {
             name: 'Name',
             selector: row => row.name,
             sortable: true,
-            grow: 2,
         },
         {
             name: 'Phone',
             selector: row => row.phone,
-            grow: 2,
         },
         {
             name: 'Email',
             selector: row => row.email,
             sortable: true,
-            grow: 3,
         },
     ];
 

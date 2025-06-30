@@ -3,12 +3,18 @@ import img1 from '../assets/Slideshow/image 1.jpg';
 import img2 from '../assets/Slideshow/image 2.jpg';
 import img3 from '../assets/Slideshow/image 3.jpg';
 import img4 from '../assets/Slideshow/image 4.jpg';
+import img5 from '../assets/Slideshow/image 5.jpg';
+import img6 from '../assets/Slideshow/image 6.jpg';
+import img7 from '../assets/Slideshow/image 7.jpg'; 
 
 const images = [
   { src: img1, objectPosition: 'center top' },
   { src: img2, objectPosition: 'center' },
   { src: img3, objectPosition: 'center' },
-  { src: img4, objectPosition: 'center top' },
+  // { src: img4, objectPosition: 'center top' },
+  // { src: img5, objectPosition: 'center' },
+  { src: img6, objectPosition: 'center' },
+  { src: img7, objectPosition: 'center' },
 ];
 
 const Slideshow = () => {
@@ -17,7 +23,7 @@ const Slideshow = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % images.length);
-    }, 3000);
+    }, 4000);
     return () => clearInterval(interval);
   }, []);
 
