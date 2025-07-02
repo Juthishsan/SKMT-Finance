@@ -86,7 +86,7 @@ const SellVehicle = () => {
 
   return (
     <div className="sell-vehicle-page">
-      <section className="contact-hero">
+      <section className="page-hero">
         <div className="container">
           <div className="text-center">
             <h1>Sell Your Vehicle</h1>

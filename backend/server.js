@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -15,8 +17,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Replace with your actual MongoDB URI
-const mongoURI = 'mongodb+srv://Juthishsan:Juthish47@skmt-db.lfcnxm6.mongodb.net/?retryWrites=true&w=majority&appName=SKMT-DB';
+const mongoURI = process.env.MONGO_URI;
+const PORT = process.env.PORT || 5000;
 
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected!'))
@@ -522,5 +524,4 @@ app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
-const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`)); 

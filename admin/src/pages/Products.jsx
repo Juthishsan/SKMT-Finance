@@ -15,6 +15,8 @@ const Products = () => {
   const [selectedType, setSelectedType] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
   const [slideshowIndex, setSlideshowIndex] = useState(0);
+  const [newImages, setNewImages] = useState([]);
+  const [previewImages, setPreviewImages] = useState([]);
   const uniqueProductTypes = [...new Set(tableData.map(product => product.type))];
 
   useEffect(() => {
@@ -110,9 +112,7 @@ const Products = () => {
 
   const handleEditSave = async (e) => {
     e.preventDefault();
-
-    const { _id, newImage, ...updatedDetails } = editdata;
-
+    const { _id, ...updatedDetails } = editdata;
     try {
       const formData = new FormData();
       formData.append('name', updatedDetails.name);
@@ -120,23 +120,21 @@ const Products = () => {
       formData.append('stock', updatedDetails.stock === true);
       formData.append('type', updatedDetails.type);
       formData.append('description', updatedDetails.info || updatedDetails.description || '');
-      if (newImage) {
-        formData.append('image', newImage);
+      if (newImages && newImages.length > 0) {
+        newImages.forEach(file => formData.append('images', file));
       }
-
       const response = await fetch(`http://localhost:5000/api/products/${_id}`, {
         method: 'PUT',
         body: formData,
       });
 
       if (response.ok) {
+        seteditproduct(false);
         Swal.fire({
           icon: 'success',
           title: 'Product updated successfully!',
           showConfirmButton: true,
           confirmButtonColor: 'black',
-        }).then(() => {
-          seteditproduct(false);
         });
         getproducts();
       } else {
@@ -322,28 +320,59 @@ const Products = () => {
             <div style={{ padding: '32px 24px', background: '#fff', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
               <form onSubmit={handleEditSave} className="grid grid-2 gap-4 add-product-form">
                 <div className="form-group full-width">
-                  <label className="mb-2 fw-bold text-primary-blue">Product Image</label>
+                  <label className="mb-2 fw-bold text-primary-blue">Product Images</label>
                   <input
                     accept="image/*"
                     type="file"
+                    multiple
                     onChange={(e) => {
-                      seteditdata({ ...editdata, newImage: e.target.files[0] });
-                      if (e.target.files && e.target.files[0]) {
-                        let reader = new FileReader();
-                        reader.onload = function (event) {
-                          setPreviewImage(event.target.result);
-                        };
-                        reader.readAsDataURL(e.target.files[0]);
-                      }
+                      const files = Array.from(e.target.files);
+                      setNewImages(files);
+                      setPreviewImages(files.map(file => URL.createObjectURL(file)));
                     }}
                     className="input-field pt-2"
-                    id="image"
+                    id="images"
                   />
-                  {previewImage && (
+                  {previewImages.length > 0 && (
                     <div className="image-preview-list">
-                      <div className="image-preview-item">
-                        <img src={previewImage} alt="Preview" className="image-preview-img" />
-                      </div>
+                      {previewImages.map((src, idx) => (
+                        <div key={idx} className="image-preview-item" style={{ position: 'relative' }}>
+                          <img src={src} alt="Preview" className="image-preview-img" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newImgs = [...newImages];
+                              const newPrevs = [...previewImages];
+                              newImgs.splice(idx, 1);
+                              newPrevs.splice(idx, 1);
+                              setNewImages(newImgs);
+                              setPreviewImages(newPrevs);
+                            }}
+                            style={{
+                              position: 'absolute',
+                              top: 2,
+                              right: 2,
+                              background: '#ef4444',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: 22,
+                              height: 22,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              fontWeight: 700,
+                              fontSize: 16,
+                              zIndex: 2
+                            }}
+                            aria-label="Remove image"
+                            title="Remove image"
+                          >
+                            &minus;
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

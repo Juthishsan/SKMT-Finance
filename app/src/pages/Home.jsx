@@ -193,7 +193,7 @@ const Home = () => {
 
           {!loading && !error && products.length > 0 && (
             <div className="grid grid-3 products-grid">
-              {products.map((product) => (
+              {products.filter(product => product.stock).slice(0, 3).map((product) => (
                 <div key={product._id} className="card product-item">
                   <div className="product-image-container">
                     {product.images && product.images.length > 0 ? (

@@ -81,14 +81,14 @@ const Dashboard = ({ componentrender }) => {
       name: 'User',
       selector: row => row.userSnapshot?.username || '-',
     },
-    {
-      name: 'Product',
-      selector: row => row.productSnapshot?.name || '-',
-    },
-    {
-      name: 'Price',
-      selector: row => row.productSnapshot?.price ? `₹${row.productSnapshot.price}` : '-',
-    },
+    // {
+    //   name: 'Product',
+    //   selector: row => row.productSnapshot?.name || '-',
+    // },
+    // {
+    //   name: 'Price',
+    //   selector: row => row.productSnapshot?.price ? `₹${row.productSnapshot.price}` : '-',
+    // },
     {
       name: 'Order Status',
       selector: row => row.orderstatus,

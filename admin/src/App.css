@@ -609,10 +609,13 @@ input[type="file"].input-field {
   justify-content: flex-start;
 }
 .admin-modal-image {
-  width: 540px;
-  min-width: 340px;
-  max-width: 700px;
-  border-radius: 22px;
+  width: 320px !important;
+  height: 240px !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  border-radius: 18px;
   object-fit: cover;
   margin-bottom: 0;
   align-self: flex-start;
@@ -656,11 +659,12 @@ input[type="file"].input-field {
     align-items: stretch;
   }
   .admin-modal-image {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    margin-bottom: 18px;
-    align-self: center;
+    width: 100% !important;
+    height: 200px !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    max-height: none !important;
   }
   .admin-modal-details {
     grid-template-columns: 1fr;
@@ -848,10 +852,12 @@ input[type="file"].input-field {
     padding: 12px 2px !important;
   }
   .admin-modal-image {
-    max-width: 100% !important;
-    min-width: 0 !important;
     width: 100% !important;
-    margin-bottom: 12px !important;
+    height: 200px !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    max-height: none !important;
   }
   .admin-modal-details {
     grid-template-columns: 1fr !important;
@@ -911,10 +917,12 @@ input[type="file"].input-field {
     padding: 4px 0 !important;
   }
   .admin-modal-image {
-    max-width: 100% !important;
-    min-width: 0 !important;
     width: 100% !important;
-    margin-bottom: 8px !important;
+    height: 140px !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    max-height: none !important;
   }
   .admin-modal-details {
     grid-template-columns: 1fr !important;

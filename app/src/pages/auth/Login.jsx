@@ -118,6 +118,36 @@ const Login = () => {
           Don't have an account?{' '}
           <Link to="/register" style={{color: '#1e3a8a'}}>Register</Link>
         </div>
+        {/* <div style={{textAlign: 'center', marginTop: 32}}>
+          <a
+            href="https://skmtadmin.vercel.app/"
+            style={{
+              display: 'inline-block',
+              padding: '12px 32px',
+              background: 'linear-gradient(90deg, #1e3a8a 0%, #38bdf8 100%)',
+              color: '#fff',
+              borderRadius: 30,
+              fontWeight: 700,
+              fontSize: 18,
+              letterSpacing: 1,
+              textDecoration: 'none',
+              boxShadow: '0 2px 8px rgba(30,58,138,0.10)',
+              transition: 'background 0.3s, transform 0.2s',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            onMouseOver={e => {
+              e.target.style.background = 'linear-gradient(90deg, #38bdf8 0%, #1e3a8a 100%)';
+              e.target.style.transform = 'scale(1.04)';
+            }}
+            onMouseOut={e => {
+              e.target.style.background = 'linear-gradient(90deg, #1e3a8a 0%, #38bdf8 100%)';
+              e.target.style.transform = 'scale(1)';
+            }}
+          >
+            Admin Login
+          </a>
+        </div> */}
       </form>
     </div>
   );
