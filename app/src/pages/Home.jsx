@@ -40,7 +40,7 @@ const Home = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/products');
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/products`);
         if (!response.ok) {
           throw new Error('Failed to fetch products');
         }
@@ -198,7 +198,7 @@ const Home = () => {
                   <div className="product-image-container">
                     {product.images && product.images.length > 0 ? (
                       <img 
-                        src={`http://localhost:5000${product.images[0]}`} 
+                        src={`${process.env.REACT_APP_API_URL}${product.images[0]}`} 
                         alt={product.name}
                         className="product-image"
                         onError={(e) => {

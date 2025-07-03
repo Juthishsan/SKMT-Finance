@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import DataTable from 'react-data-table-component';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
@@ -9,6 +8,11 @@ const Users = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const paginatedData = (searchText ? filteredData : tableData).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil((searchText ? filteredData.length : tableData.length) / itemsPerPage);
+  useEffect(() => { setCurrentPage(1); }, [searchText]);
 
   const openModal = (rowData) => {
     setSelectedRowData(rowData);
@@ -18,13 +22,13 @@ const Users = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/users');
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/users`);
         setTableData(res.data);
         setFilteredData(res.data);
       } catch (err) {
         setTableData([]);
         setFilteredData([]);
-        }
+      }
     };
     fetchUsers();
   }, []);
@@ -41,49 +45,20 @@ const Users = () => {
     });
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/api/users/${userId}`);
+        await axios.delete(`${process.env.REACT_APP_API_URL}/api/users/${userId}`);
         Swal.fire('Deleted!', 'User has been deleted.', 'success');
         // Refresh user list
-        const res = await axios.get('http://localhost:5000/api/users');
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/users`);
         setTableData(res.data);
         setFilteredData(res.data);
       } catch (err) {
         Swal.fire('Error', 'Failed to delete user.', 'error');
       }
-  }
-  };
-
-  const columns = [
-    {
-      name: '',
-      cell: (row) => (
-        <i className='bi bi-eye-fill action-btn-view' style={{ color: '#1e3a8a', fontSize: 20, cursor: 'pointer', marginRight: 8 }} onClick={() => openModal(row)} title="View details"></i>
-      ),
-    },
-    {
-      name: '',
-      cell: (row) => (
-        <i className='bi bi-trash-fill action-btn-delete' style={{ color: '#ef4444', fontSize: 20, cursor: 'pointer' }} onClick={() => deleteUser(row._id)} title="Delete user"></i>
-      ),
-    },
-    {
-      name: 'Username',
-      selector: row => row.username,
-      sortable: true,
-    },
-    {
-      name: 'Email',
-      selector: row => row.email,
-      sortable: true,
-    },
-  ];
-
-  const paginationOptions = {
-    rowsPerPageText: 'Rows per page:',
-    rangeSeparatorText: 'of',
+    }
   };
 
   const handleSearch = (searchQuery) => {
+    setSearchText(searchQuery);
     let filteredItems = tableData;
     if (searchQuery) {
       filteredItems = filteredItems.filter((item) =>
@@ -103,136 +78,130 @@ const Users = () => {
           <div style={{ padding: 32 }}>
             <div className="row mb-4">
               <div className="col-md-6 mx-auto">
-                <div className="input-group">
-                  <span className="input-group-text" style={{ background: '#f1f5f9', border: '1.5px solid #c7d2fe' }}><i className="bi bi-search" style={{ color: '#1e3a8a' }}></i></span>
-                <input
-                  type="text"
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 220, maxWidth: 320, background: '#fff', borderRadius: 999, boxShadow: '0 2px 8px #1e3a8a11', border: '1.5px solid #c7d2fe', padding: '2px 10px', transition: 'border 0.18s', margin: '0 auto' }}>
+                  <span style={{ background: '#2563eb', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                    <i className="bi bi-search" style={{ color: '#fff', fontSize: 18 }}></i>
+                  </span>
+                  <input
+                    type="text"
                     placeholder="Search users by username"
-                    className="form-control"
-                    style={{ border: '1.5px solid #c7d2fe', borderLeft: 'none', borderRadius: '0 8px 8px 0', fontSize: 16, padding: '10px 12px' }}
-                  value={searchText}
-                    onChange={e => {
-                    setSearchText(e.target.value);
-                    handleSearch(e.target.value);
-                  }}
-                />
+                    style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 17, fontWeight: 500, padding: '10px 0', flex: 1, borderRadius: 999, color: '#1e293b' }}
+                    value={searchText}
+                    onChange={e => handleSearch(e.target.value)}
+                    onFocus={e => e.target.parentNode.style.border = '1.5px solid #2563eb'}
+                    onBlur={e => e.target.parentNode.style.border = '1.5px solid #c7d2fe'}
+                  />
+                </div>
               </div>
             </div>
-          </div>
             <div className="table-responsive users-table-responsive">
-              <DataTable
-                className="table table-bordered table-striped "
-                columns={columns}
-                data={searchText ? filteredData : tableData}
-                noDataComponent={<div>No users found.</div>}
-                pagination
-                paginationComponentOptions={paginationOptions}
-                highlightOnHover
-                pointerOnHover
-                striped
-                paginationRowsPerPageOptions={[10, 25, 50, 100]}
-                customStyles={{
-                  headCells: {
-                    style: {
-                      background: '#f1f5f9',
-                      color: '#1e3a8a',
-                      fontWeight: 700,
-                      fontSize: 16,
-                    },
-                  },
-                  rows: {
-                    style: {
-                      fontSize: 15,
-                      borderRadius: 10,
-                      background: '#fff',
-                      transition: 'background 0.2s',
-                    },
-                    highlightOnHoverStyle: {
-                      backgroundColor: '#f4f8ff',
-                      borderBottomColor: '#FFFFFF',
-                      outline: '1px solid #1e3a8a',
-                    },
-                  },
-                }}
-              />
+              <table className="table table-bordered table-striped" style={{ borderRadius: 16, overflow: 'hidden', marginBottom: 0 }}>
+                <thead style={{ background: '#f1f5f9' }}>
+                  <tr>
+                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Username</th>
+                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Email</th>
+                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Phone</th>
+                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedData.map(user => (
+                    <tr key={user._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: 12, fontWeight: 600 }}>{user.username}</td>
+                      <td style={{ padding: 12 }}>{user.email}</td>
+                      <td style={{ padding: 12 }}>{user.phone || '-'}</td>
+                      <td style={{ padding: 12 }}>
+                        <div className="d-flex gap-2">
+                          <button
+                            className="btn btn-sm action-btn-view"
+                            style={{ background: 'none', color: '#2563eb', border: 'none', padding: 6, display: 'flex', alignItems: 'center' }}
+                            onClick={() => openModal(user)}
+                            title="View"
+                          >
+                            <i className="bi bi-eye-fill" style={{ fontSize: 20 }}></i>
+                          </button>
+                          <button
+                            className="btn btn-sm action-btn-delete"
+                            style={{ background: 'none', color: '#ef4444', border: 'none', padding: 6, display: 'flex', alignItems: 'center' }}
+                            onClick={() => deleteUser(user._id)}
+                            title="Delete"
+                          >
+                            <i className="bi bi-trash-fill" style={{ fontSize: 18 }}></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24 }}>
+                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ border: 'none', background: currentPage === 1 ? '#e5e7eb' : '#2563eb', color: '#fff', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 16, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px #1e3a8a11', transition: 'background 0.18s' }}>Prev</button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    (page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1) ? (
+                      <button key={page} onClick={() => setCurrentPage(page)} style={{ border: 'none', background: page === currentPage ? 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)' : '#fff', color: page === currentPage ? '#fff' : '#2563eb', borderRadius: 8, padding: '6px 14px', fontWeight: 700, fontSize: 16, boxShadow: page === currentPage ? '0 2px 8px #1e3a8a22' : '0 2px 8px #1e3a8a11', margin: '0 2px', cursor: 'pointer', borderBottom: page === currentPage ? '2.5px solid #2563eb' : '2.5px solid transparent', transition: 'all 0.18s' }}>{page}</button>
+                    ) : (
+                      (page === currentPage - 2 || page === currentPage + 2) && totalPages > 5 ? <span key={page} style={{ color: '#64748b', fontWeight: 700, fontSize: 18, margin: '0 4px' }}>...</span> : null
+                    )
+                  ))}
+                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ border: 'none', background: currentPage === totalPages ? '#e5e7eb' : '#2563eb', color: '#fff', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 16, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px #1e3a8a11', transition: 'background 0.18s' }}>Next</button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
       {isModalOpen && selectedRowData && (
-        <div>
-          <div
-            className="modal d-block border-0 users-modal-bg"
-            role="dialog"
-            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
-          >
-            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
-              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(30,58,138,0.18)', background: '#fff' }}>
-                <div className="modal-body" >
-                  <div className='d-flex flex-row justify-content-between pb-3'>
-                    <h5 className='animate__animated animate__fadeInDown text-center fw-bold' style={{ color: '#1e3a8a' }}>
-                      User Information
-                    </h5>
-                    <h5 className='animate__animated animate__fadeInUp ' onClick={() => setModalOpen(false)} style={{ cursor: 'pointer', color: '#ef4444' }}>
-                      <i className="bi bi-x-circle-fill"></i>
-                    </h5>
-                  </div>
-                  <div>
-                    <div className='container border p-4 rounded-3 users-modal-inner' style={{ background: '#f8fafc' }}>
-                      <div className='row g-3'>
-                        <div className='col-md-6'>
-                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>User ID</label>
-                          <p style={{ color: '#6b7280', fontWeight: 600, fontSize: 15, margin: 0 }}>{selectedRowData._id}</p>
-                        </div>
-                        <div className='col-md-6'>
-                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Username</label>
-                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.username}</p>
-                        </div>
-                        <div className='col-md-6'>
-                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Email</label>
-                          <p style={{ color: '#2563eb', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.email}</p>
-                        </div>
-                        <div className='col-md-6'>
-                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Phone</label>
-                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.phone || 'Not provided'}</p>
-                        </div>
-                        <div className='col-12'>
-                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Address</label>
-                          <div style={{ background: '#fff', borderRadius: 10, padding: 12, border: '1px solid #e2e8f0' }}>
-                            <p style={{ color: '#222', fontWeight: 500, fontSize: 15, margin: 0 }}>{selectedRowData.address || 'Not provided'}</p>
-                          </div>
-                        </div>
-                        <div className='col-md-4'>
-                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>City</label>
-                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.city || 'Not provided'}</p>
-                        </div>
-                        <div className='col-md-4'>
-                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>State</label>
-                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.state || 'Not provided'}</p>
-                        </div>
-                        <div className='col-md-4'>
-                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>PIN Code</label>
-                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>{selectedRowData.pincode || 'Not provided'}</p>
-                        </div>
-                        <div className='col-md-6'>
-                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Registration Date</label>
-                          <p style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 16, margin: 0 }}>
-                            {selectedRowData.createdAt ? new Date(selectedRowData.createdAt).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            }) : 'Not available'}
-                          </p>
-                        </div>
-                        <div className='col-md-6'>
-                          <label className='fw-bold text-primary' style={{ color: '#1e3a8a', fontSize: 14 }}>Account Status</label>
-                          <p style={{ color: '#10b981', fontWeight: 700, fontSize: 16, margin: 0 }}>
-                            Active
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+        <div className="admin-modal-bg">
+          <div className="admin-modal admin-modal--wide" style={{ maxWidth: 900, margin: '0 auto', borderRadius: 24, boxShadow: '0 8px 32px rgba(30,58,138,0.18)' }}>
+            <div style={{ background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: '24px 0 18px 0', textAlign: 'center', position: 'relative' }}>
+              <span className="admin-modal-title py-3" style={{ color: '#fff', fontWeight: 700, fontSize: 24, letterSpacing: 1 }}>User Information</span>
+              <button className="admin-modal-close-btn" onClick={() => setModalOpen(false)} title="Close" aria-label="Close" style={{ position: 'absolute', top: 18, right: 24, background: 'none', border: 'none', color: '#fff', fontSize: 28, cursor: 'pointer', transition: 'color 0.18s' }} onMouseOver={e => e.currentTarget.style.color='#ef4444'} onMouseOut={e => e.currentTarget.style.color='#fff'}>
+                ×
+              </button>
+            </div>
+            <div className="admin-modal-content" style={{ display: 'flex', flexDirection: 'row', gap: 32, padding: '32px 24px', background: '#fff', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
+              <div className="admin-modal-details" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>User ID</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData._id}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Username</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.username}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Email</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17, color: '#2563eb' }}>{selectedRowData.email}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Phone</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.phone || 'Not provided'}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Account Status</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17, color: '#10b981' }}>Active</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Registration Date</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.createdAt ? new Date(selectedRowData.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not available'}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>City</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.city || 'Not provided'}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>State</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.state || 'Not provided'}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>PIN Code</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.pincode || 'Not provided'}</div>
+                </div>
+                <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Address</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 500, fontSize: 16, color: '#222', background: '#f9fafb', borderRadius: 10, padding: 12, marginTop: 2 }}>{selectedRowData.address || 'Not provided'}</div>
                 </div>
               </div>
             </div>

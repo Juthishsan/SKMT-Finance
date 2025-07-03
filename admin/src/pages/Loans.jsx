@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BsEye, BsTrash, BsCheckCircle, BsCircle } from 'react-icons/bs';
+import { BsEyeFill, BsTrashFill, BsCheckCircle, BsCircle } from 'react-icons/bs';
 import Swal from 'sweetalert2';
 
 const Loans = () => {
@@ -11,11 +11,13 @@ const Loans = () => {
   const [viewApp, setViewApp] = useState(null);
   const [actionLoading, setActionLoading] = useState('');
   const [deleteAppId, setDeleteAppId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchApplications = async () => {
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/loan-applications');
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-applications`);
       if (!res.ok) throw new Error('Failed to fetch loan applications');
       const data = await res.json();
       setApplications(data);
@@ -32,7 +34,7 @@ const Loans = () => {
   const handleDelete = async (id) => {
     setActionLoading(id + '-delete');
     try {
-      const res = await fetch(`http://localhost:5000/api/loan-applications/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-applications/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Delete failed');
       setApplications(applications => applications.filter(app => app._id !== id));
     } catch (err) {
@@ -45,7 +47,7 @@ const Loans = () => {
   const handleMarkProcessed = async (id) => {
     setActionLoading(id + '-process');
     try {
-      const res = await fetch(`http://localhost:5000/api/loan-applications/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' } });
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-applications/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' } });
       if (!res.ok) throw new Error('Failed to mark as processed');
       const updated = await res.json();
       setApplications(apps => apps.map(app => app._id === id ? updated : app));
@@ -68,6 +70,10 @@ const Loans = () => {
       statusFilter === 'Processed' ? app.processed : !app.processed;
     return matchesSearch && matchesStatus;
   });
+
+  const paginatedData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  useEffect(() => { setCurrentPage(1); }, [search, statusFilter]);
 
   // Export to CSV
   const handleExport = () => {
@@ -109,13 +115,21 @@ const Loans = () => {
                   <option value="Processed">Processed</option>
                   <option value="Pending">Pending</option>
                 </select>
-                <input
-                  type="text"
-                  placeholder="Search by name, email, phone, or type..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  style={{ padding: 10, borderRadius: 8, border: '1.5px solid #c7d2fe', fontSize: 15, minWidth: 220, maxWidth: 320 }}
-                />
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 220, maxWidth: 320, background: '#fff', borderRadius: 999, boxShadow: '0 2px 8px #1e3a8a11', border: '1.5px solid #c7d2fe', padding: '2px 10px', transition: 'border 0.18s' }}>
+                  <span style={{ background: '#2563eb', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                    <i className="bi bi-search" style={{ color: '#fff', fontSize: 18 }}></i>
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Search by name..."
+                    style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 17, fontWeight: 500, padding: '10px 0', flex: 1, borderRadius: 999, color: '#1e293b' }}
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    onFocus={e => e.target.parentNode.style.border = '1.5px solid #2563eb'}
+                    onBlur={e => e.target.parentNode.style.border = '1.5px solid #c7d2fe'}
+                  />
+                </div>
               </div>
               <button onClick={handleExport} style={{ background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 28px', fontWeight: 700, fontSize: 16, boxShadow: '0 2px 8px rgba(30,58,138,0.08)', letterSpacing: 1, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg> EXPORT CSV
@@ -126,7 +140,7 @@ const Loans = () => {
                 <thead style={{ background: '#f1f5f9' }}>
                   <tr>
                     <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Name</th>
-                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Email</th>
+                    {/* <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Email</th> */}
                     <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Phone</th>
                     <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Amount</th>
                     <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Loan Type</th>
@@ -142,10 +156,10 @@ const Loans = () => {
                   ) : filtered.length === 0 ? (
                     <tr><td colSpan={7} style={{ textAlign: 'center', padding: 32 }}>No applications found.</td></tr>
                   ) : (
-                    filtered.map(app => (
+                    paginatedData.map(app => (
                       <tr key={app._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: 12 }}>{app.name}</td>
-                        <td style={{ padding: 12 }}>{app.email}</td>
+                        <td style={{ padding: 12, fontWeight: 600 }}>{app.name}</td>
+                        {/* <td style={{ padding: 12 }}>{app.email}</td> */}
                         <td style={{ padding: 12 }}>{app.phone}</td>
                         <td style={{ padding: 12 }}>₹ {Number(app.amount).toLocaleString()}</td>
                         <td style={{ padding: 12 }}>{app.loanType}</td>
@@ -156,47 +170,102 @@ const Loans = () => {
                             <span style={{ color: '#f59e42', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><BsCircle size={18} /> Pending</span>
                           )}
                         </td>
-                        <td style={{ padding: 12, display: 'flex', gap: 12 }}>
-                          <button title="View Details" onClick={() => setViewApp(app)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1e3a8a' }}><BsEye size={20} /></button>
-                          <button title={app.processed ? 'Processed' : 'Mark as Processed'} disabled={app.processed || actionLoading === app._id + '-process'} onClick={() => handleMarkProcessed(app._id)} style={{ background: 'none', border: 'none', cursor: app.processed ? 'not-allowed' : 'pointer', color: app.processed ? '#10b981' : '#64748b' }}><BsCheckCircle size={20} /></button>
-                          <button title="Delete" disabled={actionLoading === app._id + '-delete'} onClick={() => setDeleteAppId(app._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626' }}><BsTrash size={20} /></button>
+                        <td style={{ padding: 12 }}>
+                          <div className="d-flex gap-2">
+                            <button
+                              className="btn btn-sm action-btn-view"
+                              style={{ background: 'none', color: '#2563eb', border: 'none', padding: 6, display: 'flex', alignItems: 'center' }}
+                              onClick={() => setViewApp(app)}
+                              title="View"
+                            >
+                              <BsEyeFill size={20} />
+                            </button>
+                            <button
+                              className="btn btn-sm action-btn-edit"
+                              style={{ background: 'none', color: app.processed ? '#10b981' : '#64748b', border: 'none', padding: 6, display: 'flex', alignItems: 'center', cursor: app.processed ? 'not-allowed' : 'pointer' }}
+                              title={app.processed ? 'Processed' : 'Mark as Processed'}
+                              disabled={app.processed || actionLoading === app._id + '-process'}
+                              onClick={() => handleMarkProcessed(app._id)}
+                            >
+                              <BsCheckCircle size={20} />
+                            </button>
+                            <button
+                              className="btn btn-sm action-btn-delete"
+                              style={{ background: 'none', color: '#dc2626', border: 'none', padding: 6, display: 'flex', alignItems: 'center' }}
+                              onClick={() => setDeleteAppId(app._id)}
+                              title="Delete"
+                              disabled={actionLoading === app._id + '-delete'}
+                            >
+                              <BsTrashFill size={18} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
                   )}
                 </tbody>
               </table>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24 }}>
+                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ border: 'none', background: currentPage === 1 ? '#e5e7eb' : '#2563eb', color: '#fff', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 16, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px #1e3a8a11', transition: 'background 0.18s' }}>Prev</button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    (page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1) ? (
+                      <button key={page} onClick={() => setCurrentPage(page)} style={{ border: 'none', background: page === currentPage ? 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)' : '#fff', color: page === currentPage ? '#fff' : '#2563eb', borderRadius: 8, padding: '6px 14px', fontWeight: 700, fontSize: 16, boxShadow: page === currentPage ? '0 2px 8px #1e3a8a22' : '0 2px 8px #1e3a8a11', margin: '0 2px', cursor: 'pointer', borderBottom: page === currentPage ? '2.5px solid #2563eb' : '2.5px solid transparent', transition: 'all 0.18s' }}>{page}</button>
+                    ) : (
+                      (page === currentPage - 2 || page === currentPage + 2) && totalPages > 5 ? <span key={page} style={{ color: '#64748b', fontWeight: 700, fontSize: 18, margin: '0 4px' }}>...</span> : null
+                    )
+                  ))}
+                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ border: 'none', background: currentPage === totalPages ? '#e5e7eb' : '#2563eb', color: '#fff', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 16, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px #1e3a8a11', transition: 'background 0.18s' }}>Next</button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
       {/* View Details Modal */}
       {viewApp && (
-        <div>
-          <div
-            className="modal d-block border-0 admins-modal-bg"
-            role="dialog"
-            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
-          >
-            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
-              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(30,58,138,0.18)', background: '#fff' }}>
-                <div className="modal-body" >
-                  <div className='d-flex flex-row justify-content-between pb-3'>
-                    <h5 className='animate__animated animate__fadeInDown text-center fw-bold' style={{ color: '#1e3a8a' }}>
-                      Loan Application Details
-                    </h5>
-                    <h5 className='animate__animated animate__fadeInUp ' onClick={() => setViewApp(null)} style={{ cursor: 'pointer', color: '#ef4444' }}>
-                      <i className="bi bi-x-circle-fill"></i>
-                    </h5>
-                  </div>
-                  <div style={{ marginBottom: 10 }}><b>Name:</b> {viewApp.name}</div>
-                  <div style={{ marginBottom: 10 }}><b>Email:</b> {viewApp.email}</div>
-                  <div style={{ marginBottom: 10 }}><b>Phone:</b> {viewApp.phone}</div>
-                  <div style={{ marginBottom: 10 }}><b>Loan Type:</b> {viewApp.loanType}</div>
-                  <div style={{ marginBottom: 10 }}><b>Amount:</b> ₹ {Number(viewApp.amount).toLocaleString()}</div>
-                  <div style={{ marginBottom: 10 }}><b>Message:</b> {viewApp.message || <span style={{ color: '#888' }}>-</span>}</div>
-                  <div style={{ marginBottom: 10 }}><b>Status:</b> {viewApp.processed ? 'Processed' : 'Pending'}</div>
-                  <div style={{ marginBottom: 10 }}><b>Date:</b> {new Date(viewApp.createdAt).toLocaleString()}</div>
+        <div className="admin-modal-bg">
+          <div className="admin-modal admin-modal--wide" style={{ maxWidth: 900, margin: '0 auto', borderRadius: 24, boxShadow: '0 8px 32px rgba(30,58,138,0.18)' }}>
+            <div style={{ background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: '24px 0 18px 0', textAlign: 'center', position: 'relative' }}>
+              <span className="admin-modal-title py-3" style={{ color: '#fff', fontWeight: 700, fontSize: 24, letterSpacing: 1 }}>Loan Application Details</span>
+              <button className="admin-modal-close-btn" onClick={() => setViewApp(null)} title="Close" aria-label="Close" style={{ position: 'absolute', top: 18, right: 24, background: 'none', border: 'none', color: '#fff', fontSize: 28, cursor: 'pointer', transition: 'color 0.18s' }} onMouseOver={e => e.currentTarget.style.color='#ef4444'} onMouseOut={e => e.currentTarget.style.color='#fff'}>
+                ×
+              </button>
+            </div>
+            <div className="admin-modal-content" style={{ display: 'flex', flexDirection: 'row', gap: 32, padding: '32px 24px', background: '#fff', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
+              <div className="admin-modal-details" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Applicant Name</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{viewApp.name}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Email</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{viewApp.email}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Phone</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{viewApp.phone}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Loan Type</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{viewApp.loanType}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Amount</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17, color: '#2563eb' }}>₹ {Number(viewApp.amount).toLocaleString()}</div>
+                </div>
+                <div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Status</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{viewApp.processed ? 'Processed' : 'Pending'}</div>
+                </div>
+                <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Message</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 500, fontSize: 16, color: '#222', background: '#f9fafb', borderRadius: 10, padding: 12, marginTop: 2 }}>{viewApp.message || <span style={{ color: '#888' }}>-</span>}</div>
+                </div>
+                <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Date</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 16 }}>{new Date(viewApp.createdAt).toLocaleString()}</div>
                 </div>
               </div>
             </div>

@@ -21,7 +21,7 @@ const Profile = () => {
   useEffect(() => {
     if (user?.email) {
       setLoansLoading(true);
-      fetch(`http://localhost:5000/api/user-loan-applications?email=${encodeURIComponent(user.email)}`)
+      fetch(`${process.env.REACT_APP_API_URL}/api/user-loan-applications?email=${encodeURIComponent(user.email)}`)
         .then(res => res.json())
         .then(data => setLoans(Array.isArray(data) ? data : []))
         .catch(() => setLoans([]))
@@ -47,7 +47,7 @@ const Profile = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/users/${user._id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users/${user._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)

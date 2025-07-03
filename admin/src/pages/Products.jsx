@@ -17,6 +17,8 @@ const Products = () => {
   const [slideshowIndex, setSlideshowIndex] = useState(0);
   const [newImages, setNewImages] = useState([]);
   const [previewImages, setPreviewImages] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const uniqueProductTypes = [...new Set(tableData.map(product => product.type))];
 
   useEffect(() => {
@@ -33,7 +35,7 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/products');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/products`);
       const data = await response.json();
       setTableData(data);
     } catch (error) {
@@ -76,7 +78,7 @@ const Products = () => {
           background: 'transparent',
         });
         try {
-          const response = await fetch(`http://localhost:5000/api/products/${id}`, {
+          const response = await fetch(`${process.env.REACT_APP_API_URL}/api/products/${id}`, {
             method: 'DELETE',
           });
           if (response.ok) {
@@ -123,7 +125,7 @@ const Products = () => {
       if (newImages && newImages.length > 0) {
         newImages.forEach(file => formData.append('images', file));
       }
-      const response = await fetch(`http://localhost:5000/api/products/${_id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/products/${_id}`, {
         method: 'PUT',
         body: formData,
       });
@@ -159,20 +161,18 @@ const Products = () => {
   };
 
   const handleSearch = (searchQuery, selectedType) => {
+    setSearchText(searchQuery);
     let filteredItems = tableData;
-
     if (searchQuery) {
       filteredItems = filteredItems.filter((item) =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-
     if (selectedType) {
       filteredItems = filteredItems.filter((item) =>
         item.type.toLowerCase() === selectedType.toLowerCase()
       );
     }
-
     setFilteredData(filteredItems);
   };
 
@@ -182,7 +182,10 @@ const Products = () => {
     setModalOpen(true);
   };
 
-  
+  const paginatedData = (searchText ? filteredData : tableData).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil((searchText ? filteredData.length : tableData.length) / itemsPerPage);
+  useEffect(() => { setCurrentPage(1); }, [searchText, selectedType]);
+
   return (
     <div style={{ background: 'var(--bg-light)', minHeight: '100vh', padding: '32px 0' }}>
       <div className="container">
@@ -207,18 +210,18 @@ const Products = () => {
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
-                <div className="input-group" style={{ minWidth: 220, maxWidth: 320 }}>
-                  <span className="input-group-text" style={{ background: '#f1f5f9', border: '1.5px solid #c7d2fe' }}><i className="bi bi-search" style={{ color: '#1e3a8a' }}></i></span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 220, maxWidth: 320, background: '#fff', borderRadius: 999, boxShadow: '0 2px 8px #1e3a8a11', border: '1.5px solid #c7d2fe', padding: '2px 10px', transition: 'border 0.18s' }}>
+                  <span style={{ background: '#2563eb', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                    <i className="bi bi-search" style={{ color: '#fff', fontSize: 18 }}></i>
+                  </span>
                   <input
                     type="text"
                     placeholder="Search products by name"
-                    className="form-control"
-                    style={{ border: '1.5px solid #c7d2fe', borderLeft: 'none', borderRadius: '0 8px 8px 0', fontSize: 16, padding: '10px 12px' }}
+                    style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 17, fontWeight: 500, padding: '10px 0', flex: 1, borderRadius: 999, color: '#1e293b' }}
                     value={searchText}
-                    onChange={e => {
-                      setSearchText(e.target.value);
-                      handleSearch(e.target.value, selectedType);
-                    }}
+                    onChange={e => handleSearch(e.target.value, selectedType)}
+                    onFocus={e => e.target.parentNode.style.border = '1.5px solid #2563eb'}
+                    onBlur={e => e.target.parentNode.style.border = '1.5px solid #c7d2fe'}
                   />
                 </div>
               </div>
@@ -243,11 +246,11 @@ const Products = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(searchText || selectedType ? filteredData : tableData).map(product => (
+                  {paginatedData.map(product => (
                     <tr key={product._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: 12, textAlign: 'center' }}>
                         {(product.images && product.images.length > 0) ? (
-                          <img src={`http://localhost:5000${product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+                          <img src={`${process.env.REACT_APP_API_URL}${product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
                         ) : (
                           <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                         )}
@@ -289,6 +292,20 @@ const Products = () => {
                   ))}
                 </tbody>
               </table>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24 }}>
+                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ border: 'none', background: currentPage === 1 ? '#e5e7eb' : '#2563eb', color: '#fff', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 16, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px #1e3a8a11', transition: 'background 0.18s' }}>Prev</button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    (page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1) ? (
+                      <button key={page} onClick={() => setCurrentPage(page)} style={{ border: 'none', background: page === currentPage ? 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)' : '#fff', color: page === currentPage ? '#fff' : '#2563eb', borderRadius: 8, padding: '6px 14px', fontWeight: 700, fontSize: 16, boxShadow: page === currentPage ? '0 2px 8px #1e3a8a22' : '0 2px 8px #1e3a8a11', margin: '0 2px', cursor: 'pointer', borderBottom: page === currentPage ? '2.5px solid #2563eb' : '2.5px solid transparent', transition: 'all 0.18s' }}>{page}</button>
+                    ) : (
+                      (page === currentPage - 2 || page === currentPage + 2) && totalPages > 5 ? <span key={page} style={{ color: '#64748b', fontWeight: 700, fontSize: 18, margin: '0 4px' }}>...</span> : null
+                    )
+                  ))}
+                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ border: 'none', background: currentPage === totalPages ? '#e5e7eb' : '#2563eb', color: '#fff', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 16, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px #1e3a8a11', transition: 'background 0.18s' }}>Next</button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -371,7 +388,7 @@ const Products = () => {
                           >
                             &minus;
                           </button>
-                        </div>
+                      </div>
                       ))}
                     </div>
                   )}
@@ -497,7 +514,7 @@ const Products = () => {
                   <>
                     <img
                       className="admin-modal-image"
-                      src={`http://localhost:5000${selectedRowData.images[slideshowIndex]}`}
+                      src={`${process.env.REACT_APP_API_URL}${selectedRowData.images[slideshowIndex]}`}
                       loading="lazy"
                       alt="Product"
                       style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 18, boxShadow: '0 4px 24px #1e3a8a22', background: '#f1f5f9', objectFit: 'cover' }}

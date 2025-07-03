@@ -11,8 +11,17 @@ const Orders = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState(null);
   const [isOrderedItemsModalOpen, setOrderedItemsModalOpen] = useState(false);
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(1);
+    return d.toISOString().slice(0, 10);
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const ORDER_STATUSES = ['Pending', 'Processing', 'Completed', 'Cancelled'];
 
@@ -34,6 +43,10 @@ const Orders = () => {
   };
 
   const generateExcelReport = (startDate, endDate) => {
+    if (!startDate || !endDate) {
+      Swal.fire('Error', 'Please select both start and end dates.', 'error');
+      return;
+    }
     const start = new Date(startDate);
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999);
@@ -41,21 +54,32 @@ const Orders = () => {
       const orderDate = new Date(order.orderDate);
       return orderDate >= start && orderDate <= end;
     });
+    if (filteredOrders.length === 0) {
+      Swal.fire('No Orders', 'No orders found in the selected date range.', 'info');
+      return;
+    }
     const excelData = filteredOrders.map(order => ({
       'Order Date': order.orderDate,
-      'UID': order.uid,
       'Order Status': order.orderstatus,
-      'Payment Method': order.paymentMethod,
-      'Price': order.total,
-      'Grand Total': order.grandTotal
+      'User Name': order.user?.username || '-',
+      'User Email': order.user?.email || '-',
+      'Product Name': order.product?.name || '-',
+      'Product Type': order.product?.type || '-',
+      'Product Price': order.product?.price || '-',
+      'Model Year': order.product?.modelYear || '-',
+      'No. of Owners': order.product?.owners || '-',
+      'FC Years': order.product?.fcYears || '-',
+      'Insurance': order.product?.insurance ? 'Yes' : 'No',
+      'Description': order.product?.description || '-',
     }));
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Orders');
-    XLSX.writeFile(workbook, 'orders_report.xlsx');
+    XLSX.writeFile(workbook, `orders_report_${startDate}_to_${endDate}.xlsx`);
   };
 
   const handleSearch = (searchQuery) => {
+    setSearchText(searchQuery);
     let filteredItems = tableData;
     if (searchQuery) {
       filteredItems = filteredItems.filter((item) =>
@@ -160,7 +184,7 @@ const Orders = () => {
     {
       name: 'Image',
       cell: row => row.product && row.product.images && row.product.images.length > 0 ? (
-        <img src={row.product.images[0].startsWith('http') ? row.product.images[0] : `http://localhost:5000${row.product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+        <img src={row.product.images[0].startsWith('http') ? row.product.images[0] : `${process.env.REACT_APP_API_URL}${row.product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
       ) : (
         <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
       ),
@@ -205,9 +229,13 @@ const Orders = () => {
     rangeSeparatorText: 'of',
   };
 
+  const paginatedData = (searchText ? filteredData : tableData).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil((searchText ? filteredData.length : tableData.length) / itemsPerPage);
+  useEffect(() => { setCurrentPage(1); }, [searchText]);
+
   useEffect(() => {
     // Fetch orders data from backend
-    fetch('http://localhost:5000/api/orders')
+    fetch(`${process.env.REACT_APP_API_URL}/api/orders`)
       .then(res => res.json())
       .then(async data => {
         console.log("fetched orders", data);
@@ -217,7 +245,7 @@ const Orders = () => {
           if (typeof product === 'string') {
             // Legacy order, fetch full product
             try {
-              const res = await fetch(`http://localhost:5000/api/products/${product}`);
+              const res = await fetch(`${process.env.REACT_APP_API_URL}/api/products/${product}`);
               if (res.ok) {
                 product = await res.json();
               } else {
@@ -259,7 +287,7 @@ const Orders = () => {
         confirmButtonText: 'Yes, change it!'
       }).then((result) => {
         if (result.isConfirmed) {
-          fetch(`http://localhost:5000/api/orders/${row._id}/status`, {
+          fetch(`${process.env.REACT_APP_API_URL}/api/orders/${row._id}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
@@ -292,7 +320,7 @@ const Orders = () => {
           background: 'transparent',
         });
         try {
-          const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+          const response = await fetch(`${process.env.REACT_APP_API_URL}/api/orders/${orderId}`, {
             method: 'DELETE',
           });
           if (response.ok) {
@@ -338,40 +366,56 @@ const Orders = () => {
             <div className="row mb-4 align-items-center">
               <div className="col-12">
                 <div className="d-flex flex-wrap align-items-center justify-content-between" style={{gap: '18px'}}>
-                  <div style={{ minWidth: 250, maxWidth: 300, flex: '1 1 250px' }}>
-                    <div className="input-group">
-                      <span className="input-group-text" style={{ background: '#f1f5f9', border: '1.5px solid #c7d2fe' }}><i className="bi bi-search" style={{ color: '#1e3a8a' }}></i></span>
+                  <div style={{ minWidth: 250, maxWidth: 300, flex: '1 1 250px', paddingTop: '48px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', borderRadius: 999, boxShadow: '0 2px 8px #1e3a8a11', border: '1.5px solid #c7d2fe', padding: '2px 10px', transition: 'border 0.18s' }}>
+                      <span style={{ background: '#2563eb', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                        <i className="bi bi-search" style={{ color: '#fff', fontSize: 18 }}></i>
+                      </span>
                       <input
                         type="text"
                         placeholder="Search orders by date"
-                        className="form-control"
-                        style={{ border: '1.5px solid #c7d2fe', borderLeft: 'none', borderRadius: '0 8px 8px 0', fontSize: 15, padding: '8px 10px', minWidth: 0 }}
+                        style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 17, fontWeight: 500, padding: '10px 0', flex: 1, borderRadius: 999, color: '#1e293b' }}
                         value={searchText}
-                        onChange={e => {
-                          setSearchText(e.target.value);
-                          handleSearch(e.target.value);
-                        }}
+                        onChange={e => handleSearch(e.target.value)}
+                        onFocus={e => e.target.parentNode.style.border = '1.5px solid #2563eb'}
+                        onBlur={e => e.target.parentNode.style.border = '1.5px solid #c7d2fe'}
                       />
                     </div>
                   </div>
-                  <div className="d-flex align-items-center gap-2" style={{gap: '10px', flexWrap: 'wrap'}}>
-                    <label style={{ fontWeight: 600, color: '#1e3a8a', marginBottom: 0 }}>Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-                      style={{ border: '1.5px solid #c7d2fe', padding: '6px', borderRadius: '8px', outline: 'none', fontSize: 14, width: 130 }}
-            />
-                    <label style={{ fontWeight: 600, color: '#1e3a8a', marginBottom: 0 }}>End Date</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-                      style={{ border: '1.5px solid #c7d2fe', padding: '6px', borderRadius: '8px', outline: 'none', fontSize: 14, width: 130 }}
-            />
-                    <button onClick={() => generateExcelReport(startDate, endDate)} style={{ padding: '7px 16px', background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: 14, boxShadow: '0 2px 8px rgba(30,58,138,0.08)' }}>Download Report</button>
-          </div>
-        </div>
+                  {/* Modern Date Filter Card */}
+                  <div style={{ background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 12px rgba(30,58,138,0.07)', padding: '18px 28px', display: 'flex', alignItems: 'center', gap: 18, minWidth: 340, maxWidth: 600, flexDirection: 'row', flexWrap: 'nowrap', justifyContent: 'flex-start' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+                      <label style={{ fontWeight: 600, color: '#1e3a8a', fontSize: 15, marginBottom: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <i className="bi bi-calendar-event" style={{ fontSize: 18, color: '#2563eb' }}></i> Start Date
+                      </label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        required
+                        style={{ border: '1.5px solid #2563eb', background: '#fff', color: '#1e3a8a', padding: '8px 14px', borderRadius: 8, outline: 'none', fontSize: 15, width: 150, fontWeight: 600, boxShadow: '0 1px 4px #2563eb11', transition: 'border 0.18s' }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+                      <label style={{ fontWeight: 600, color: '#1e3a8a', fontSize: 15, marginBottom: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <i className="bi bi-calendar-event" style={{ fontSize: 18, color: '#2563eb' }}></i> End Date
+                      </label>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        required
+                        style={{ border: '1.5px solid #2563eb', background: '#fff', color: '#1e3a8a', padding: '8px 14px', borderRadius: 8, outline: 'none', fontSize: 15, width: 150, fontWeight: 600, boxShadow: '0 1px 4px #2563eb11', transition: 'border 0.18s' }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => generateExcelReport(startDate, endDate)}
+                      style={{ padding: '5px 28px', background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 16, boxShadow: '0 2px 8px rgba(30,58,138,0.10)', display: 'flex', alignItems: 'center', gap: 10 }}
+                    >
+                      <i className="bi bi-download" style={{ fontSize: 20 }}></i> Download Report
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="orders-table-responsive table-responsive admins-table-responsive">
@@ -386,11 +430,11 @@ const Orders = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(searchText ? filteredData : tableData).map(order => (
+                  {paginatedData.map(order => (
                     <tr key={order._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: 12, textAlign: 'center' }}>
                         {order.product && order.product.images && order.product.images.length > 0 ? (
-                          <img src={order.product.images[0].startsWith('http') ? order.product.images[0] : `http://localhost:5000${order.product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+                          <img src={order.product.images[0].startsWith('http') ? order.product.images[0] : `${process.env.REACT_APP_API_URL}${order.product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
                         ) : (
                           <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                         )}
@@ -424,6 +468,20 @@ const Orders = () => {
                   ))}
                 </tbody>
               </table>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24 }}>
+                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ border: 'none', background: currentPage === 1 ? '#e5e7eb' : '#2563eb', color: '#fff', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 16, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px #1e3a8a11', transition: 'background 0.18s' }}>Prev</button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    (page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1) ? (
+                      <button key={page} onClick={() => setCurrentPage(page)} style={{ border: 'none', background: page === currentPage ? 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)' : '#fff', color: page === currentPage ? '#fff' : '#2563eb', borderRadius: 8, padding: '6px 14px', fontWeight: 700, fontSize: 16, boxShadow: page === currentPage ? '0 2px 8px #1e3a8a22' : '0 2px 8px #1e3a8a11', margin: '0 2px', cursor: 'pointer', borderBottom: page === currentPage ? '2.5px solid #2563eb' : '2.5px solid transparent', transition: 'all 0.18s' }}>{page}</button>
+                    ) : (
+                      (page === currentPage - 2 || page === currentPage + 2) && totalPages > 5 ? <span key={page} style={{ color: '#64748b', fontWeight: 700, fontSize: 18, margin: '0 4px' }}>...</span> : null
+                    )
+                  ))}
+                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ border: 'none', background: currentPage === totalPages ? '#e5e7eb' : '#2563eb', color: '#fff', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 16, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px #1e3a8a11', transition: 'background 0.18s' }}>Next</button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -486,7 +544,7 @@ const Orders = () => {
                 {selectedRowData.product && selectedRowData.product.images && selectedRowData.product.images.length > 0 ? (
                   <img
                     className="admin-modal-image"
-                    src={selectedRowData.product.images[0].startsWith('http') ? selectedRowData.product.images[0] : `http://localhost:5000${selectedRowData.product.images[0]}`}
+                    src={selectedRowData.product.images[0].startsWith('http') ? selectedRowData.product.images[0] : `${process.env.REACT_APP_API_URL}${selectedRowData.product.images[0]}`}
                     loading="lazy"
                     alt="Product"
                     style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 18, boxShadow: '0 4px 24px #1e3a8a22', background: '#f1f5f9', objectFit: 'cover' }}
@@ -495,7 +553,11 @@ const Orders = () => {
                   <div style={{ width: 220, height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 22, background: '#f1f5f9', borderRadius: 18 }}>No Image</div>
                 )}
               </div>
+              
               <div className="admin-modal-details" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                <div style={{ gridColumn: '1 / -1', marginBottom: 8 }}>
+                  <div className="admin-modal-label" style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 17, marginBottom: 8 }}>Vehicle Information</div>
+                </div>
                 <div>
                   <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Product Name</div>
                   <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.product?.name}</div>
@@ -529,8 +591,8 @@ const Orders = () => {
                   <div className="admin-modal-value" style={{ fontWeight: 500, fontSize: 16, color: '#222', background: '#f9fafb', borderRadius: 10, padding: 12, marginTop: 2 }}>{selectedRowData.product?.description}</div>
                 </div>
                 {/* Order Info Section */}
-                <div style={{ gridColumn: '1 / -1', marginTop: 18, borderTop: '1px solid #e5e7eb', paddingTop: 18 }}>
-                  <div className="admin-modal-label" style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 17, marginBottom: 8 }}>Order & User Info</div>
+                <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #e5e7eb', paddingTop: 15 }}>
+                  <div className="admin-modal-label" style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 17, marginBottom: 8, paddingBottom: 18 }}>User Information</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                     <div>
                       <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Order Status</div>

@@ -22,7 +22,7 @@ const Dashboard = ({ componentrender }) => {
 
   const fetchDashboardData = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/dashboard-stats');
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/dashboard-stats`);
       setStats(res.data);
     } catch (err) {
       setStats({ productCount: 0, categoryCount: 0, userCount: 0, orderCount: 0 });
@@ -31,7 +31,7 @@ const Dashboard = ({ componentrender }) => {
 
   const fetchLoanCount = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/loan-applications');
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/loan-applications`);
       setLoanCount(res.data.length);
     } catch (err) {
       setLoanCount(0);
@@ -41,7 +41,7 @@ const Dashboard = ({ componentrender }) => {
   const fetchRecentOrders = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/recent-orders');
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/recent-orders`);
       setRecentOrders(res.data);
     } catch (err) {
       setRecentOrders([]);
@@ -52,7 +52,7 @@ const Dashboard = ({ componentrender }) => {
   const fetchRecentLoans = async () => {
     setLoanLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/loan-applications');
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/loan-applications`);
       // Get the 10 most recent loan applications
       const recent = res.data.slice(0, 10);
       setRecentLoans(recent);
@@ -64,7 +64,7 @@ const Dashboard = ({ componentrender }) => {
 
   const fetchVehicleSaleCount = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/vehicle-sales');
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/vehicle-sales`);
       setVehicleSaleCount(res.data.length);
     } catch (err) {
       setVehicleSaleCount(0);
@@ -106,11 +106,11 @@ const Dashboard = ({ componentrender }) => {
       selector: row => row.name,
       sortable: true,
     },
-    {
-      name: 'Email',
-      selector: row => row.email,
-      sortable: true,
-    },
+    // {
+    //   name: 'Email',
+    //   selector: row => row.email,
+    //   sortable: true,
+    // },
     {
       name: 'Phone',
       selector: row => row.phone,

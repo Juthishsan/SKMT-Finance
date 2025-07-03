@@ -11,7 +11,7 @@ const Products = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/products');
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/products`);
         setProducts(res.data);
       } catch (err) {
         setError('Failed to fetch products');
@@ -122,7 +122,7 @@ const Products = () => {
                   <div className="product-image-container">
                     {product.images && product.images.length > 0 ? (
                       <img 
-                        src={`http://localhost:5000${product.images[0]}`} 
+                        src={`${process.env.REACT_APP_API_URL}${product.images[0]}`} 
                         alt={product.name}
                         className="product-image"
                         onError={(e) => {

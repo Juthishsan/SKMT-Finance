@@ -12,6 +12,10 @@ const VehicleSales = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [slideshowIndex, setSlideshowIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const paginatedData = filteredVehicles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil(filteredVehicles.length / itemsPerPage);
 
   useEffect(() => {
     fetchVehicles();
@@ -31,11 +35,13 @@ const VehicleSales = () => {
     }
   }, [searchText, vehicles]);
 
+  useEffect(() => { setCurrentPage(1); }, [searchText]);
+
   const fetchVehicles = async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get('http://localhost:5000/api/vehicle-sales');
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/vehicle-sales`);
       setVehicles(res.data);
     } catch (err) {
       setError('Failed to fetch vehicle sales.');
@@ -45,14 +51,14 @@ const VehicleSales = () => {
 
   const handleApprove = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/vehicle-sales/${id}`, { status: 'approved' });
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/vehicle-sales/${id}`, { status: 'approved' });
       Swal.fire({ icon: 'success', title: 'Vehicle sale approved!', showConfirmButton: false, timer: 1200 });
       fetchVehicles();
     } catch {}
   };
   const handleReject = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/vehicle-sales/${id}`, { status: 'rejected' });
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/vehicle-sales/${id}`, { status: 'rejected' });
       Swal.fire({ icon: 'success', title: 'Vehicle sale rejected!', showConfirmButton: false, timer: 1200 });
       fetchVehicles();
     } catch {}
@@ -60,7 +66,7 @@ const VehicleSales = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this vehicle sale?')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/vehicle-sales/${id}`);
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/vehicle-sales/${id}`);
       fetchVehicles();
     } catch {}
   };
@@ -87,15 +93,18 @@ const VehicleSales = () => {
           </div>
           <div style={{ padding: 32 }}>
             <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
-              <div className="input-group" style={{ minWidth: 220, maxWidth: 320 }}>
-                <span className="input-group-text" style={{ background: '#f1f5f9', border: '1.5px solid #c7d2fe' }}><BsSearch style={{ color: '#1e3a8a' }} /></span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 220, maxWidth: 320, background: '#fff', borderRadius: 999, boxShadow: '0 2px 8px #1e3a8a11', border: '1.5px solid #c7d2fe', padding: '2px 10px', transition: 'border 0.18s' }}>
+                <span style={{ background: '#2563eb', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                  <i className="bi bi-search" style={{ color: '#fff', fontSize: 18 }}></i>
+                </span>
                 <input
                   type="text"
                   placeholder="Search by brand or title"
-                  className="form-control"
-                  style={{ border: '1.5px solid #c7d2fe', borderLeft: 'none', borderRadius: '0 8px 8px 0', fontSize: 16, padding: '10px 12px' }}
+                  style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 17, fontWeight: 500, padding: '10px 0', flex: 1, borderRadius: 999, color: '#1e293b' }}
                   value={searchText}
                   onChange={e => setSearchText(e.target.value)}
+                  onFocus={e => e.target.parentNode.style.border = '1.5px solid #2563eb'}
+                  onBlur={e => e.target.parentNode.style.border = '1.5px solid #c7d2fe'}
                 />
               </div>
             </div>
@@ -119,11 +128,11 @@ const VehicleSales = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredVehicles.map(vehicle => (
+                    {paginatedData.map(vehicle => (
                       <tr key={vehicle._id} style={{ borderBottom: '1px solid #f1f5f9', verticalAlign: 'top' }}>
                         <td style={{ padding: 12, textAlign: 'center' }}>
                           {(vehicle.images && vehicle.images.length > 0) ? (
-                            <img src={vehicle.images[0].startsWith('/uploads/') ? `http://localhost:5000${vehicle.images[0]}` : `http://localhost:5000/uploads/${vehicle.images[0]}`} alt={vehicle.title} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+                            <img src={vehicle.images[0].startsWith('/uploads/') ? `${process.env.REACT_APP_API_URL}${vehicle.images[0]}` : `${process.env.REACT_APP_API_URL}/uploads/${vehicle.images[0]}`} alt={vehicle.title} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
                           ) : (
                             <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                           )}
@@ -175,6 +184,20 @@ const VehicleSales = () => {
                     ))}
                   </tbody>
                 </table>
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24 }}>
+                    <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ border: 'none', background: currentPage === 1 ? '#e5e7eb' : '#2563eb', color: '#fff', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 16, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px #1e3a8a11', transition: 'background 0.18s' }}>Prev</button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      (page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1) ? (
+                        <button key={page} onClick={() => setCurrentPage(page)} style={{ border: 'none', background: page === currentPage ? 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)' : '#fff', color: page === currentPage ? '#fff' : '#2563eb', borderRadius: 8, padding: '6px 14px', fontWeight: 700, fontSize: 16, boxShadow: page === currentPage ? '0 2px 8px #1e3a8a22' : '0 2px 8px #1e3a8a11', margin: '0 2px', cursor: 'pointer', borderBottom: page === currentPage ? '2.5px solid #2563eb' : '2.5px solid transparent', transition: 'all 0.18s' }}>{page}</button>
+                      ) : (
+                        (page === currentPage - 2 || page === currentPage + 2) && totalPages > 5 ? <span key={page} style={{ color: '#64748b', fontWeight: 700, fontSize: 18, margin: '0 4px' }}>...</span> : null
+                      )
+                    ))}
+                    <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ border: 'none', background: currentPage === totalPages ? '#e5e7eb' : '#2563eb', color: '#fff', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 16, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px #1e3a8a11', transition: 'background 0.18s' }}>Next</button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -196,7 +219,7 @@ const VehicleSales = () => {
                   <>
                     <img
                       className="admin-modal-image"
-                      src={selectedVehicle.images[slideshowIndex].startsWith('/uploads/') ? `http://localhost:5000${selectedVehicle.images[slideshowIndex]}` : `http://localhost:5000/uploads/${selectedVehicle.images[slideshowIndex]}`}
+                      src={selectedVehicle.images[slideshowIndex].startsWith('/uploads/') ? `${process.env.REACT_APP_API_URL}${selectedVehicle.images[slideshowIndex]}` : `${process.env.REACT_APP_API_URL}/uploads/${selectedVehicle.images[slideshowIndex]}`}
                       loading="lazy"
                       alt={selectedVehicle.title}
                       style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 18, boxShadow: '0 4px 24px #1e3a8a22', background: '#f1f5f9', objectFit: 'cover' }}

@@ -15,7 +15,7 @@ const Account = () => {
     }
     const fetchAdmin = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/admins`);
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/admins`);
         const found = res.data.find(a => a.email === email);
         setAdmin(found);
       } catch (err) {
