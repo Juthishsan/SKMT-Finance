@@ -12,6 +12,8 @@ const Order = require('./models/Order');
 const LoanApplication = require('./models/LoanApplication');
 const ContactMessage = require('./models/ContactMessage');
 const VehicleSale = require('./models/VehicleSale');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 app.use(express.json());
@@ -19,6 +21,9 @@ app.use(cors());
 
 const mongoURI = process.env.MONGO_URI;
 const PORT = process.env.PORT || 5000;
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const JWT_EXPIRES_IN = '15m';
 
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected!'))
@@ -38,8 +43,23 @@ const upload = multer({ storage: storage });
 // Serve static files from uploads folder
 app.use('/uploads', express.static('uploads'));
 
+// JWT authentication middleware
+function authenticateJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+      if (err) return res.status(403).json({ error: 'Invalid or expired token' });
+      req.user = user;
+      next();
+    });
+  } else {
+    res.status(401).json({ error: 'No token provided' });
+  }
+}
+
 // Sample route: Get all users
-app.get('/api/users', async (req, res) => {
+app.get('/api/users', authenticateJWT, async (req, res) => {
   try {
     const users = await User.find();
     res.json(users);
@@ -50,18 +70,17 @@ app.get('/api/users', async (req, res) => {
 
 // Sample route: Add a user
 app.post('/api/users', async (req, res) => {
+  console.log('Register endpoint hit');
   try {
     const { username, email, password, phone, address, city, state, pincode } = req.body;
-    console.log('Register request:', req.body); // <-- Add this
     if (!username || !email || !password || !phone || !address || !city || !state || !pincode) {
       return res.status(400).json({ error: 'All fields are required.' });
     }
     const user = new User({ username, email, password, phone, address, city, state, pincode });
+    console.log('User model:', user.constructor.modelName);
     await user.save();
-    console.log('User saved:', user); // <-- Add this
     res.status(201).json(user);
   } catch (err) {
-    console.error('Registration error:', err); // <-- Add this
     let msg = 'Invalid data';
     if (err.code === 11000 && err.keyPattern && err.keyPattern.email) {
       msg = 'Email already exists.';
@@ -71,7 +90,7 @@ app.post('/api/users', async (req, res) => {
 });
 
 // Delete a user
-app.delete('/api/users/:id', async (req, res) => {
+app.delete('/api/users/:id', authenticateJWT, async (req, res) => {
   try {
     const deletedUser = await User.findByIdAndDelete(req.params.id);
     if (!deletedUser) {
@@ -186,19 +205,23 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
     const user = await User.findOne({ email });
-    if (!user || user.password !== password) {
+    if (!user) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
-    // Return all user fields except password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
     const { password: _, ...userData } = user.toObject();
-    res.json({ message: 'Login successful', user: userData });
+    const token = jwt.sign({ id: user._id, email: user.email, role: 'user' }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    res.json({ message: 'Login successful', user: userData, token });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 // Get all admins
-app.get('/api/admins', async (req, res) => {
+app.get('/api/admins', authenticateJWT, async (req, res) => {
   try {
     const admins = await Admin.find();
     res.json(admins);
@@ -208,7 +231,7 @@ app.get('/api/admins', async (req, res) => {
 });
 
 // Add a new admin
-app.post('/api/admins', async (req, res) => {
+app.post('/api/admins', authenticateJWT, async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
     if (!name || !email || !password) {
@@ -227,7 +250,7 @@ app.post('/api/admins', async (req, res) => {
 });
 
 // Delete an admin
-app.delete('/api/admins/:id', async (req, res) => {
+app.delete('/api/admins/:id', authenticateJWT, async (req, res) => {
   try {
     const deletedAdmin = await Admin.findByIdAndDelete(req.params.id);
     if (!deletedAdmin) {
@@ -247,10 +270,15 @@ app.post('/api/admin-login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
     const admin = await Admin.findOne({ email });
-    if (!admin || admin.password !== password) {
+    if (!admin) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
-    res.json({ message: 'Login successful', admin: { name: admin.name, email: admin.email, _id: admin._id } });
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+    const token = jwt.sign({ id: admin._id, email: admin.email, role: 'admin' }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    res.json({ message: 'Login successful', admin: { name: admin.name, email: admin.email, _id: admin._id }, token });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -299,7 +327,7 @@ app.post('/api/loan-applications', async (req, res) => {
 });
 
 // Get all loan applications (admin)
-app.get('/api/loan-applications', async (req, res) => {
+app.get('/api/loan-applications', authenticateJWT, async (req, res) => {
   try {
     const applications = await LoanApplication.find().sort({ createdAt: -1 });
     res.json(applications);
@@ -309,7 +337,7 @@ app.get('/api/loan-applications', async (req, res) => {
 });
 
 // Delete a loan application
-app.delete('/api/loan-applications/:id', async (req, res) => {
+app.delete('/api/loan-applications/:id', authenticateJWT, async (req, res) => {
   try {
     const deleted = await LoanApplication.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Application not found' });
@@ -320,7 +348,7 @@ app.delete('/api/loan-applications/:id', async (req, res) => {
 });
 
 // Mark a loan application as processed
-app.patch('/api/loan-applications/:id', async (req, res) => {
+app.patch('/api/loan-applications/:id', authenticateJWT, async (req, res) => {
   try {
     const updated = await LoanApplication.findByIdAndUpdate(
       req.params.id,
@@ -350,7 +378,7 @@ app.post('/api/contact-messages', async (req, res) => {
 });
 
 // Get all contact messages (admin)
-app.get('/api/contact-messages', async (req, res) => {
+app.get('/api/contact-messages', authenticateJWT, async (req, res) => {
   try {
     const messages = await ContactMessage.find().sort({ createdAt: -1 });
     res.json(messages);
@@ -362,17 +390,21 @@ app.get('/api/contact-messages', async (req, res) => {
 // Update user details
 app.put('/api/users/:id', async (req, res) => {
   try {
-    const { username, email, phone, address, city, state, pincode } = req.body;
-    const updateFields = { username, email, phone, address, city, state, pincode };
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      updateFields,
-      { new: true }
-    );
-    if (!updatedUser) {
+    const { username, email, phone, address, city, state, pincode, password } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json(updatedUser);
+    user.username = username;
+    user.email = email;
+    user.phone = phone;
+    user.address = address;
+    user.city = city;
+    user.state = state;
+    user.pincode = pincode;
+    if (password) user.password = password; // Will be hashed by pre-save hook
+    await user.save();
+    res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message || 'Internal server error' });
   }

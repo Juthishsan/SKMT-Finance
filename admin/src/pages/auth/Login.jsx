@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import { useAuth } from '../../AuthProvider';
 
 const Login = ({ componentrender }) => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const Login = ({ componentrender }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,15 +33,16 @@ const Login = ({ componentrender }) => {
       timer: 800,
     });
     try {
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/admin-login`, formData);
-      localStorage.setItem('adminEmail', formData.email);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/admin-login`, formData);
+      const data = response.data;
+      login(data.admin, data.token);
       Swal.fire({
         icon: 'success',
         title: 'Logged in Successfully',
         showConfirmButton: true,
         timer: 2000
       });
-      componentrender("Dashboard");
+      componentrender('Dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'Username or Password is Wrong');
       Swal.fire({

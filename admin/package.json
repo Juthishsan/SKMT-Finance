@@ -8,6 +8,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.10.0",
     "base-64": "^1.0.0",
+    "bcryptjs": "^3.0.2",
     "chart.js": "^4.4.2",
     "firebase": "^10.5.2",
     "react": "^18.2.0",

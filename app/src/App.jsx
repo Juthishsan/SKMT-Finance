@@ -17,10 +17,13 @@ import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 import Profile from './pages/Profile';
 import SellVehicle from './pages/SellVehicle.jsx';
+import SessionWarningModal from './components/SessionWarningModal';
+import { useAuth } from './AuthProvider';
 
 function App() {
+  const { sessionWarning, setSessionWarning } = useAuth();
   return (
-    <Router>
+    <>
       <ScrollToTop />
       <div className="App">
         <Header />
@@ -42,8 +45,11 @@ function App() {
         </main>
         <Footer />
       </div>
+      {sessionWarning && (
+        <SessionWarningModal onDismiss={() => setSessionWarning(false)} />
+      )}
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
-    </Router>
+    </>
   );
 }
 

@@ -1,9 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import Login from './pages/auth/Login';
-import Engine from './Engine';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import SessionWarningModal from './components/SessionWarningModal';
-//import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
@@ -18,27 +14,26 @@ const getTokenData = (token) => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [admin, setAdmin] = useState(() => {
-    const stored = localStorage.getItem('admin');
+  const navigate = useNavigate();
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem('user');
     return stored ? JSON.parse(stored) : null;
   });
-  const [token, setToken] = useState(() => localStorage.getItem('adminToken'));
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [sessionWarning, setSessionWarning] = useState(false);
-  const [component, setComponent] = useState(() => (admin ? 'Engine' : 'Login'));
-  const [engineSubComponent, setEngineSubComponent] = useState(() => localStorage.getItem('adminPanelPage') || 'Dashboard');
   const logoutTimer = useRef();
   const warningTimer = useRef();
   const inactivityTimer = useRef();
 
   // Helper: Logout
   const logout = useCallback(() => {
-    setAdmin(null);
+    setUser(null);
     setToken(null);
-    localStorage.removeItem('admin');
-    localStorage.removeItem('adminToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
     setSessionWarning(false);
-    setComponent('Login');
-  }, []);
+    navigate('/login');
+  }, [navigate]);
 
   // Helper: Reset inactivity timer
   const resetInactivityTimer = useCallback(() => {
@@ -88,13 +83,12 @@ export const AuthProvider = ({ children }) => {
   }, [token, logout]);
 
   // Login handler
-  const login = (adminData, jwt) => {
-    setAdmin(adminData);
+  const login = (userData, jwt) => {
+    setUser(userData);
     setToken(jwt);
-    localStorage.setItem('admin', JSON.stringify(adminData));
-    localStorage.setItem('adminToken', jwt);
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', jwt);
     setSessionWarning(false);
-    setComponent('Engine');
   };
 
   // Attach token to fetch requests
@@ -107,41 +101,11 @@ export const AuthProvider = ({ children }) => {
     [token]
   );
 
-  // Component navigation logic
-  useEffect(() => {
-    if (component === 'Engine') {
-      localStorage.setItem('adminPanelPage', engineSubComponent);
-    }
-  }, [component, engineSubComponent]);
-
-  const componentrender = (componentName) => {
-    if ([
-      'Dashboard', 'Products', 'Orders', 'Loans', 'Users', 'Admins', 'Profile', 'ContactMessages', 'VehicleSales'
-    ].includes(componentName)) {
-      setComponent('Engine');
-      setEngineSubComponent(componentName);
-    } else {
-      setComponent(componentName);
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ admin, token, login, logout, authFetch, sessionWarning, setSessionWarning, componentrender }}>
-      <div className=''>
-        <div></div>
-        <div>
-          {component === 'Login' && <Login componentrender={componentrender} />}
-          {component === 'Engine' && <Engine component={engineSubComponent} componentrender={componentrender} />}
-          {component === 'ForgotPassword' && <ForgotPassword componentrender={componentrender} />}
-        </div>
-        <div></div>
-      </div>
-      {sessionWarning && (
-        <SessionWarningModal onDismiss={() => setSessionWarning(false)} />
-      )}
+    <AuthContext.Provider value={{ user, token, login, logout, authFetch, sessionWarning, setSessionWarning }}>
+      {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
-export default AuthProvider;
+export const useAuth = () => useContext(AuthContext); 
