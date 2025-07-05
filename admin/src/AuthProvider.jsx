@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('adminToken');
     setSessionWarning(false);
     setComponent('Login');
+    window.location.reload(); // Force reload to clear all state
   }, []);
 
   // Helper: Reset inactivity timer
@@ -87,12 +88,33 @@ export const AuthProvider = ({ children }) => {
     };
   }, [token, logout]);
 
+  // On mount and on token/admin change, ensure authentication is valid
+  useEffect(() => {
+    if (!admin || !token) {
+      setComponent('Login');
+    } else {
+      // Optionally, check token validity here as well
+      const data = getTokenData(token);
+      if (!data || !data.exp || Date.now() > data.exp * 1000) {
+        setComponent('Login');
+        setAdmin(null);
+        setToken(null);
+        localStorage.removeItem('admin');
+        localStorage.removeItem('adminToken');
+      }
+    }
+    // eslint-disable-next-line
+  }, [admin, token]);
+
   // Login handler
   const login = (adminData, jwt) => {
     setAdmin(adminData);
     setToken(jwt);
     localStorage.setItem('admin', JSON.stringify(adminData));
     localStorage.setItem('adminToken', jwt);
+    if (adminData && adminData.email) {
+      localStorage.setItem('adminEmail', adminData.email);
+    }
     setSessionWarning(false);
     setComponent('Engine');
   };

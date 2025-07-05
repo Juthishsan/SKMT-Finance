@@ -141,7 +141,7 @@ const Loans = () => {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-applications`, {
+      const res = await fetch(`http://localhost:5000/api/loan-applications`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, loanType: selectedLoan.title })

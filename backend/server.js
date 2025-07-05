@@ -266,14 +266,15 @@ app.delete('/api/admins/:id', authenticateJWT, async (req, res) => {
 app.post('/api/admin-login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required.' });
-    }
+    // console.log('Admin login attempt:', email, password);
     const admin = await Admin.findOne({ email });
     if (!admin) {
+      // console.log('Admin not found');
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
+    // console.log('Admin found:', admin.email, admin.password);
     const isMatch = await bcrypt.compare(password, admin.password);
+    // console.log('Password match:', isMatch);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
@@ -547,6 +548,30 @@ app.delete('/api/orders/:id', async (req, res) => {
       return res.status(404).json({ error: 'Order not found' });
     }
     res.json({ message: 'Order deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Update admin profile
+app.put('/api/admins/:id', authenticateJWT, async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (email) updateFields.email = email;
+    if (phone) updateFields.phone = phone;
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    );
+    if (!updatedAdmin) {
+      return res.status(404).json({ error: 'Admin not found' });
+    }
+    // Exclude password from response
+    const { password, ...adminData } = updatedAdmin.toObject();
+    res.json(adminData);
   } catch (err) {
     res.status(500).json({ error: err.message || 'Internal server error' });
   }

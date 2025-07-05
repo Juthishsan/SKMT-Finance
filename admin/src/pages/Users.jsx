@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import axios from 'axios';
+import { useAuth } from '../AuthProvider';
 
 const Users = () => {
+  const { authFetch } = useAuth();
   const [tableData, setTableData] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [filteredData, setFilteredData] = useState([]);
@@ -22,16 +23,17 @@ const Users = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/users`);
-        setTableData(res.data);
-        setFilteredData(res.data);
+        const res = await authFetch('http://localhost:5000/api/users');
+        const data = await res.json();
+        setTableData(data);
+        setFilteredData(data);
       } catch (err) {
         setTableData([]);
         setFilteredData([]);
       }
     };
     fetchUsers();
-  }, []);
+  }, [authFetch]);
 
   const deleteUser = async (userId) => {
     const result = await Swal.fire({
@@ -45,12 +47,13 @@ const Users = () => {
     });
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${process.env.REACT_APP_API_URL}/api/users/${userId}`);
+        await authFetch(`http://localhost:5000/api/users/${userId}`, { method: 'DELETE' });
         Swal.fire('Deleted!', 'User has been deleted.', 'success');
         // Refresh user list
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/users`);
-        setTableData(res.data);
-        setFilteredData(res.data);
+        const res = await authFetch('http://localhost:5000/api/users');
+        const data = await res.json();
+        setTableData(data);
+        setFilteredData(data);
       } catch (err) {
         Swal.fire('Error', 'Failed to delete user.', 'error');
       }

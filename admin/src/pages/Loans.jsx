@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { BsEyeFill, BsTrashFill, BsCheckCircle, BsCircle } from 'react-icons/bs';
 import Swal from 'sweetalert2';
+import { useAuth } from '../AuthProvider';
 
 const Loans = () => {
+  const { authFetch } = useAuth();
   const [applications, setApplications] = useState([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -17,24 +19,23 @@ const Loans = () => {
   const fetchApplications = async () => {
     setError('');
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-applications`);
-      if (!res.ok) throw new Error('Failed to fetch loan applications');
+      const res = await authFetch('http://localhost:5000/api/loan-applications');
       const data = await res.json();
       setApplications(data);
     } catch (err) {
-      setError(err.message);
+      setError('Failed to fetch loan applications');
     }
     setLoading(false);
   };
 
   useEffect(() => {
     fetchApplications();
-  }, []);
+  }, [authFetch]);
 
   const handleDelete = async (id) => {
     setActionLoading(id + '-delete');
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-applications/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`http://localhost:5000/api/loan-applications/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Delete failed');
       setApplications(applications => applications.filter(app => app._id !== id));
     } catch (err) {
@@ -47,7 +48,7 @@ const Loans = () => {
   const handleMarkProcessed = async (id) => {
     setActionLoading(id + '-process');
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/loan-applications/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' } });
+      const res = await authFetch(`http://localhost:5000/api/loan-applications/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' } });
       if (!res.ok) throw new Error('Failed to mark as processed');
       const updated = await res.json();
       setApplications(apps => apps.map(app => app._id === id ? updated : app));

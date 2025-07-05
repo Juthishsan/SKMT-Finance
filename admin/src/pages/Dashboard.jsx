@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { BsFillArchiveFill, BsPeopleFill, BsCartFill, BsCurrencyRupee, BsCarFrontFill } from 'react-icons/bs';
 import DataTable from 'react-data-table-component';
-import axios from 'axios';
+import { useAuth } from '../AuthProvider';
 
 const Dashboard = ({ componentrender }) => {
+  const { authFetch } = useAuth();
   const [stats, setStats] = useState({ productCount: 0, categoryCount: 0, userCount: 0, orderCount: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
   const [recentLoans, setRecentLoans] = useState([]);
@@ -22,8 +23,9 @@ const Dashboard = ({ componentrender }) => {
 
   const fetchDashboardData = async () => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/dashboard-stats`);
-      setStats(res.data);
+      const res = await authFetch(`http://localhost:5000/api/dashboard-stats`);
+      const data = await res.json();
+      setStats(data);
     } catch (err) {
       setStats({ productCount: 0, categoryCount: 0, userCount: 0, orderCount: 0 });
     }
@@ -31,8 +33,9 @@ const Dashboard = ({ componentrender }) => {
 
   const fetchLoanCount = async () => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/loan-applications`);
-      setLoanCount(res.data.length);
+      const res = await authFetch(`http://localhost:5000/api/loan-applications`);
+      const data = await res.json();
+      setLoanCount(data.length);
     } catch (err) {
       setLoanCount(0);
     }
@@ -41,8 +44,9 @@ const Dashboard = ({ componentrender }) => {
   const fetchRecentOrders = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/recent-orders`);
-      setRecentOrders(res.data);
+      const res = await authFetch(`http://localhost:5000/api/recent-orders`);
+      const data = await res.json();
+      setRecentOrders(data);
     } catch (err) {
       setRecentOrders([]);
     }
@@ -52,9 +56,10 @@ const Dashboard = ({ componentrender }) => {
   const fetchRecentLoans = async () => {
     setLoanLoading(true);
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/loan-applications`);
+      const res = await authFetch(`http://localhost:5000/api/loan-applications`);
+      const data = await res.json();
       // Get the 10 most recent loan applications
-      const recent = res.data.slice(0, 10);
+      const recent = data.slice(0, 10);
       setRecentLoans(recent);
     } catch (err) {
       setRecentLoans([]);
@@ -64,8 +69,9 @@ const Dashboard = ({ componentrender }) => {
 
   const fetchVehicleSaleCount = async () => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/vehicle-sales`);
-      setVehicleSaleCount(res.data.length);
+      const res = await authFetch(`http://localhost:5000/api/vehicle-sales`);
+      const data = await res.json();
+      setVehicleSaleCount(data.length);
     } catch (err) {
       setVehicleSaleCount(0);
     }

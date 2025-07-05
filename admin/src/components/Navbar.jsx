@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import {
   BsGrid1X2Fill, BsFillArchiveFill, BsPeopleFill, BsPersonCircle, BsCartFill, BsCurrencyRupee, BsEnvelopeFill, BsCarFrontFill
 } from 'react-icons/bs';
+import { useAuth } from '../AuthProvider';
 
 const navItems = [
   { label: 'Dashboard', icon: <BsGrid1X2Fill size={22} />, key: 'Dashboard' },
@@ -18,16 +19,28 @@ const navItems = [
 ];
 
 const Navbar = ({ componentrender, component }) => {
-    const logout = async () => {
-        Swal.fire({
-      icon: 'success',
-      title: 'Logged out',
-      text: 'You have been logged out successfully.',
-            showConfirmButton: false,
-      timer: 1200,
+    const { logout } = useAuth();
+    const handleLogout = async () => {
+        const result = await Swal.fire({
+            icon: 'question',
+            title: 'Are you sure?',
+            text: 'Do you really want to logout?',
+            showCancelButton: true,
+            confirmButtonColor: '#1e3a8a',
+            cancelButtonColor: '#aaa',
+            confirmButtonText: 'Yes, logout',
+            cancelButtonText: 'Cancel',
         });
-    localStorage.removeItem('adminEmail');
-    componentrender('Login');
+        if (result.isConfirmed) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Logged out',
+                text: 'You have been logged out successfully.',
+                showConfirmButton: true,
+                timer: 3000,
+            });
+            logout();
+        }
     };
 
     return (
@@ -80,7 +93,7 @@ const Navbar = ({ componentrender, component }) => {
         </ul>
       </nav>
       <button
-        onClick={logout}
+        onClick={handleLogout}
         style={{
           marginTop: 32,
           background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)',

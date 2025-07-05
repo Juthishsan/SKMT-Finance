@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../AuthProvider';
 
 const ContactMessages = () => {
+  const { authFetch } = useAuth();
   const [messages, setMessages] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -14,17 +16,16 @@ const ContactMessages = () => {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/contact-messages`);
-        if (!res.ok) throw new Error('Failed to fetch contact messages');
+        const res = await authFetch('http://localhost:5000/api/contact-messages');
         const data = await res.json();
         setMessages(data);
       } catch (err) {
-        setError(err.message);
+        setError('Failed to fetch contact messages');
       }
       setLoading(false);
     };
     fetchMessages();
-  }, []);
+  }, [authFetch]);
 
   const filtered = messages.filter(msg =>
     msg.name.toLowerCase().includes(search.toLowerCase()) ||

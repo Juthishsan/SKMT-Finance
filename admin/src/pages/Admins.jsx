@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import axios from 'axios';
+import { useAuth } from '../AuthProvider';
 
 const Admins = () => {
+    const { authFetch } = useAuth();
     const [tableData, setTableData] = useState([]);
     const [searchText, setSearchText] = useState('');
     const [filteredData, setFilteredData] = useState([]);
@@ -22,22 +23,21 @@ const Admins = () => {
         setModalOpen(true);
     };
 
-    const fetchAdmins = async () => {
-        setLoading(true);
-        try {
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/admins`);
-            setTableData(res.data);
-            setFilteredData(res.data);
-        } catch (err) {
-            setTableData([]);
-            setFilteredData([]);
-        }
-        setLoading(false);
-    };
-
     useEffect(() => {
+        const fetchAdmins = async () => {
+            try {
+                const res = await authFetch('http://localhost:5000/api/admins');
+                const data = await res.json();
+                setTableData(data);
+                setFilteredData(data);
+            } catch (err) {
+                setTableData([]);
+                setFilteredData([]);
+            }
+            setLoading(false);
+        };
         fetchAdmins();
-    }, []);
+    }, [authFetch]);
 
     const handleAddAdmin = async (e) => {
         e.preventDefault();
@@ -46,11 +46,20 @@ const Admins = () => {
             return;
         }
         try {
-            await axios.post(`${process.env.REACT_APP_API_URL}/api/admins`, form);
+            await authFetch(`http://localhost:5000/api/admins`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(form)
+            });
             Swal.fire('Success', 'Admin added successfully!', 'success');
             setForm({ name: '', email: '', phone: '', password: '' });
             setaddadmin(false);
-            fetchAdmins();
+            const res = await authFetch('http://localhost:5000/api/admins');
+            const data = await res.json();
+            setTableData(data);
+            setFilteredData(data);
         } catch (err) {
             Swal.fire('Error', err.response?.data?.error || 'Failed to add admin.', 'error');
         }
@@ -68,9 +77,12 @@ const Admins = () => {
         });
         if (result.isConfirmed) {
             try {
-                await axios.delete(`${process.env.REACT_APP_API_URL}/api/admins/${adminId}`);
+                await authFetch(`http://localhost:5000/api/admins/${adminId}`, { method: 'DELETE' });
                 Swal.fire('Deleted!', 'Admin has been deleted.', 'success');
-                fetchAdmins();
+                const res = await authFetch('http://localhost:5000/api/admins');
+                const data = await res.json();
+                setTableData(data);
+                setFilteredData(data);
             } catch (err) {
                 Swal.fire('Error', 'Failed to delete admin.', 'error');
             }

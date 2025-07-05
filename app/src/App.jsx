@@ -19,6 +19,7 @@ import Profile from './pages/Profile';
 import SellVehicle from './pages/SellVehicle.jsx';
 import SessionWarningModal from './components/SessionWarningModal';
 import { useAuth } from './AuthProvider';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   const { sessionWarning, setSessionWarning } = useAuth();
@@ -39,8 +40,8 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/sell-vehicle" element={<SellVehicle />} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/sell-vehicle" element={<ProtectedRoute><SellVehicle /></ProtectedRoute>} />
           </Routes>
         </main>
         <Footer />

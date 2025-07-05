@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCity, FaFlag, FaHashtag, FaEdit, FaSave, FaTimes, FaMoneyCheckAlt, FaCalendarAlt, FaCheckCircle, FaClock } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-
-const getUser = () => {
-  try {
-    return JSON.parse(localStorage.getItem('user'));
-  } catch {
-    return null;
-  }
-};
+import { useAuth } from '../AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
-  const [user, setUser] = useState(getUser());
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(user || {});
   const [loading, setLoading] = useState(false);
@@ -19,15 +14,19 @@ const Profile = () => {
   const [loansLoading, setLoansLoading] = useState(true);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', { replace: true });
+      return;
+    }
     if (user?.email) {
       setLoansLoading(true);
-      fetch(`${process.env.REACT_APP_API_URL}/api/user-loan-applications?email=${encodeURIComponent(user.email)}`)
+      fetch(`http://localhost:5000/api/user-loan-applications?email=${encodeURIComponent(user.email)}`)
         .then(res => res.json())
         .then(data => setLoans(Array.isArray(data) ? data : []))
         .catch(() => setLoans([]))
         .finally(() => setLoansLoading(false));
     }
-  }, [user]);
+  }, [user, isAuthenticated, navigate]);
 
   if (!user) {
     return (
@@ -47,7 +46,7 @@ const Profile = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/users/${user._id}`, {
+      const response = await fetch(`http://localhost:5000/api/users/${user._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)

@@ -1,7 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { useAuth } from '../../AuthProvider';
+
+const getTokenData = (token) => {
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload;
+  } catch {
+    return null;
+  }
+};
 
 const Login = ({ componentrender }) => {
   const [formData, setFormData] = useState({
@@ -10,7 +20,18 @@ const Login = ({ componentrender }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, token, admin } = useAuth();
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (admin && token) {
+      const data = getTokenData(token);
+      if (data && data.exp && Date.now() < data.exp * 1000) {
+        componentrender('Dashboard');
+      }
+    }
+    // eslint-disable-next-line
+  }, [admin, token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,7 +54,7 @@ const Login = ({ componentrender }) => {
       timer: 800,
     });
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/admin-login`, formData);
+      const response = await axios.post(`http://localhost:5000/api/admin-login`, formData);
       const data = response.data;
       login(data.admin, data.token);
       Swal.fire({

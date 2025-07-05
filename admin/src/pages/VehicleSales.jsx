@@ -41,7 +41,7 @@ const VehicleSales = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/vehicle-sales`);
+      const res = await axios.get(`http://localhost:5000/api/vehicle-sales`);
       setVehicles(res.data);
     } catch (err) {
       setError('Failed to fetch vehicle sales.');
@@ -51,14 +51,14 @@ const VehicleSales = () => {
 
   const handleApprove = async (id) => {
     try {
-      await axios.put(`${process.env.REACT_APP_API_URL}/api/vehicle-sales/${id}`, { status: 'approved' });
+      await axios.put(`http://localhost:5000/api/vehicle-sales/${id}`, { status: 'approved' });
       Swal.fire({ icon: 'success', title: 'Vehicle sale approved!', showConfirmButton: false, timer: 1200 });
       fetchVehicles();
     } catch {}
   };
   const handleReject = async (id) => {
     try {
-      await axios.put(`${process.env.REACT_APP_API_URL}/api/vehicle-sales/${id}`, { status: 'rejected' });
+      await axios.put(`http://localhost:5000/api/vehicle-sales/${id}`, { status: 'rejected' });
       Swal.fire({ icon: 'success', title: 'Vehicle sale rejected!', showConfirmButton: false, timer: 1200 });
       fetchVehicles();
     } catch {}
@@ -66,7 +66,7 @@ const VehicleSales = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this vehicle sale?')) return;
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/api/vehicle-sales/${id}`);
+      await axios.delete(`http://localhost:5000/api/vehicle-sales/${id}`);
       fetchVehicles();
     } catch {}
   };
@@ -132,7 +132,7 @@ const VehicleSales = () => {
                       <tr key={vehicle._id} style={{ borderBottom: '1px solid #f1f5f9', verticalAlign: 'top' }}>
                         <td style={{ padding: 12, textAlign: 'center' }}>
                           {(vehicle.images && vehicle.images.length > 0) ? (
-                            <img src={vehicle.images[0].startsWith('/uploads/') ? `${process.env.REACT_APP_API_URL}${vehicle.images[0]}` : `${process.env.REACT_APP_API_URL}/uploads/${vehicle.images[0]}`} alt={vehicle.title} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+                            <img src={vehicle.images[0].startsWith('/uploads/') ? `http://localhost:5000${vehicle.images[0]}` : `http://localhost:5000/uploads/${vehicle.images[0]}`} alt={vehicle.title} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
                           ) : (
                             <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                           )}
@@ -219,7 +219,7 @@ const VehicleSales = () => {
                   <>
                     <img
                       className="admin-modal-image"
-                      src={selectedVehicle.images[slideshowIndex].startsWith('/uploads/') ? `${process.env.REACT_APP_API_URL}${selectedVehicle.images[slideshowIndex]}` : `${process.env.REACT_APP_API_URL}/uploads/${selectedVehicle.images[slideshowIndex]}`}
+                      src={selectedVehicle.images[slideshowIndex].startsWith('/uploads/') ? `http://localhost:5000${selectedVehicle.images[slideshowIndex]}` : `http://localhost:5000/uploads/${selectedVehicle.images[slideshowIndex]}`}
                       loading="lazy"
                       alt={selectedVehicle.title}
                       style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 18, boxShadow: '0 4px 24px #1e3a8a22', background: '#f1f5f9', objectFit: 'cover' }}

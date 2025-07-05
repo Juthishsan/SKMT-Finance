@@ -12,7 +12,7 @@ const ProductDetails = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/products/${id}`);
+        const res = await axios.get(`http://localhost:5000/api/products/${id}`);
         setProduct(res.data);
       } catch (err) {
         setProduct(null);
@@ -37,7 +37,7 @@ const ProductDetails = () => {
   }
 
   const images = Array.isArray(product.images) && product.images.length > 0
-    ? product.images.map(img => img.startsWith('http') ? img : `${process.env.REACT_APP_API_URL}${img}`)
+    ? product.images.map(img => img.startsWith('http') ? img : `http://localhost:5000${img}`)
     : ['/assets/default-car.jpg'];
 
   const prevImage = (e) => {
@@ -85,7 +85,7 @@ const ProductDetails = () => {
     // Fetch the full product object again to guarantee freshness
     let freshProduct = product;
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/products/${id}`);
+      const res = await fetch(`http://localhost:5000/api/products/${id}`);
       if (res.ok) {
         freshProduct = await res.json();
       }
@@ -108,7 +108,7 @@ const ProductDetails = () => {
     };
     console.log('Order data being sent:', orderData);
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/orders`, {
+      const res = await fetch(`http://localhost:5000/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)

@@ -35,7 +35,7 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/products`);
+      const response = await fetch(`http://localhost:5000/api/products`);
       const data = await response.json();
       setTableData(data);
     } catch (error) {
@@ -78,7 +78,7 @@ const Products = () => {
           background: 'transparent',
         });
         try {
-          const response = await fetch(`${process.env.REACT_APP_API_URL}/api/products/${id}`, {
+          const response = await fetch(`http://localhost:5000/api/products/${id}`, {
             method: 'DELETE',
           });
           if (response.ok) {
@@ -125,7 +125,7 @@ const Products = () => {
       if (newImages && newImages.length > 0) {
         newImages.forEach(file => formData.append('images', file));
       }
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/products/${_id}`, {
+      const response = await fetch(`http://localhost:5000/api/products/${_id}`, {
         method: 'PUT',
         body: formData,
       });
@@ -250,7 +250,7 @@ const Products = () => {
                     <tr key={product._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: 12, textAlign: 'center' }}>
                         {(product.images && product.images.length > 0) ? (
-                          <img src={`${process.env.REACT_APP_API_URL}${product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+                          <img src={`http://localhost:5000${product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
                         ) : (
                           <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                         )}
@@ -514,7 +514,7 @@ const Products = () => {
                   <>
                     <img
                       className="admin-modal-image"
-                      src={`${process.env.REACT_APP_API_URL}${selectedRowData.images[slideshowIndex]}`}
+                      src={`http://localhost:5000${selectedRowData.images[slideshowIndex]}`}
                       loading="lazy"
                       alt="Product"
                       style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 18, boxShadow: '0 4px 24px #1e3a8a22', background: '#f1f5f9', objectFit: 'cover' }}

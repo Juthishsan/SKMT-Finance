@@ -70,7 +70,7 @@ const SellVehicle = () => {
           formData.append(key, value);
         }
       });
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/vehicle-sales`, {
+      const res = await fetch(`http://localhost:5000/api/vehicle-sales`, {
         method: 'POST',
         body: formData
       });

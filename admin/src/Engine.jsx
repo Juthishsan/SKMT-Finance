@@ -13,15 +13,17 @@ import { BsGrid1X2Fill, BsPeopleFill, BsPersonCircle, BsCartFill, BsCurrencyRupe
 import { HiMenuAlt3 } from 'react-icons/hi';
 import skmtLogo from './assets/skmt logo (1).png';
 import Swal from 'sweetalert2';
+import { useAuth } from './AuthProvider';
 
 const Engine = ({ component, componentrender }) => {
+    const { authFetch, logout } = useAuth();
     // Global loan notification logic
     const [loanNotification, setLoanNotification] = useState('');
     const seenLoanIds = useRef(new Set());
     useEffect(() => {
         const fetchLoanApps = async (showNotification = false) => {
             try {
-                const res = await fetch('http://localhost:5000/api/loan-applications');
+                const res = await authFetch('http://localhost:5000/api/loan-applications');
                 if (!res.ok) return;
                 const data = await res.json();
                 if (showNotification && seenLoanIds.current.size > 0) {
@@ -37,7 +39,7 @@ const Engine = ({ component, componentrender }) => {
         fetchLoanApps();
         const interval = setInterval(() => fetchLoanApps(true), 5000);
         return () => clearInterval(interval);
-    }, []);
+    }, [authFetch]);
 
     const render = () => {
         switch (component) {
@@ -64,7 +66,7 @@ const Engine = ({ component, componentrender }) => {
     };
 
     // Find the logout logic from Navbar
-    const logout = async () => {
+    const handleLogout = async () => {
         Swal.fire({
           icon: 'success',
           title: 'Logged out',
@@ -72,7 +74,7 @@ const Engine = ({ component, componentrender }) => {
           showConfirmButton: false,
           timer: 1200,
         });
-        localStorage.removeItem('adminEmail');
+        logout();
         componentrender('Login');
         // Close the offcanvas if open
         document.querySelector('#offcanvasDarkNavbar .btn-close')?.click();
@@ -151,7 +153,7 @@ const Engine = ({ component, componentrender }) => {
                                         </li>
                                     </ul>
                                     <button
-                                      onClick={logout}
+                                      onClick={handleLogout}
                                       style={{
                                         width: '90%',
                                         margin: '24px auto 18px auto',
