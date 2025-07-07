@@ -67,7 +67,7 @@ const Header = () => {
             <span className="logo-title-modern">SKMT <span>Finance</span></span>
           </Link>
         </div>
-        <button
+        {/* <button
           className={`mobile-menu-btn${isMenuOpen ? ' open' : ''}`}
           aria-label="Toggle navigation menu"
           aria-expanded={isMenuOpen}
@@ -78,7 +78,7 @@ const Header = () => {
             <span className="bar"></span>
             <span className="bar"></span>
           </span>
-        </button>
+        </button> */}
         <div className="nav-right-group">
           <nav className={`nav${isMenuOpen ? ' nav-open' : ''}`} aria-label="Main navigation">
             <Link 
@@ -160,13 +160,6 @@ const Header = () => {
                 </div>
               )}
             </div>
-            {/* <Link 
-              to="/services" 
-              className={`nav-link${location.pathname === '/services' ? ' active' : ''}`}
-              onClick={handleNavClick}
-            >
-              <MdBuild className="nav-icon" /> Services
-            </Link> */}
             <Link 
               to="/about" 
               className={`nav-link${location.pathname === '/about' ? ' active' : ''}`}

@@ -3,6 +3,8 @@ import Login from './pages/auth/Login';
 import Engine from './Engine';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import SessionWarningModal from './components/SessionWarningModal';
+import AdminForgotPassword from './pages/auth/AdminForgotPassword';
+import AdminResetPassword from './pages/auth/AdminResetPassword';
 //import Swal from 'sweetalert2';
 
 const AuthContext = createContext();
@@ -46,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
     inactivityTimer.current = setTimeout(() => {
       logout();
-    }, 15 * 60 * 1000); // 15 min
+    }, 60 * 60 * 1000); // 1 hour
   }, [logout]);
 
   // Set up inactivity listeners
@@ -155,6 +157,8 @@ export const AuthProvider = ({ children }) => {
           {component === 'Login' && <Login componentrender={componentrender} />}
           {component === 'Engine' && <Engine component={engineSubComponent} componentrender={componentrender} />}
           {component === 'ForgotPassword' && <ForgotPassword componentrender={componentrender} />}
+          {component === 'AdminForgotPassword' && <AdminForgotPassword componentrender={componentrender} />}
+          {component === 'AdminResetPassword' && <AdminResetPassword componentrender={componentrender} />}
         </div>
         <div></div>
       </div>

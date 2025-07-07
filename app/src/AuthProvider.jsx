@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
     inactivityTimer.current = setTimeout(() => {
       logout();
-    }, 15 * 60 * 1000); // 15 min
+    }, 60 * 60 * 1000); // 1 hour
   }, [logout]);
 
   // Set up inactivity listeners

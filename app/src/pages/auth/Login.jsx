@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaExclamationCircle } from 'react-icons/fa';
 import { useAuth } from '../../AuthProvider';
 
 const Login = () => {
@@ -9,6 +9,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -39,13 +40,23 @@ const Login = () => {
     width: '100%'
   };
 
+  // Validation helpers
+  const validateEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePassword = pw => pw.length >= 6 && /[A-Za-z]/.test(pw) && /\d/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+
+  const validateFields = () => {
+    const errors = {};
+    if (!email || !validateEmail(email)) errors.email = 'Enter a valid email address.';
+    if (!password || !validatePassword(password)) errors.password = 'Password must be at least 6 characters, include a letter, a number, and a symbol.';
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      return;
-    }
+    const errors = validateFields();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     try {
       const response = await fetch(`http://localhost:5000/api/login`, {
         method: 'POST',
@@ -68,39 +79,71 @@ const Login = () => {
     }
   };
 
+  const errorBox = msg => (
+    <div style={{
+      color: '#b91c1c',
+      background: 'linear-gradient(90deg, #fef2f2 60%, #f0fdfa 100%)',
+      border: '1.5px solid #fca5a5',
+      borderLeft: '6px solid #ef4444',
+      borderRadius: 10,
+      padding: '10px 16px',
+      marginTop: 8,
+      marginBottom: 0,
+      fontSize: 15,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      fontWeight: 600,
+      boxShadow: '0 4px 16px #fca5a522',
+      letterSpacing: 0.2,
+      transition: 'all 0.3s',
+      animation: 'fadeInError 0.5s',
+    }}>
+      <FaExclamationCircle style={{fontSize: 18, color: '#ef4444', flexShrink: 0}} />
+      <span>{msg}</span>
+      <style>{`
+        @keyframes fadeInError {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+
   return (
     <div className="container" style={{maxWidth: 420, margin: '64px auto', padding: '40px', background: 'linear-gradient(135deg, #e0e7ff 0%, #f0fdfa 100%)', borderRadius: 24, boxShadow: '0 8px 32px rgba(30,58,138,0.13)'}}>
       <h2 style={{textAlign: 'center', marginBottom: 28, color: '#1e3a8a', fontWeight: 700, letterSpacing: 1}}>Login to SKMT Finance</h2>
       <form onSubmit={handleSubmit}>
         <div style={{marginBottom: 22}}>
           <label style={{fontWeight: 600, color: '#1e3a8a'}}>Email</label>
-          <div style={inputGroupStyle}>
+          <div style={{...inputGroupStyle, marginBottom: 0}}>
             <FaEnvelope style={iconStyle} />
             <input
               type="email"
-              style={inputStyle}
+              style={{...inputStyle, border: fieldErrors.email ? '1.5px solid #ef4444' : inputStyle.border}}
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="Enter your email"
               required
-              onFocus={e => e.target.style.border = '1.5px solid #1e3a8a'}
-              onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+              onFocus={e => e.target.style.border = fieldErrors.email ? '1.5px solid #ef4444' : '1.5px solid #1e3a8a'}
+              onBlur={e => e.target.style.border = fieldErrors.email ? '1.5px solid #ef4444' : '1.5px solid #c7d2fe'}
             />
           </div>
+          {fieldErrors.email && errorBox(fieldErrors.email)}
         </div>
         <div style={{marginBottom: 10}}>
           <label style={{fontWeight: 600, color: '#1e3a8a'}}>Password</label>
-          <div style={inputGroupStyle}>
+          <div style={{...inputGroupStyle, marginBottom: 0}}>
             <FaLock style={iconStyle} />
             <input
               type={showPassword ? 'text' : 'password'}
-              style={inputStyle}
+              style={{...inputStyle, border: fieldErrors.password ? '1.5px solid #ef4444' : inputStyle.border}}
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="Enter your password"
               required
-              onFocus={e => e.target.style.border = '1.5px solid #1e3a8a'}
-              onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+              onFocus={e => e.target.style.border = fieldErrors.password ? '1.5px solid #ef4444' : '1.5px solid #1e3a8a'}
+              onBlur={e => e.target.style.border = fieldErrors.password ? '1.5px solid #ef4444' : '1.5px solid #c7d2fe'}
             />
             <span
               onClick={() => setShowPassword(!showPassword)}
@@ -110,15 +153,86 @@ const Login = () => {
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
+          {fieldErrors.password && errorBox(fieldErrors.password)}
         </div>
         <div style={{textAlign: 'right', marginBottom: 18}}>
-          <Link to="/forgot-password" style={{color: '#1e3a8a', fontSize: 14}}>Forgot Password?</Link>
+          <Link
+            to="/forgot-password"
+            style={{
+              color: '#2563eb',
+              fontSize: 15,
+              cursor: 'pointer',
+              fontWeight: 600,
+              borderRadius: 8,
+              padding: '6px 16px',
+              background: 'linear-gradient(90deg, #e0e7ff 0%, #f0fdfa 100%)',
+              boxShadow: '0 2px 8px rgba(30,58,138,0.06)',
+              transition: 'background 0.2s, color 0.2s, box-shadow 0.2s',
+              display: 'inline-block',
+              border: 'none',
+              outline: 'none',
+              textDecoration: 'none',
+            }}
+            onMouseOver={e => {
+              e.target.style.background = 'linear-gradient(90deg, #2563eb 0%, #38bdf8 100%)';
+              e.target.style.color = '#fff';
+              e.target.style.boxShadow = '0 4px 16px rgba(30,58,138,0.10)';
+            }}
+            onMouseOut={e => {
+              e.target.style.background = 'linear-gradient(90deg, #e0e7ff 0%, #f0fdfa 100%)';
+              e.target.style.color = '#2563eb';
+              e.target.style.boxShadow = '0 2px 8px rgba(30,58,138,0.06)';
+            }}
+          >
+            Forgot Password?
+          </Link>
         </div>
         {error && <div style={{color: 'red', marginBottom: 18, textAlign: 'center'}}>{error}</div>}
         <button type="submit" className="btn btn-primary" style={{width: '100%', marginBottom: 14, fontWeight: 700, fontSize: 18, borderRadius: 10, letterSpacing: 1, boxShadow: '0 2px 8px rgba(30,58,138,0.08)'}}>Login</button>
-        <div style={{textAlign: 'center', fontSize: 15}}>
-          Don't have an account?{' '}
-          <Link to="/register" style={{color: '#1e3a8a'}}>Register</Link>
+        <div style={{
+          textAlign: 'center',
+          fontSize: 15,
+          marginTop: 10,
+          background: 'linear-gradient(90deg, #f0fdfa 0%, #e0e7ff 100%)',
+          borderRadius: 12,
+          padding: '12px 0',
+          boxShadow: '0 2px 8px rgba(30,58,138,0.06)',
+          fontWeight: 500,
+          letterSpacing: 0.2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+        }}>
+          <span style={{color: '#64748b'}}>Don't have an account?</span>{' '}
+          <Link
+            to="/register"
+            style={{
+              color: '#2563eb',
+              fontWeight: 700,
+              fontSize: 15,
+              borderRadius: 8,
+              padding: '4px 14px',
+              background: 'linear-gradient(90deg, #e0e7ff 0%, #f0fdfa 100%)',
+              boxShadow: '0 2px 8px rgba(30,58,138,0.04)',
+              textDecoration: 'none',
+              transition: 'background 0.2s, color 0.2s, box-shadow 0.2s',
+              marginLeft: 4,
+              display: 'inline-block',
+            }}
+            onMouseOver={e => {
+              e.target.style.background = 'linear-gradient(90deg, #2563eb 0%, #38bdf8 100%)';
+              e.target.style.color = '#fff';
+              e.target.style.boxShadow = '0 4px 16px rgba(30,58,138,0.10)';
+            }}
+            onMouseOut={e => {
+              e.target.style.background = 'linear-gradient(90deg, #e0e7ff 0%, #f0fdfa 100%)';
+              e.target.style.color = '#2563eb';
+              e.target.style.boxShadow = '0 2px 8px rgba(30,58,138,0.04)';
+            }}
+          >
+            Register
+          </Link>
         </div>
         {/* <div style={{textAlign: 'center', marginTop: 32}}>
           <a

@@ -146,7 +146,7 @@ const Contact = () => {
                   <div className="method-icon">📞</div>
                   <div className="method-details">
                     <h4>Call us</h4>
-                    <p>Contact No: +91 97519 50880</p>
+                    <p>Contact No: +91 9486281880</p>
                     {/* <p>Customer Care: 022-1234-5678</p>
                     <span>Mon - Sat: 9:00 AM - 8:00 PM</span> */}
                   </div>
@@ -156,7 +156,7 @@ const Contact = () => {
                   <div className="method-icon">✉️</div>
                   <div className="method-details">
                     <h4>Email us</h4>
-                    <p>osthimanikkam@gmail.com</p>
+                    <p>skmtfinanceandconsulting@gmail.com</p>
                     {/* <p>support@skmtfinance.com</p> */}
                     <span>We'll respond within 24 hours</span>
                   </div>

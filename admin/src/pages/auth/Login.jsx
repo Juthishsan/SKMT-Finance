@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { useAuth } from '../../AuthProvider';
+import { FaExclamationCircle, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const getTokenData = (token) => {
   if (!token) return null;
@@ -21,6 +22,7 @@ const Login = ({ componentrender }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { login, token, admin } = useAuth();
+  const [fieldErrors, setFieldErrors] = useState({});
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
@@ -38,9 +40,62 @@ const Login = ({ componentrender }) => {
     setFormData({ ...formData, [name]: value });
   };
 
+  // Validation helpers
+  const validateEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePassword = pw => pw.length >= 6 && /[A-Za-z]/.test(pw) && /\d/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+
+  const validateFields = () => {
+    const errors = {};
+    if (!formData.email || !validateEmail(formData.email)) errors.email = 'Enter a valid email address.';
+    if (!formData.password || !validatePassword(formData.password)) errors.password = 'Password must be at least 6 characters, include a letter, a number, and a symbol.';
+    return errors;
+  };
+
+  // Per-field validation on blur
+  const handleBlur = (field, value) => {
+    let msg = '';
+    if (field === 'email' && !validateEmail(value)) msg = 'Enter a valid email address.';
+    if (field === 'password' && !validatePassword(value)) msg = 'Password must be at least 6 characters, include a letter, a number, and a symbol.';
+    setFieldErrors(prev => ({ ...prev, [field]: msg }));
+  };
+
+  const errorBox = msg => (
+    <div style={{
+      color: '#b91c1c',
+      background: 'linear-gradient(90deg, #fef2f2 60%, #f0fdfa 100%)',
+      border: '1.5px solid #fca5a5',
+      borderLeft: '6px solid #ef4444',
+      borderRadius: 10,
+      padding: '10px 16px',
+      marginTop: 8,
+      marginBottom: 0,
+      fontSize: 15,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      fontWeight: 600,
+      boxShadow: '0 4px 16px #fca5a522',
+      letterSpacing: 0.2,
+      transition: 'all 0.3s',
+      animation: 'fadeInError 0.5s',
+    }}>
+      <FaExclamationCircle style={{fontSize: 18, color: '#ef4444', flexShrink: 0}} />
+      <span>{msg}</span>
+      <style>{`
+        @keyframes fadeInError {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    const errors = validateFields();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     Swal.fire({
       html: `
         <div class="p-5">
@@ -109,31 +164,37 @@ const Login = ({ componentrender }) => {
         <form onSubmit={handleLoginSubmit} style={{width: '100%'}} autoComplete="off">
           <div className="form-group" style={{marginBottom: 18}}>
             <label style={{fontWeight: 500, color: '#1e3a8a'}}>Email</label>
-            <input
-              type="email"
-              className="form-control"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              name="email"
-              required
-              style={{
-                marginTop: 6,
-                borderRadius: 8,
-                border: '1.5px solid #c7d2fe',
-                padding: '10px 12px',
-                fontSize: 16,
-                outline: 'none',
-                boxShadow: 'none',
-                transition: 'border 0.2s',
-              }}
-              onFocus={e => e.target.style.border = '1.5px solid #1e3a8a'}
-              onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
-            />
+            <div style={{position: 'relative', marginBottom: 0}}>
+              <FaEnvelope style={{position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: 18, pointerEvents: 'none'}} />
+              <input
+                type="email"
+                className="form-control"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+                name="email"
+                required
+                style={{
+                  marginTop: 6,
+                  borderRadius: 8,
+                  border: fieldErrors.email ? '1.5px solid #ef4444' : '1.5px solid #c7d2fe',
+                  padding: '10px 12px 10px 40px',
+                  fontSize: 16,
+                  outline: 'none',
+                  boxShadow: 'none',
+                  transition: 'border 0.2s',
+                  width: '100%',
+                }}
+                onFocus={e => e.target.style.border = fieldErrors.email ? '1.5px solid #ef4444' : '1.5px solid #1e3a8a'}
+                onBlur={e => { e.target.style.border = fieldErrors.email ? '1.5px solid #ef4444' : '1.5px solid #c7d2fe'; handleBlur('email', e.target.value); }}
+              />
+            </div>
+            {fieldErrors.email && errorBox(fieldErrors.email)}
           </div>
           <div className="form-group" style={{marginBottom: 10}}>
             <label style={{fontWeight: 500, color: '#1e3a8a'}}>Password</label>
-            <div style={{position: 'relative'}}>
+            <div style={{position: 'relative', marginBottom: 0}}>
+              <FaLock style={{position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: 18, pointerEvents: 'none'}} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 className="form-control"
@@ -145,39 +206,57 @@ const Login = ({ componentrender }) => {
                 style={{
                   marginTop: 6,
                   borderRadius: 8,
-                  border: '1.5px solid #c7d2fe',
-                  padding: '10px 12px',
+                  border: fieldErrors.password ? '1.5px solid #ef4444' : '1.5px solid #c7d2fe',
+                  padding: '10px 12px 10px 40px',
                   fontSize: 16,
                   outline: 'none',
                   boxShadow: 'none',
                   width: '100%',
                   transition: 'border 0.2s',
                 }}
-                onFocus={e => e.target.style.border = '1.5px solid #1e3a8a'}
-                onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                onFocus={e => e.target.style.border = fieldErrors.password ? '1.5px solid #ef4444' : '1.5px solid #1e3a8a'}
+                onBlur={e => { e.target.style.border = fieldErrors.password ? '1.5px solid #ef4444' : '1.5px solid #c7d2fe'; handleBlur('password', e.target.value); }}
               />
               <span
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute',
-                  right: 14,
-                  top: 14,
-                  cursor: 'pointer',
-                  color: showPassword ? '#1e3a8a' : '#64748b',
-                  fontWeight: 600,
-                  fontSize: 15,
-                  userSelect: 'none',
-                  transition: 'color 0.2s',
-                }}
+                style={{position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#1e3a8a', fontSize: 18, fontWeight: 600}}
                 title={showPassword ? 'Hide Password' : 'Show Password'}
               >
-                {showPassword ? (
-                  <svg width="20" height="20" fill="none" stroke="#1e3a8a" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 1l22 22M17.94 17.94A10.94 10.94 0 0 1 12 19c-5 0-9.27-3.11-11-7.5a11.72 11.72 0 0 1 5.17-5.61M9.53 9.53A3.5 3.5 0 0 0 12 15.5a3.5 3.5 0 0 0 2.47-5.97"/><path d="M12 5c5 0 9.27 3.11 11 7.5a11.72 11.72 0 0 1-5.17 5.61"/></svg>
-                ) : (
-                  <svg width="20" height="20" fill="none" stroke="#64748b" strokeWidth="2" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="3.5" ry="3.5"/><path d="M2 12C3.73 7.61 7 5 12 5s8.27 2.61 10 7c-1.73 4.39-5 7-10 7s-8.27-2.61-10-7z"/></svg>
-                )}
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
               </span>
             </div>
+            {fieldErrors.password && errorBox(fieldErrors.password)}
+          </div>
+          <div style={{textAlign: 'right', marginBottom: 10}}>
+            <span
+              style={{
+                color: '#2563eb',
+                fontSize: 15,
+                cursor: 'pointer',
+                fontWeight: 600,
+                borderRadius: 8,
+                padding: '6px 16px',
+                background: 'linear-gradient(90deg, #e0e7ff 0%, #f0fdfa 100%)',
+                boxShadow: '0 2px 8px rgba(30,58,138,0.06)',
+                transition: 'background 0.2s, color 0.2s, box-shadow 0.2s',
+                display: 'inline-block',
+                border: 'none',
+                outline: 'none',
+              }}
+              onMouseOver={e => {
+                e.target.style.background = 'linear-gradient(90deg, #2563eb 0%, #38bdf8 100%)';
+                e.target.style.color = '#fff';
+                e.target.style.boxShadow = '0 4px 16px rgba(30,58,138,0.10)';
+              }}
+              onMouseOut={e => {
+                e.target.style.background = 'linear-gradient(90deg, #e0e7ff 0%, #f0fdfa 100%)';
+                e.target.style.color = '#2563eb';
+                e.target.style.boxShadow = '0 2px 8px rgba(30,58,138,0.06)';
+              }}
+              onClick={() => componentrender('AdminForgotPassword')}
+            >
+              Forgot Password?
+            </span>
           </div>
           {error && <div style={{color: '#ef4444', marginBottom: 16, textAlign: 'center', fontWeight: 500}}>{error}</div>}
           <button type="submit" className="btn btn-primary" style={{

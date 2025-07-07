@@ -14,6 +14,8 @@ const ContactMessage = require('./models/ContactMessage');
 const VehicleSale = require('./models/VehicleSale');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const app = express();
 app.use(express.json());
@@ -574,6 +576,119 @@ app.put('/api/admins/:id', authenticateJWT, async (req, res) => {
     res.json(adminData);
   } catch (err) {
     res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Forgot Password Endpoint
+app.post('/api/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required.' });
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: 'No user with that email.' });
+    // Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 1000 * 60 * 60; // 1 hour
+    await user.save();
+
+    // Send email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
+    const resetUrl = `http://localhost:3000/reset-password/${token}`;
+    const mailOptions = {
+      to: user.email,
+      from: process.env.GMAIL_USER,
+      subject: 'SKMT Finance Password Reset',
+      html: `<p>You requested a password reset for SKMT Finance.</p><p>Click <a href="${resetUrl}">here</a> to reset your password. This link will expire in 1 hour.</p>`
+    };
+    await transporter.sendMail(mailOptions);
+    res.json({ message: 'Password reset link sent.' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// Reset Password Endpoint
+app.post('/api/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) return res.status(400).json({ error: 'Token and new password are required.' });
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+    if (!user) return res.status(400).json({ error: 'Invalid or expired token.' });
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+    res.json({ message: 'Password has been reset.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// Admin Forgot Password Endpoint
+app.post('/api/admin-forgot-password', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required.' });
+  try {
+    const admin = await Admin.findOne({ email });
+    if (!admin) return res.status(404).json({ error: 'No admin with that email.' });
+    // Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+    admin.resetPasswordToken = token;
+    admin.resetPasswordExpires = Date.now() + 1000 * 60 * 60; // 1 hour
+    await admin.save();
+
+    // Send email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
+    const resetUrl = `http://localhost:3001/admin-reset-password/${token}`;
+    const mailOptions = {
+      to: admin.email,
+      from: process.env.GMAIL_USER,
+      subject: 'SKMT Admin Password Reset',
+      html: `<p>You requested a password reset for SKMT Admin.</p><p>Click <a href="${resetUrl}">here</a> to reset your password. This link will expire in 1 hour.</p>`
+    };
+    await transporter.sendMail(mailOptions);
+    res.json({ message: 'Password reset link sent.' });
+  } catch (err) {
+    console.error('Admin forgot password error:', err);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+// Admin Reset Password Endpoint
+app.post('/api/admin-reset-password', async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) return res.status(400).json({ error: 'Token and new password are required.' });
+  try {
+    const admin = await Admin.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+    if (!admin) return res.status(400).json({ error: 'Invalid or expired token.' });
+    admin.password = password;
+    admin.resetPasswordToken = undefined;
+    admin.resetPasswordExpires = undefined;
+    await admin.save();
+    res.json({ message: 'Password has been reset.' });
+  } catch (err) {
+    console.error('Admin reset password error:', err);
+    res.status(500).json({ error: 'Server error.' });
   }
 });
 

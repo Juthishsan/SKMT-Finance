@@ -4045,3 +4045,597 @@ html, body {
   }
 }
 /* --- End Unified Hero Section --- */
+
+/* --- Glassmorphism Styles for Loan Details Page --- */
+.loan-details-glass {
+  backdrop-filter: blur(2.5px);
+  background: rgba(255,255,255,0.7);
+  border-radius: 24px;
+  box-shadow: 0 8px 40px rgba(30,58,138,0.10), 0 1.5px 8px rgba(59,130,246,0.08);
+  padding: 48px 0;
+}
+.loan-hero-glass {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  background: rgba(255,255,255,0.35);
+  border-radius: 20px;
+  box-shadow: 0 4px 32px rgba(30,58,138,0.10);
+  margin-bottom: 36px;
+  padding: 32px 32px 32px 0;
+  position: relative;
+  overflow: hidden;
+}
+.loan-hero-img-glass {
+  width: 320px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(30,58,138,0.13);
+  object-fit: cover;
+}
+.loan-hero-content-glass {
+  flex: 1;
+  min-width: 260px;
+}
+.loan-hero-desc-glass {
+  font-size: 1.15rem;
+  color: #1e3a8a;
+  margin-bottom: 10px;
+}
+.loan-hero-tags-glass {
+  display: flex;
+  gap: 18px;
+  margin-top: 10px;
+}
+.loan-hero-tags-glass span {
+  background: rgba(30,58,138,0.08);
+  color: #1e3a8a;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.glass-section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 28px;
+  margin-bottom: 32px;
+}
+.glass-card {
+  background: rgba(255,255,255,0.35);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(30,58,138,0.10);
+  padding: 28px 24px 22px 24px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(2.5px);
+  border: 1.5px solid rgba(30,58,138,0.08);
+  transition: box-shadow 0.2s;
+}
+.glass-card:hover {
+  box-shadow: 0 8px 40px rgba(30,58,138,0.13);
+}
+.glass-icon {
+  color: #1e3a8a;
+  margin-right: 8px;
+  font-size: 1.2em;
+  vertical-align: middle;
+}
+.glass-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.glass-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 1.05rem;
+  color: #1e3a8a;
+}
+.glass-list-icon {
+  color: #3b82f6;
+  font-size: 1em;
+}
+.glass-process {
+  margin-bottom: 32px;
+}
+.glass-process-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.glass-process-list li {
+  background: rgba(59,130,246,0.08);
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 1.05rem;
+  color: #1e3a8a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.glass-step-num {
+  background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%);
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  margin-right: 10px;
+  font-size: 1rem;
+}
+.glass-emi-calc {
+  margin-bottom: 32px;
+  box-shadow: 0 8px 40px rgba(30,58,138,0.10);
+}
+.glass-faq {
+  margin-bottom: 32px;
+}
+.glass-faq-list {
+  margin-top: 10px;
+}
+.glass-faq-item {
+  background: rgba(59,130,246,0.07);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  padding: 10px 16px;
+  color: #1e3a8a;
+  font-size: 1.05rem;
+  box-shadow: 0 2px 8px rgba(30,58,138,0.06);
+}
+.glass-faq-item summary {
+  cursor: pointer;
+  font-weight: 600;
+  outline: none;
+}
+.glass-faq-item[open] {
+  background: rgba(59,130,246,0.13);
+}
+.glass-help {
+  text-align: center;
+  background: rgba(16,185,129,0.08);
+  color: #1e3a8a;
+  font-size: 1.1rem;
+}
+.glass-help a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+/* Glassmorphism Modal */
+[style*='z-index: 9999'] > div {
+  background: rgba(255,255,255,0.55) !important;
+  box-shadow: 0 8px 40px rgba(30,58,138,0.13) !important;
+  backdrop-filter: blur(3.5px) !important;
+  border-radius: 18px !important;
+  border: 1.5px solid rgba(30,58,138,0.10) !important;
+}
+@media (max-width: 900px) {
+  .loan-hero-glass {
+    flex-direction: column;
+    padding: 24px 0 0 0;
+    gap: 18px;
+  }
+  .loan-hero-img-glass {
+    width: 100%;
+    max-width: 340px;
+  }
+  .glass-section-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .loan-details-glass {
+    padding: 18px 0;
+    border-radius: 12px;
+  }
+  .loan-hero-glass {
+    padding: 12px 0 0 0;
+    border-radius: 10px;
+  }
+  .glass-card {
+    padding: 14px 8px 10px 8px;
+    border-radius: 10px;
+  }
+}
+
+/* --- Modern EMI Calculator Styles --- */
+.emi-calc-modern {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 28px;
+  background: linear-gradient(120deg, rgba(59,130,246,0.10) 0%, rgba(255,255,255,0.7) 100%);
+  border-radius: 18px;
+  box-shadow: 0 4px 32px rgba(30,58,138,0.10);
+  padding: 32px 24px 24px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.emi-calc-modern-inputs {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.emi-modern-field {
+  position: relative;
+  flex: 1 1 120px;
+  min-width: 120px;
+  margin-bottom: 0;
+}
+.emi-modern-input {
+  width: 100%;
+  padding: 16px 12px 8px 12px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.7);
+  box-shadow: 0 2px 8px rgba(59,130,246,0.08);
+  font-size: 1.1rem;
+  color: #1e3a8a;
+  outline: none;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+.emi-modern-input:focus {
+  box-shadow: 0 4px 16px rgba(59,130,246,0.18);
+  background: rgba(59,130,246,0.10);
+}
+.emi-modern-label {
+  position: absolute;
+  left: 14px;
+  top: 10px;
+  font-size: 0.98rem;
+  color: #3b82f6;
+  pointer-events: none;
+  transition: all 0.2s;
+  opacity: 0.8;
+}
+.emi-modern-input:focus + .emi-modern-label,
+.emi-modern-input:not(:placeholder-shown) + .emi-modern-label {
+  top: -12px;
+  left: 8px;
+  font-size: 0.85rem;
+  color: #1e3a8a;
+  opacity: 1;
+  background: rgba(255,255,255,0.8);
+  padding: 0 4px;
+  border-radius: 6px;
+}
+.emi-modern-bar-wrap {
+  margin: 18px 0 0 0;
+  width: 100%;
+}
+.emi-modern-bar-bg {
+  width: 100%;
+  height: 18px;
+  background: linear-gradient(90deg, #e0e7ff 0%, #bae6fd 100%);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+.emi-modern-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 60%, #1e3a8a 100%);
+  border-radius: 10px 0 0 10px;
+  transition: width 0.7s cubic-bezier(.4,2,.6,1);
+}
+.emi-modern-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.98rem;
+  color: #1e3a8a;
+  margin-top: 4px;
+  opacity: 0.8;
+}
+.emi-modern-results {
+  display: flex;
+  gap: 32px;
+  margin-top: 18px;
+  justify-content: space-between;
+}
+.emi-modern-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 1.08rem;
+  color: #1e3a8a;
+  background: rgba(59,130,246,0.07);
+  border-radius: 10px;
+  padding: 12px 18px;
+  box-shadow: 0 2px 8px rgba(30,58,138,0.06);
+  min-width: 140px;
+}
+.emi-modern-amount {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #3b82f6;
+  margin-top: 2px;
+  letter-spacing: 1px;
+  transition: color 0.2s;
+}
+.emi-modern-apply-btn {
+  margin-top: 18px;
+  width: 100%;
+  padding: 14px 0;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 16px rgba(59,130,246,0.13);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.emi-modern-apply-btn:hover {
+  background: linear-gradient(90deg, #3b82f6 60%, #1e3a8a 100%);
+  box-shadow: 0 8px 32px rgba(59,130,246,0.18);
+  transform: translateY(-2px) scale(1.03);
+}
+@media (max-width: 900px) {
+  .emi-calc-modern-inputs {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .emi-modern-results {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+/* --- Enhanced Glass Card Animations --- */
+.glass-card {
+  background: linear-gradient(120deg, rgba(255,255,255,0.35) 60%, rgba(59,130,246,0.10) 100%);
+  box-shadow: 0 4px 32px rgba(30,58,138,0.10), 0 1.5px 8px rgba(59,130,246,0.08);
+  transition: box-shadow 0.3s, background 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.glass-card:before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -40%;
+  width: 180%;
+  height: 180%;
+  background: radial-gradient(circle at 60% 40%, rgba(59,130,246,0.08) 0%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+  animation: glass-gradient-move 6s linear infinite alternate;
+}
+@keyframes glass-gradient-move {
+  0% { transform: scale(1) translate(0,0); }
+  100% { transform: scale(1.1) translate(10px, 10px); }
+}
+.glass-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Mahindra-Inspired EMI Calculator Styles --- */
+.emi-calc-mahindra {
+  background: linear-gradient(120deg, rgba(255,255,255,0.7) 60%, rgba(59,130,246,0.10) 100%);
+  box-shadow: 0 8px 40px rgba(30,58,138,0.13);
+  border-radius: 22px;
+  padding: 36px 24px 32px 24px;
+  margin-bottom: 32px;
+  overflow: visible;
+}
+.emi-mahindra-grid {
+  display: flex;
+  gap: 36px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.emi-mahindra-inputs {
+  flex: 1 1 320px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.emi-mahindra-field {
+  background: rgba(255,255,255,0.85);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(59,130,246,0.07);
+  padding: 18px 16px 10px 16px;
+  margin-bottom: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.emi-mahindra-field label {
+  font-weight: 600;
+  color: #1e3a8a;
+  margin-bottom: 2px;
+  font-size: 1.05rem;
+}
+.emi-mahindra-slider {
+  width: 100%;
+  accent-color: #ef4444;
+  margin: 0 0 2px 0;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  outline: none;
+  transition: accent-color 0.2s;
+}
+.emi-mahindra-slider::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(239,68,68,0.18);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.emi-mahindra-slider:focus::-webkit-slider-thumb {
+  background: #b91c1c;
+}
+.emi-mahindra-range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: #888;
+  margin-bottom: 2px;
+  margin-top: -2px;
+}
+.emi-mahindra-input {
+  width: 100%;
+  padding: 10px 8px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1.08rem;
+  color: #1e3a8a;
+  background: rgba(255,255,255,0.95);
+  margin-top: 2px;
+  margin-bottom: 0;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+.emi-mahindra-input:focus {
+  border: 1.5px solid #ef4444;
+  box-shadow: 0 2px 8px rgba(239,68,68,0.13);
+}
+.emi-mahindra-results {
+  flex: 1 1 320px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  background: rgba(255,255,255,0.85);
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(59,130,246,0.07);
+  padding: 18px 16px 18px 16px;
+  position: relative;
+}
+.emi-mahindra-donut {
+  display: block;
+  margin: 0 auto 8px auto;
+  background: none;
+}
+.emi-mahindra-breakdown {
+  margin: 10px 0 8px 0;
+  text-align: left;
+  width: 100%;
+}
+.emi-mahindra-legend {
+  display: flex;
+  align-items: center;
+  font-size: 0.98rem;
+  color: #1e3a8a;
+  margin-bottom: 2px;
+  gap: 6px;
+}
+.emi-mahindra-amount {
+  font-size: 1.13rem;
+  font-weight: 600;
+  color: #ef4444;
+  margin-bottom: 6px;
+  margin-left: 18px;
+}
+.emi-mahindra-emi-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 10px;
+  background: rgba(239,68,68,0.07);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.emi-mahindra-emi-row > div:first-child {
+  font-size: 1.08rem;
+  color: #1e3a8a;
+  font-weight: 600;
+}
+.emi-mahindra-emi {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ef4444;
+  letter-spacing: 1px;
+}
+.emi-mahindra-apply {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #ef4444 60%, #b91c1c 100%);
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 16px rgba(239,68,68,0.13);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.emi-mahindra-apply:hover {
+  background: linear-gradient(90deg, #b91c1c 60%, #ef4444 100%);
+  box-shadow: 0 8px 32px rgba(239,68,68,0.18);
+  transform: translateY(-2px) scale(1.03);
+}
+@media (max-width: 900px) {
+  .emi-mahindra-grid {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .emi-mahindra-results, .emi-mahindra-inputs {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* --- Enhanced Donut Chart Styles --- */
+.emi-donut-3d {
+  width: 260px !important;
+  height: 260px !important;
+  display: block;
+  margin: 0 auto 12px auto;
+  background: none;
+  filter: drop-shadow(0 8px 32px rgba(59,130,246,0.10));
+  position: relative;
+  z-index: 2;
+}
+.emi-donut-3d ellipse {
+  filter: blur(0.5px) drop-shadow(0 2px 12px #38bdf8);
+}
+.emi-donut-3d text {
+  font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Helvetica Neue', Arial, sans-serif;
+  paint-order: stroke fill;
+  user-select: none;
+}
+.emi-donut-3d .center-badge {
+  fill: url(#centerGlass);
+  filter: url(#glassShadow);
+}
+.emi-donut-3d line {
+  transition: stroke 0.3s, stroke-width 0.3s;
+}
+@media (max-width: 900px) {
+  .emi-donut-3d {
+    width: 180px !important;
+    height: 180px !important;
+  }
+}
+
+/* --- Sparkle Styles for Donut Chart --- */
+.emi-donut-3d circle[fill*='sparkleGradient'] {
+  filter: drop-shadow(0 0 8px #38bdf8) drop-shadow(0 0 12px #fff8);
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.85;
+  transition: filter 0.2s;
+}

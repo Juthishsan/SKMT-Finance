@@ -11,6 +11,8 @@ const UserSchema = new mongoose.Schema({
   state: { type: String, required: true },
   pincode: { type: String, required: true },
   // You can add more fields here if needed, e.g. country, dob, gender, etc.
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
 });
 
 UserSchema.pre('save', async function(next) {

@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 import { useAuth } from '../AuthProvider';
 
 const Account = () => {
-  const { admin, authFetch, login, token } = useAuth();
+  const { admin, authFetch, login, token, componentrender } = useAuth();
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({ name: admin?.name || '', phone: admin?.phone || '' });
@@ -27,13 +27,10 @@ const Account = () => {
   }, []);
 
   const handleResetPassword = () => {
-    Swal.fire({
-      icon: 'info',
-      title: 'Change Password',
-      text: 'Password change feature coming soon.',
-      showConfirmButton: true,
-      confirmButtonColor: '#1e3a8a',
-    });
+    // Navigate to AdminForgotPassword page
+    if (typeof componentrender === 'function') {
+      componentrender('AdminForgotPassword');
+    }
   };
 
   const handleEdit = () => {
@@ -127,7 +124,7 @@ const Account = () => {
           ) : (
             <>
               <button className="btn btn-outline-primary w-100" onClick={handleEdit}>Edit Profile</button>
-              <button className="btn btn-outline-primary w-100 mt-2" onClick={handleResetPassword} disabled>Change Password</button>
+              <button className="btn btn-outline-primary w-100 mt-2" onClick={handleResetPassword}>Change Password</button>
             </>
           )}
         </div>

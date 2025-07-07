@@ -70,8 +70,8 @@ const Footer = () => {
           <div className="footer-section">
             <h4>Contact Info</h4>
             <div className="contact-info">
-              <p>Contact No: +91 97519 50880</p>
-              <p>osthimanikkam@gmail.com</p>
+              <p>Contact No: +91 9486281880</p>
+              <p>skmtfinanceandconsulting@gmail.com</p>
               <p>SKMT Finance</p>
               <p>Sivagiri Bus stop,</p>
               <p>Linga Gounden Valasu, Sivagiri.</p>
