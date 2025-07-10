@@ -25,7 +25,7 @@ const mongoURI = process.env.MONGO_URI;
 const PORT = process.env.PORT || 5000;
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
-const JWT_EXPIRES_IN = '15m';
+const JWT_EXPIRES_IN = '120m';
 
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected!'))
@@ -323,6 +323,61 @@ app.post('/api/loan-applications', async (req, res) => {
     }
     const application = new LoanApplication({ name, email, phone, amount, message, loanType });
     await application.save();
+
+    // Send confirmation email to user
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+      port: 587,
+      secure: false
+    });
+    const mailOptions = {
+      to: email,
+      from: process.env.GMAIL_USER,
+      subject: 'SKMT Finance: Loan Application Received',
+      html: `
+        <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
+          <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
+            <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
+              <img src="http://localhost:5000/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+              <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Loan Application Received</h2>
+            </div>
+            <div style="padding: 32px 28px 18px 28px;">
+              <div style="border-left: 5px solid #1e3a8a; padding-left: 18px; margin-bottom: 18px;">
+                <p style="font-size: 1.1rem; color: #1e3a8a; font-weight: 600; margin-bottom: 6px;">Dear ${name},</p>
+                <p style="font-size: 1.05rem; color: #222; margin-bottom: 0;">Thank you for applying for a <b>${loanType}</b> with SKMT Finance. We have received your application and our team will review your details and contact you soon.</p>
+              </div>
+              <div style="background: #f9fafb; border-radius: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); padding: 20px 18px 10px 18px; margin-bottom: 18px; border-left: 4px solid #3b82f6;">
+                <h4 style="color: #1e3a8a; margin-bottom: 10px; font-size: 1.1rem; font-weight: 700;">Application Details</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; font-size: 1rem; color: #333;">
+                  <li><b>Name:</b> ${name}</li>
+                  <li><b>Email:</b> ${email}</li>
+                  <li><b>Phone:</b> ${phone}</li>
+                  <li><b>Loan Type:</b> ${loanType}</li>
+                  <li><b>Amount:</b> ₹${Number(amount).toLocaleString()}</li>
+                  <li><b>Status:</b> <span style="display:inline-block;padding:2px 12px;border-radius:8px;background:#f97316;color:#fff;font-weight:600;font-size:0.98rem;letter-spacing:0.5px;">Received</span></li>
+                  ${message ? `<li><b>Message:</b> ${message}</li>` : ''}
+                </ul>
+              </div>
+              <div style="margin: 24px 0 0 0; border-top: 1.5px solid #e5e7eb; padding-top: 18px; text-align: center; color: #6b7280; font-size: 0.98rem;">
+                <div style="margin-bottom: 6px;">If you have any questions, reply to this email or contact us at <a href="mailto:skmtfinanceandconsulting@gmail.com" style="color: #1e3a8a; text-decoration: underline;">skmtfinanceandconsulting@gmail.com</a>.</div>
+                <div style="margin-top: 8px;">Thank you for choosing <b>SKMT Finance</b>. We look forward to serving you!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+    };
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (emailErr) {
+      // Log but do not fail the request if email fails
+      console.error('Loan application email error:', emailErr);
+    }
+
     res.status(201).json({ message: 'Application submitted successfully.' });
   } catch (err) {
     res.status(500).json({ error: err.message || 'Internal server error' });
@@ -359,6 +414,83 @@ app.patch('/api/loan-applications/:id', authenticateJWT, async (req, res) => {
       { new: true }
     );
     if (!updated) return res.status(404).json({ error: 'Application not found' });
+
+    // Send status update email to user
+    try {
+      const statusLabel = updated.cancelled ? 'Cancelled' : (updated.processed ? 'Processed' : 'Pending');
+      const statusColors = {
+        Pending: '#f59e42',
+        Processed: '#10b981',
+        Cancelled: '#dc2626',
+      };
+      const badgeColor = statusColors[statusLabel] || '#f59e42';
+      const transporter = require('nodemailer').createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_PASS,
+        },
+        port: 587,
+        secure: false
+      });
+      const mailOptions = {
+        to: updated.email,
+        from: process.env.GMAIL_USER,
+        subject: `Loan Application Status Update | SKMT Finance`,
+        html: `
+          <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
+            <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
+              <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
+                <img src="http://localhost:5000/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+                <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Loan Application Status Updated</h2>
+              </div>
+              <div style="padding: 32px 28px 18px 28px;">
+                <div style="border-left: 5px solid #1e3a8a; padding-left: 18px; margin-bottom: 18px;">
+                  <p style="font-size: 1.1rem; color: #1e3a8a; font-weight: 600; margin-bottom: 6px;">Hi ${updated.name || ''},</p>
+                  <p style="font-size: 1.05rem; color: #222; margin-bottom: 0;">The status of your loan application has been updated to <span style="display:inline-block;padding:2px 12px;border-radius:8px;background:${badgeColor};color:#fff;font-weight:600;font-size:0.98rem;letter-spacing:0.5px;">${statusLabel}</span>.</p>
+                </div>
+                <div style="background: #f9fafb; border-radius: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); padding: 20px 18px 10px 18px; margin-bottom: 18px; border-left: 4px solid #3b82f6;">
+                  <h4 style="color: #1e3a8a; margin-bottom: 10px; font-size: 1.1rem; font-weight: 700;">Loan Application Details</h4>
+                  <ul style="list-style: none; padding: 0; margin: 0; font-size: 1rem; color: #333;">
+                    <li><b>Name:</b> ${updated.name || '-'}</li>
+                    <li><b>Email:</b> ${updated.email || '-'}</li>
+                    <li><b>Phone:</b> ${updated.phone || '-'}</li>
+                    <li><b>Loan Type:</b> ${updated.loanType || '-'}</li>
+                    <li><b>Amount:</b> ₹${updated.amount ? Number(updated.amount).toLocaleString() : '-'}</li>
+                    <li><b>Message:</b> ${updated.message || '-'}</li>
+                    <li><b>Applied On:</b> ${updated.createdAt ? new Date(updated.createdAt).toLocaleString() : '-'}</li>
+                    <li><b>Status:</b> <span style="display:inline-block;padding:2px 12px;border-radius:8px;background:${badgeColor};color:#fff;font-weight:600;font-size:0.98rem;letter-spacing:0.5px;">${statusLabel}</span></li>
+                  </ul>
+                </div>
+                <div style="margin: 24px 0 0 0; border-top: 1.5px solid #e5e7eb; padding-top: 18px; text-align: center; color: #6b7280; font-size: 0.98rem;">
+                  <div style="margin-bottom: 6px;">If you have any questions, reply to this email or contact us at <a href="mailto:skmtfinanceandconsulting@gmail.com" style="color: #1e3a8a; text-decoration: underline;">skmtfinanceandconsulting@gmail.com</a>.</div>
+                  <div style="margin-top: 8px;">Thank you for choosing <b>SKMT Finance</b>. We look forward to serving you!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      };
+      await transporter.sendMail(mailOptions);
+    } catch (emailErr) {
+      console.error('Loan application status email error:', emailErr);
+    }
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Cancel a loan application (admin)
+app.patch('/api/loan-applications/:id/cancel', async (req, res) => {
+  try {
+    const updated = await LoanApplication.findByIdAndUpdate(
+      req.params.id,
+      { cancelled: true },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ error: 'Loan application not found' });
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message || 'Internal server error' });
@@ -446,6 +578,73 @@ app.post('/api/vehicle-sales', upload.array('images', 10), async (req, res) => {
       images
     });
     await sale.save();
+
+    // Fetch user details for email
+    let userDoc = null;
+    try {
+      userDoc = await User.findById(user);
+    } catch (e) {}
+    if (userDoc && userDoc.email) {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_PASS,
+        },
+        port: 587,
+        secure: false
+      });
+      const vehicleImage = images.length > 0 ? `http://localhost:5000${images[0]}` : null;
+      const mailOptions = {
+        to: userDoc.email,
+        from: process.env.GMAIL_USER,
+        subject: `SKMT Finance: Vehicle Sale Submission Received!`,
+        html: `
+          <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
+            <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
+              <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
+                <img src="http://localhost:5000/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+                <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Vehicle Sale Submission Received</h2>
+              </div>
+              <div style="padding: 32px 28px 18px 28px;">
+                <div style="border-left: 5px solid #1e3a8a; padding-left: 18px; margin-bottom: 18px;">
+                  <p style="font-size: 1.1rem; color: #1e3a8a; font-weight: 600; margin-bottom: 6px;">Hi ${userDoc.username || ''},</p>
+                  <p style="font-size: 1.05rem; color: #222; margin-bottom: 0;">Thank you for submitting your vehicle <b>${title}</b> for sale! Your request has been received and is under review. Our team will verify your details and contact you soon with the next steps.</p>
+                </div>
+                <div style="background: #f9fafb; border-radius: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); padding: 20px 18px 10px 18px; margin-bottom: 18px; border-left: 4px solid #3b82f6;">
+                  <h4 style="color: #1e3a8a; margin-bottom: 10px; font-size: 1.1rem; font-weight: 700;">Vehicle Sale Details</h4>
+                  <ul style="list-style: none; padding: 0; margin: 0; font-size: 1rem; color: #333;">
+                    <li><b>Vehicle:</b> ${title}</li>
+                    <li><b>Brand:</b> ${brand}</li>
+                    <li><b>Year:</b> ${year}</li>
+                    <li><b>Fuel:</b> ${fuel}</li>
+                    <li><b>Transmission:</b> ${transmission}</li>
+                    <li><b>Kilometers Driven:</b> ${kmDriven}</li>
+                    <li><b>Owners:</b> ${owners}</li>
+                    <li><b>Price:</b> ₹${Number(price).toLocaleString()}</li>
+                    <li><b>Description:</b> ${description}</li>
+                    <li><b>Name:</b> ${userDoc.username || ''}</li>
+                    <li><b>Email:</b> ${userDoc.email}</li>
+                    <li><b>Phone:</b> ${userDoc.phone || ''}</li>
+                    ${vehicleImage ? `<li style=\"margin-top: 12px;\"><img src=\"${vehicleImage}\" alt=\"Vehicle Image\" style=\"max-width: 180px; border-radius: 8px; border: 1.5px solid #c7d2fe;\" /></li>` : ''}
+                  </ul>
+                </div>
+                <div style="margin: 24px 0 0 0; border-top: 1.5px solid #e5e7eb; padding-top: 18px; text-align: center; color: #6b7280; font-size: 0.98rem;">
+                  <div style="margin-bottom: 6px;">If you have any questions, reply to this email or contact us at <a href="mailto:skmtfinanceandconsulting@gmail.com" style="color: #1e3a8a; text-decoration: underline;">skmtfinanceandconsulting@gmail.com</a>.</div>
+                  <div style="margin-top: 8px;">Thank you for choosing <b>SKMT Finance</b>. We look forward to serving you!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      };
+      try {
+        await transporter.sendMail(mailOptions);
+      } catch (emailErr) {
+        console.error('Vehicle order email error:', emailErr);
+      }
+    }
+
     res.status(201).json(sale);
   } catch (err) {
     res.status(500).json({ error: err.message || 'Internal server error' });
@@ -480,8 +679,75 @@ app.put('/api/vehicle-sales/:id', async (req, res) => {
       req.params.id,
       { status },
       { new: true }
-    );
+    ).populate('user', 'username email phone');
     if (!updated) return res.status(404).json({ error: 'Not found' });
+
+    // Send status update email to user
+    try {
+      const user = updated.user;
+      if (user && user.email) {
+        const statusLabel = status === 'approved' ? 'Approved' : status === 'rejected' ? 'Rejected' : 'Pending';
+        const statusColors = {
+          Pending: '#f59e42',
+          Approved: '#10b981',
+          Rejected: '#dc2626',
+        };
+        const badgeColor = statusColors[statusLabel] || '#f59e42';
+        const transporter = require('nodemailer').createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_PASS,
+          },
+          port: 587,
+          secure: false
+        });
+        const mailOptions = {
+          to: user.email,
+          from: process.env.GMAIL_USER,
+          subject: `Vehicle Sale Status Update | SKMT Finance`,
+          html: `
+            <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
+              <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
+                <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
+                  <img src="http://localhost:5000/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+                  <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Vehicle Sale Status Updated</h2>
+                </div>
+                <div style="padding: 32px 28px 18px 28px;">
+                  <div style="border-left: 5px solid #1e3a8a; padding-left: 18px; margin-bottom: 18px;">
+                    <p style="font-size: 1.1rem; color: #1e3a8a; font-weight: 600; margin-bottom: 6px;">Hi ${user.username || ''},</p>
+                    <p style="font-size: 1.05rem; color: #222; margin-bottom: 0;">Your vehicle sale submission for <b>${updated.title}</b> has been <span style="display:inline-block;padding:2px 12px;border-radius:8px;background:${badgeColor};color:#fff;font-weight:600;font-size:0.98rem;letter-spacing:0.5px;">${statusLabel}</span>. Our team will contact you for the furthur process. Stay Tuned!!</p>
+                  </div>
+                  <div style="background: #f9fafb; border-radius: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); padding: 20px 18px 10px 18px; margin-bottom: 18px; border-left: 4px solid #3b82f6;">
+                    <h4 style="color: #1e3a8a; margin-bottom: 10px; font-size: 1.1rem; font-weight: 700;">Vehicle Details</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0; font-size: 1rem; color: #333;">
+                      <li><b>Title:</b> ${updated.title || '-'}</li>
+                      <li><b>Brand:</b> ${updated.brand || '-'}</li>
+                      <li><b>Year:</b> ${updated.year || '-'}</li>
+                      <li><b>Fuel:</b> ${updated.fuel || '-'}</li>
+                      <li><b>Transmission:</b> ${updated.transmission || '-'}</li>
+                      <li><b>Kilometers Driven:</b> ${updated.kmDriven || '-'}</li>
+                      <li><b>Owners:</b> ${updated.owners || '-'}</li>
+                      <li><b>Price:</b> ₹${updated.price ? Number(updated.price).toLocaleString() : '-'}</li>
+                      <li><b>Description:</b> ${updated.description || '-'}</li>
+                      <li><b>Status:</b> <span style="display:inline-block;padding:2px 12px;border-radius:8px;background:${badgeColor};color:#fff;font-weight:600;font-size:0.98rem;letter-spacing:0.5px;">${statusLabel}</span></li>
+                    </ul>
+                  </div>
+                  <div style="margin: 24px 0 0 0; border-top: 1.5px solid #e5e7eb; padding-top: 18px; text-align: center; color: #6b7280; font-size: 0.98rem;">
+                    <div style="margin-bottom: 6px;">If you have any questions, reply to this email or contact us at <a href="mailto:skmtfinanceandconsulting@gmail.com" style="color: #1e3a8a; text-decoration: underline;">skmtfinanceandconsulting@gmail.com</a>.</div>
+                    <div style="margin-top: 8px;">Thank you for choosing <b>SKMT Finance</b>. We look forward to serving you!</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `
+        };
+        await transporter.sendMail(mailOptions);
+      }
+    } catch (emailErr) {
+      console.error('Vehicle sale status email error:', emailErr);
+    }
+
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message || 'Internal server error' });
@@ -502,13 +768,69 @@ app.delete('/api/vehicle-sales/:id', async (req, res) => {
 // Create a new order with user and product snapshots
 app.post('/api/orders', async (req, res) => {
   try {
-    console.log('Order POST body:', req.body); // Debug log
+    //console.log('Order POST body:', req.body); // Debug log
     const { userSnapshot, productSnapshot } = req.body;
     if (!userSnapshot || !productSnapshot) {
       return res.status(400).json({ error: 'User and product details are required.' });
     }
     const order = new Order({ userSnapshot, productSnapshot });
     await order.save();
+
+    // Send order confirmation email
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_PASS,
+        },
+        port: 587,
+        secure: false
+      });
+      const mailOptions = {
+        to: userSnapshot.email,
+        from: process.env.GMAIL_USER,
+        subject: `Order Confirmation - ${productSnapshot.name} | SKMT Finance`,
+        html: `
+          <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
+            <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
+              <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
+                <img src="http://localhost:5000/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+                <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Order Placed Successfully!</h2>
+              </div>
+              <div style="padding: 32px 28px 18px 28px;">
+                <div style="border-left: 5px solid #1e3a8a; padding-left: 18px; margin-bottom: 18px;">
+                  <p style="font-size: 1.1rem; color: #1e3a8a; font-weight: 600; margin-bottom: 6px;">Hi ${userSnapshot.username || ''},</p>
+                  <p style="font-size: 1.05rem; color: #222; margin-bottom: 0;">Thank you for your order! Your request for <b>${productSnapshot.name}</b> has been received and is being processed. Our team will contact you soon with further details.</p>
+                </div>
+                <div style="background: #f9fafb; border-radius: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); padding: 20px 18px 10px 18px; margin-bottom: 18px; border-left: 4px solid #3b82f6;">
+                  <h4 style="color: #1e3a8a; margin-bottom: 10px; font-size: 1.1rem; font-weight: 700;">Order Details</h4>
+                  <ul style="list-style: none; padding: 0; margin: 0; font-size: 1rem; color: #333;">
+                    <li><b>Product:</b> ${productSnapshot.name}</li>
+                    <li><b>Type:</b> ${productSnapshot.type}</li>
+                    <li><b>Price:</b> ₹${Number(productSnapshot.price).toLocaleString()}</li>
+                    <li><b>Order Date:</b> ${new Date(order.orderDate).toLocaleString()}</li>
+                    <li><b>Status:</b> <span style="display:inline-block;padding:2px 12px;border-radius:8px;background:#f97316;color:#fff;font-weight:600;font-size:0.98rem;letter-spacing:0.5px;">${order.orderstatus || 'Pending'}</span></li>
+                    <li><b>Name:</b> ${userSnapshot.username || ''}</li>
+                    <li><b>Email:</b> ${userSnapshot.email}</li>
+                    <li><b>Phone:</b> ${userSnapshot.phone || ''}</li>
+                    ${productSnapshot.images && productSnapshot.images.length > 0 ? `<li style="margin-top: 12px;"><img src="http://localhost:5000${productSnapshot.images[0]}" alt="Product Image" style="max-width: 180px; border-radius: 8px; border: 1.5px solid #c7d2fe;" /></li>` : ''}
+                  </ul>
+                </div>
+                <div style="margin: 24px 0 0 0; border-top: 1.5px solid #e5e7eb; padding-top: 18px; text-align: center; color: #6b7280; font-size: 0.98rem;">
+                  <div style="margin-bottom: 6px;">If you have any questions, reply to this email or contact us at <a href="mailto:skmtfinanceandconsulting@gmail.com" style="color: #1e3a8a; text-decoration: underline;">skmtfinanceandconsulting@gmail.com</a>.</div>
+                  <div style="margin-top: 8px;">Thank you for choosing <b>SKMT Finance</b>. We look forward to serving you!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      };
+      await transporter.sendMail(mailOptions);
+    } catch (emailErr) {
+      console.error('Order confirmation email error:', emailErr);
+    }
+
     res.status(201).json(order);
   } catch (err) {
     console.error('Order save error:', err);
@@ -536,6 +858,88 @@ app.put('/api/orders/:id/status', async (req, res) => {
       { new: true }
     );
     if (!updated) return res.status(404).json({ error: 'Order not found' });
+
+    // Send status update email to user
+    try {
+      const { userSnapshot, productSnapshot, orderDate, orderstatus } = updated;
+      let prod = productSnapshot || {};
+      // If productSnapshot is a string (product ID), fetch the full product
+      if (typeof prod === 'string') {
+        const Product = require('./models/Product');
+        const dbProduct = await Product.findById(prod);
+        if (dbProduct) {
+          prod = dbProduct.toObject();
+        } else {
+          prod = {};
+        }
+      }
+      const prodName = prod.name || '-';
+      const prodType = prod.type || '-';
+      const prodPrice = prod.price !== undefined && prod.price !== null ? Number(prod.price).toLocaleString() : '-';
+      const prodImages = Array.isArray(prod.images) ? prod.images : [];
+      if (!prod.name || !prod.type || prod.price === undefined) {
+        console.warn('Order status email: productSnapshot incomplete:', prod);
+      }
+      const transporter = require('nodemailer').createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_PASS,
+        },
+        port: 587,
+        secure: false
+      });
+      const statusColors = {
+        Pending: '#f97316',
+        Processing: '#3b82f6',
+        Completed: '#10b981',
+        Cancelled: '#ef4444',
+      };
+      const badgeColor = statusColors[orderstatus] || '#f97316';
+      const mailOptions = {
+        to: userSnapshot.email,
+        from: process.env.GMAIL_USER,
+        subject: `Order Status Update - ${prodName} | SKMT Finance`,
+        html: `
+          <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
+            <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
+              <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
+                <img src="http://localhost:5000/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+                <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Order Status Updated</h2>
+              </div>
+              <div style="padding: 32px 28px 18px 28px;">
+                <div style="border-left: 5px solid #1e3a8a; padding-left: 18px; margin-bottom: 18px;">
+                  <p style="font-size: 1.1rem; color: #1e3a8a; font-weight: 600; margin-bottom: 6px;">Hi ${userSnapshot.username || ''},</p>
+                  <p style="font-size: 1.05rem; color: #222; margin-bottom: 0;">The status of your order for <b>${prodName}</b> has been updated to <span style="display:inline-block;padding:2px 12px;border-radius:8px;background:${badgeColor};color:#fff;font-weight:600;font-size:0.98rem;letter-spacing:0.5px;">${orderstatus}</span>.</p>
+                </div>
+                <div style="background: #f9fafb; border-radius: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); padding: 20px 18px 10px 18px; margin-bottom: 18px; border-left: 4px solid #3b82f6;">
+                  <h4 style="color: #1e3a8a; margin-bottom: 10px; font-size: 1.1rem; font-weight: 700;">Order Details</h4>
+                  <ul style="list-style: none; padding: 0; margin: 0; font-size: 1rem; color: #333;">
+                    <li><b>Product:</b> ${prodName}</li>
+                    <li><b>Type:</b> ${prodType}</li>
+                    <li><b>Price:</b> ₹${prodPrice}</li>
+                    <li><b>Order Date:</b> ${new Date(orderDate).toLocaleString()}</li>
+                    <li><b>Status:</b> <span style="display:inline-block;padding:2px 12px;border-radius:8px;background:${badgeColor};color:#fff;font-weight:600;font-size:0.98rem;letter-spacing:0.5px;">${orderstatus}</span></li>
+                    <li><b>Name:</b> ${userSnapshot.username || ''}</li>
+                    <li><b>Email:</b> ${userSnapshot.email}</li>
+                    <li><b>Phone:</b> ${userSnapshot.phone || ''}</li>
+                    ${prodImages.length > 0 ? `<li style="margin-top: 12px;"><img src="http://localhost:5000${prodImages[0]}" alt="Product Image" style="max-width: 180px; border-radius: 8px; border: 1.5px solid #c7d2fe;" /></li>` : ''}
+                  </ul>
+                </div>
+                <div style="margin: 24px 0 0 0; border-top: 1.5px solid #e5e7eb; padding-top: 18px; text-align: center; color: #6b7280; font-size: 0.98rem;">
+                  <div style="margin-bottom: 6px;">If you have any questions, reply to this email or contact us at <a href="mailto:skmtfinanceandconsulting@gmail.com" style="color: #1e3a8a; text-decoration: underline;">skmtfinanceandconsulting@gmail.com</a>.</div>
+                  <div style="margin-top: 8px;">Thank you for choosing <b>SKMT Finance</b>. We look forward to serving you!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      };
+      await transporter.sendMail(mailOptions);
+    } catch (emailErr) {
+      console.error('Order status update email error:', emailErr);
+    }
+
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err.message || 'Internal server error' });
@@ -599,6 +1003,8 @@ app.post('/api/forgot-password', async (req, res) => {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_PASS,
       },
+      port: 587,
+      secure: false
     });
     const resetUrl = `http://localhost:3000/reset-password/${token}`;
     const mailOptions = {
@@ -655,6 +1061,8 @@ app.post('/api/admin-forgot-password', async (req, res) => {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_PASS,
       },
+      port: 587,
+      secure: false
     });
     const resetUrl = `http://localhost:3001/admin-reset-password/${token}`;
     const mailOptions = {
@@ -692,8 +1100,48 @@ app.post('/api/admin-reset-password', async (req, res) => {
   }
 });
 
+// User growth stats endpoint (users registered per month for last 6 months)
+app.get('/api/user-growth-stats', authenticateJWT, async (req, res) => {
+  try {
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      // Use UTC for month calculation
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+      months.push({
+        label: d.toLocaleString('default', { month: 'short', year: '2-digit', timeZone: 'UTC' }),
+        start: new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)),
+        end: new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))
+      });
+    }
+    const userStats = await User.aggregate([
+      { $match: { createdAt: { $gte: months[0].start } } },
+      { $group: {
+        _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+        count: { $sum: 1 }
+      } },
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
+    ]);
+    // Remove debug logging
+    // console.log('Months:', months.map(m => ({ label: m.label, start: m.start, end: m.end })));
+    // console.log('UserStats:', userStats);
+    // console.log('Result:', result);
+    // Also remove mapping debug log
+    const result = months.map(m => {
+      const d = m.start;
+      const stat = userStats.find(s =>
+        s._id.year === d.getUTCFullYear() && s._id.month === (d.getUTCMonth() + 1)
+      );
+      return { month: m.label, count: stat ? stat.count : 0 };
+    });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 app.get('/', (req, res) => {
-  res.send('API is running...');
+  res.send('Backend API is running!!');
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`)); 

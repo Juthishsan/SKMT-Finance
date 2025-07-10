@@ -43,12 +43,12 @@ export const AuthProvider = ({ children }) => {
     window.location.reload(); // Force reload to clear all state
   }, []);
 
-  // Helper: Reset inactivity timer
+  // Helper: Reset inactivity timer (now 2 hours)
   const resetInactivityTimer = useCallback(() => {
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
     inactivityTimer.current = setTimeout(() => {
       logout();
-    }, 60 * 60 * 1000); // 1 hour
+    }, 2 * 60 * 60 * 1000); // 2 hours
   }, [logout]);
 
   // Set up inactivity listeners
@@ -63,6 +63,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, [token, resetInactivityTimer]);
 
+  // Remove token expiry-based logout and warning
   // Set up token expiry and warning
   useEffect(() => {
     if (!token) return;

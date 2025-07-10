@@ -1,17 +1,20 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedType, setSelectedType] = useState('All');
+  const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/products`);
+        const res = await axios.get(`${API_URL}/api/products`);
         setProducts(res.data);
       } catch (err) {
         setError('Failed to fetch products');
@@ -47,7 +50,7 @@ const Products = () => {
         <div className="container">
           <div className="text-center">
             <h1>Automobiles for Sale</h1>
-            <p>Find the best deals on cars, bikes, scooters, and other vehicles. All listings are verified and ready for you to buy!</p>
+            <p>Find the best deals on all automobiles. All listings are verified and ready for you to buy!</p>
           </div>
         </div>
       </section>
@@ -117,12 +120,20 @@ const Products = () => {
 
           {!loading && !error && filterProducts().length > 0 && (
             <div className="grid grid-3 products-grid">
-              {filterProducts().map((product) => (
-                <div key={product._id} className="card product-item">
+              {filterProducts().map((product, idx) => (
+                <motion.div
+                  key={product._id}
+                  className="card product-item"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/products/${product._id}`)}
+                  initial={{ opacity: 0, y: 40, scale: 0.92 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ type: 'spring', duration: 0.05, delay: idx * 0.05 }}
+                >
                   <div className="product-image-container">
                     {product.images && product.images.length > 0 ? (
                       <img 
-                        src={`http://localhost:5000${product.images[0]}`} 
+                        src={`${API_URL}${product.images[0]}`} 
                         alt={product.name}
                         className="product-image"
                         onError={(e) => {
@@ -173,11 +184,12 @@ const Products = () => {
                     <Link 
                       to={`/products/${product._id}`} 
                       className="btn btn-primary product-view-btn"
+                      onClick={e => e.stopPropagation()}
                     >
                       View Details
                     </Link>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}

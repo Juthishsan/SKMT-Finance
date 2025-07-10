@@ -8,6 +8,7 @@ const AdminResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,7 +18,7 @@ const AdminResetPassword = () => {
     }
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin-reset-password', {
+      const res = await fetch(`${API_URL}/api/admin-reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password })

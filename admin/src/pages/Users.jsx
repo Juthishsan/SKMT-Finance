@@ -23,7 +23,7 @@ const Users = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await authFetch('http://localhost:5000/api/users');
+        const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/users`);
         const data = await res.json();
         setTableData(data);
         setFilteredData(data);
@@ -47,10 +47,10 @@ const Users = () => {
     });
     if (result.isConfirmed) {
       try {
-        await authFetch(`http://localhost:5000/api/users/${userId}`, { method: 'DELETE' });
+        await authFetch(`${process.env.REACT_APP_API_URL}/api/users/${userId}`, { method: 'DELETE' });
         Swal.fire('Deleted!', 'User has been deleted.', 'success');
         // Refresh user list
-        const res = await authFetch('http://localhost:5000/api/users');
+        const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/users`);
         const data = await res.json();
         setTableData(data);
         setFilteredData(data);

@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import skmtLogo from '../assets/skmt logo (1).png';
+import skmtLogo1 from '../assets/SKMT Logo (3).png';
 import { toast } from 'react-toastify';
 import { MdHome, MdDirectionsCar, MdAccountBalance, MdBuild, MdInfo, MdContactPhone } from 'react-icons/md';
 
@@ -20,9 +21,16 @@ const Header = () => {
   const [vehiclesDropdown, setVehiclesDropdown] = useState(false);
   const [showMobileLoginDropdown, setShowMobileLoginDropdown] = useState(false);
   const [showLoginDropdown, setShowLoginDropdown] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1260);
   const location = useLocation();
   const navigate = useNavigate();
   const vehiclesDropdownTimeout = useRef();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 1260);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // User logic
   const user = (() => {
@@ -39,9 +47,7 @@ const Header = () => {
     setTimeout(() => window.location.reload(), 800);
   };
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen((v) => !v);
 
   // Close menu on navigation
   const handleNavClick = () => {
@@ -63,22 +69,26 @@ const Header = () => {
       <div className="nav-wrapper">
         <div className="nav-left-group">
           <Link to="/" className="logo" aria-label="SKMT Finance Home">
-            <img src={skmtLogo} alt="SKMT Logo" className="logo-img" />
-            <span className="logo-title-modern">SKMT <span>Finance</span></span>
+            <img src={skmtLogo1} alt="SKMT Logo" className="logo-img" />
+            {/* <span className="logo-title-modern">SKMT <span>Finance</span></span> */}
           </Link>
         </div>
-        {/* <button
-          className={`mobile-menu-btn${isMenuOpen ? ' open' : ''}`}
+        {/* Move toggle button here for absolute visibility */}
+        <button
+          className={`simple-toggle-btn${isMenuOpen ? ' open' : ''}`}
           aria-label="Toggle navigation menu"
           aria-expanded={isMenuOpen}
           onClick={toggleMenu}
+          style={{marginLeft: 12, background: 'none', border: 'none', cursor: 'pointer', zIndex: 130, position: 'absolute', right: 16, top: 24}}
         >
-          <span className="custom-hamburger">
-            <span className="bar"></span>
-            <span className="bar"></span>
-            <span className="bar"></span>
+          <span className="simple-toggle-icon" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 32 32">
+              <rect className={`simple-bar top${isMenuOpen ? ' open' : ''}`} x="6" y="8" width="22" height="3" rx="1.5" />
+              <rect className={`simple-bar middle${isMenuOpen ? ' open' : ''}`} x="6" y="16" width="22" height="3" rx="1.5" />
+              <rect className={`simple-bar bottom${isMenuOpen ? ' open' : ''}`} x="6" y="23" width="22" height="3" rx="1.5" />
+            </svg>
           </span>
-        </button> */}
+        </button>
         <div className="nav-right-group">
           <nav className={`nav${isMenuOpen ? ' nav-open' : ''}`} aria-label="Main navigation">
             <Link 
@@ -91,13 +101,24 @@ const Header = () => {
             <div 
               className="nav-link vehicles-dropdown-wrapper" 
               style={{ position: 'relative' }}
-              onMouseEnter={openVehiclesDropdown}
-              onMouseLeave={closeVehiclesDropdown}
-              onClick={openVehiclesDropdown}
+              onMouseEnter={!isMobile ? openVehiclesDropdown : undefined}
+              onMouseLeave={!isMobile ? closeVehiclesDropdown : undefined}
               tabIndex={0}
               aria-haspopup="true"
               aria-expanded={vehiclesDropdown}
             >
+              {isMobile ? (
+                <span
+                  className={location.pathname.startsWith('/products') || location.pathname === '/sell-vehicle' ? 'active' : ''}
+                  style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', width: '100%' }}
+                  onClick={() => setVehiclesDropdown(v => !v)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Toggle Vehicles dropdown"
+                >
+                  <MdDirectionsCar className="nav-icon" /> Vehicles ▾
+                </span>
+              ) : (
               <Link
                 to="/products"
                 className={location.pathname.startsWith('/products') || location.pathname === '/sell-vehicle' ? 'active' : ''}
@@ -106,10 +127,11 @@ const Header = () => {
               >
                 <MdDirectionsCar className="nav-icon" /> Vehicles ▾
               </Link>
+              )}
               {vehiclesDropdown && (
-                <div className="vehicles-dropdown-menu" style={{ position: 'absolute', left: 0, top: '100%', zIndex: 10 }}
-                  onMouseEnter={openVehiclesDropdown}
-                  onMouseLeave={closeVehiclesDropdown}
+                <div className="vehicles-dropdown-menu" style={{ position: isMobile ? 'relative' : 'absolute', left: 0, top: isMobile ? 'auto' : '100%', zIndex: 10 }}
+                  onMouseEnter={!isMobile ? openVehiclesDropdown : undefined}
+                  onMouseLeave={!isMobile ? closeVehiclesDropdown : undefined}
                 >
                   <Link 
                     to="/products"
@@ -130,13 +152,25 @@ const Header = () => {
             </div>
             <div 
               className="nav-link loans-dropdown-wrapper" 
-              onMouseEnter={() => setLoansDropdown(true)} 
-              onMouseLeave={() => setLoansDropdown(false)}
+              onMouseEnter={!isMobile ? () => setLoansDropdown(true) : undefined} 
+              onMouseLeave={!isMobile ? () => setLoansDropdown(false) : undefined}
               tabIndex={0}
               aria-haspopup="true"
               aria-expanded={loansDropdown}
               style={{ position: 'relative' }}
             >
+              {isMobile ? (
+                <span
+                  className={location.pathname === '/loans' ? 'active' : ''}
+                  style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', width: '100%' }}
+                  onClick={() => setLoansDropdown(v => !v)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Toggle Loans dropdown"
+                >
+                  <MdAccountBalance className="nav-icon" /> Loans ▾
+                </span>
+              ) : (
               <Link
                 to="/loans"
                 className={location.pathname === '/loans' ? 'active' : ''}
@@ -145,8 +179,16 @@ const Header = () => {
               >
                 <MdAccountBalance className="nav-icon" /> Loans ▾
               </Link>
+              )}
               {loansDropdown && (
-                <div className="loans-dropdown-menu">
+                <div className="loans-dropdown-menu" style={{ position: isMobile ? 'relative' : 'absolute', left: 0, top: isMobile ? 'auto' : '100%', zIndex: 10 }}>
+                  <Link
+                    to="/loans"
+                    className="dropdown-item"
+                    onClick={handleNavClick}
+                  >
+                    <MdAccountBalance className="nav-icon" style={{marginRight: 6}} /> All Loans
+                  </Link>
                   {loanOptions.map((loan) => (
                     <Link 
                       key={loan.title} 

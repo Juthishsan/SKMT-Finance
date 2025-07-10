@@ -6,13 +6,14 @@ import image3 from '../assets/image 6.jpg'
 import image4 from '../assets/image 8.jpg'
 import image5 from '../assets/image 12.jpg'
 import image6 from '../assets/image 10.jpg'
+import { motion } from 'framer-motion';
 
 const Loans = () => {
   const loans = [
     {
       id: 1,
       title: "Old Bike Loan",
-      description: "For customers looking to buy a reliable pre-owned two-wheeler, with fast approval, low EMIs, and minimal paperwork. Ideal for daily commuters and first-time buyers.",
+      description: "Buy a reliable pre-owned two-wheeler with fast approval and low EMIs. Minimal paperwork, ideal for daily commuters.",
       image: image1,
       features: [
         "Up to 90% funding of bike value",
@@ -28,7 +29,7 @@ const Loans = () => {
     {
       id: 2,
       title: "New Bike Loan",
-      description: "Finance your dream bike with up to 100% on-road price funding, low interest rates, and instant approval. Perfect for enthusiasts and daily riders.",
+      description: "Finance your dream bike with up to 100% funding and instant approval. Low rates and minimal down payment.",
       image: image2,
       features: [
         "Up to 100% on-road price funding",
@@ -44,7 +45,7 @@ const Loans = () => {
     {
       id: 3,
       title: "Old Commercial Vehicle Loan",
-      description: "Expand your business fleet with easy loans for pre-owned commercial vehicles. Get high LTV, flexible repayment, and support for all vehicle types.",
+      description: "Easy loans for pre-owned commercial vehicles. High LTV, flexible repayment, and quick processing.",
       image: image3,
       features: [
         "Up to 85% funding of vehicle value",
@@ -60,7 +61,7 @@ const Loans = () => {
     {
       id: 4,
       title: "Old Cars Loan",
-      description: "Buy a quality pre-owned car with affordable EMIs, fast approval, and transparent process. Suitable for families and professionals.",
+      description: "Affordable EMIs and fast approval for quality pre-owned cars. Flexible tenure and no prepayment penalty.",
       image: image4,
       features: [
         "Up to 90% funding of car value",
@@ -76,7 +77,7 @@ const Loans = () => {
     {
       id: 5,
       title: "Gold Loan",
-      description: "Unlock the value of your gold instantly. Get cash in minutes with minimal paperwork, high per-gram rates, and secure storage.",
+      description: "Get instant cash for your gold with high per-gram rates. Minimal paperwork and secure storage.",
       image: image5,
       features: [
         "Instant cash disbursal",
@@ -92,7 +93,7 @@ const Loans = () => {
     {
       id: 6,
       title: "Property Loan",
-      description: "Leverage your residential or commercial property for a high-value loan. Enjoy long tenure, low rates, and multi-purpose usage.",
+      description: "Leverage your property for a high-value loan. Long tenure, low rates, and quick processing.",
       image: "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&fit=crop&w=600&q=80",
       features: [
         "High loan amounts (up to ₹50 Lakhs)",
@@ -108,7 +109,7 @@ const Loans = () => {
     {
       id: 7,
       title: "Personal Loan",
-      description: "Meet any personal need—wedding, travel, education, or emergency—with a quick, collateral-free loan. Fast approval and flexible EMIs.",
+      description: "Collateral-free loans for any personal need. Fast approval, flexible EMIs, and minimal documentation.",
       image: image6,
       features: [
         "No collateral required",
@@ -141,7 +142,8 @@ const Loans = () => {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch(`http://localhost:5000/api/loan-applications`, {
+      const API_URL = process.env.REACT_APP_API_URL;
+      const res = await fetch(`${API_URL}/api/loan-applications`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, loanType: selectedLoan.title })
@@ -177,8 +179,17 @@ const Loans = () => {
       <section className="section">
         <div className="container">
           <div className="loans-grid">
-            {loans.map(loan => (
-              <div key={loan.id} className="loan-card-detailed" onClick={() => navigate(`/loans/${loan.id}`)} style={{ cursor: 'pointer' }}>
+            {loans.map((loan, idx) => (
+              <motion.div
+                key={loan.id}
+                className="loan-card-detailed"
+                onClick={() => navigate(`/loans/${loan.id}`)}
+                style={{ cursor: 'pointer' }}
+                initial={{ opacity: 0, y: 40, scale: 0.92 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', duration: 0.05, delay: idx * 0.07 }}
+                viewport={{ once: true, amount: 0.2 }}
+              >
                 <div className="loan-image">
                   <img src={loan.image} alt={loan.title} />
                 </div>
@@ -205,10 +216,10 @@ const Loans = () => {
                   </div> */}
                   <div className="loan-actions">
                     <button className="btn btn-primary" onClick={e => { e.stopPropagation(); setSelectedLoan(loan); setShowModal(true); }}>Apply Now</button>
-                    <Link to="/services" className="btn btn-outline" onClick={e => e.stopPropagation()}>Calculate EMI</Link>
+                    {/* <Link to="/services" className="btn btn-outline" onClick={e => e.stopPropagation()}>Calculate EMI</Link> */}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -222,26 +233,27 @@ const Loans = () => {
             <p>Experience the advantages of banking with SKMT finance</p>
           </div>
           <div className="grid grid-4">
-            <div className="benefit-card">
-              <div className="benefit-icon">⚡</div>
-              <h4>Quick Approval</h4>
-              <p>Get loan approvals in as little as 24 hours with our streamlined process</p>
-            </div>
-            <div className="benefit-card">
-              <div className="benefit-icon">💰</div>
-              <h4>Competitive Rates</h4>
-              <p>Enjoy some of the most competitive interest rates in the market</p>
-            </div>
-            <div className="benefit-card">
-              <div className="benefit-icon">📋</div>
-              <h4>Minimal Documentation</h4>
-              <p>Simple documentation process with digital submission options</p>
-            </div>
-            <div className="benefit-card">
-              <div className="benefit-icon">🤝</div>
-              <h4>Expert Support</h4>
-              <p>Get guidance from our experienced financial advisors throughout your journey</p>
-            </div>
+            {[ 
+              { icon: '⚡', title: 'Quick Approval', desc: 'Get loan approvals in as little as 24 hours with our streamlined process' },
+              { icon: '💰', title: 'Competitive Rates', desc: 'Enjoy some of the most competitive interest rates in the market' },
+              { icon: '📋', title: 'Minimal Documentation', desc: 'Simple documentation process with digital submission options' },
+              { icon: '🤝', title: 'Expert Support', desc: 'Get guidance from our experienced financial advisors throughout your journey' },
+              { icon: '🔒', title: 'Secure Process', desc: 'Your data and transactions are protected with advanced security measures for peace of mind.' },
+              { icon: '🕒', title: 'Flexible Repayment', desc: 'Choose repayment plans that fit your budget and schedule, with options for early closure.' },
+            ].map((b, idx) => (
+              <motion.div
+                className="benefit-card"
+                key={b.title}
+                initial={{ opacity: 0, y: 40, scale: 0.92 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', duration: 0.05, delay: idx * 0.05 }}
+                viewport={{ once: true, amount: 0.2 }}
+              >
+                <div className="benefit-icon">{b.icon}</div>
+                <h4>{b.title}</h4>
+                <p>{b.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -254,28 +266,45 @@ const Loans = () => {
             <p>Check if you meet our basic eligibility requirements</p>
           </div>
           <div className="grid grid-2">
-            <div className="eligibility-card">
-              <h3>Individual Applicants</h3>
-              <ul className="eligibility-list">
-                <li>✓ Age: 21 to 65 years</li>
-                <li>✓ Minimum income: ₹25,000 per month</li>
-                <li>✓ Employment: Salaried or Self-employed</li>
-                <li>✓ Credit score: 650 and above</li>
-                <li>✓ Valid identity and address proof</li>
-                <li>✓ Bank statements for last 6 months</li>
-              </ul>
-            </div>
-            <div className="eligibility-card">
-              <h3>Business Applicants</h3>
-              <ul className="eligibility-list">
-                <li>✓ Business vintage: 2+ years</li>
-                <li>✓ Annual turnover: ₹10 Lakhs+</li>
-                <li>✓ Valid business registration</li>
-                <li>✓ ITR for last 2 years</li>
-                <li>✓ Bank statements (Current & Savings)</li>
-                <li>✓ Financial statements (audited)</li>
-              </ul>
-            </div>
+            {[
+              {
+                title: 'Individual Applicants',
+                list: [
+                  '✓ Age: 21 to 65 years',
+                  '✓ Minimum income: ₹25,000 per month',
+                  '✓ Employment: Salaried or Self-employed',
+                  '✓ Credit score: 650 and above',
+                  '✓ Valid identity and address proof',
+                  '✓ Bank statements for last 6 months',
+                ]
+              },
+              {
+                title: 'Business Applicants',
+                list: [
+                  '✓ Business vintage: 2+ years',
+                  '✓ Annual turnover: ₹10 Lakhs+',
+                  '✓ Valid business registration',
+                  '✓ ITR for last 2 years',
+                  '✓ Bank statements (Current & Savings)',
+                  '✓ Financial statements (audited)',
+                ]
+              }
+            ].map((card, idx) => (
+              <motion.div
+                className="eligibility-card benefit-card"
+                key={card.title}
+                initial={{ opacity: 0, y: 40, scale: 0.92 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', duration: 0.05, delay: idx * 0.07 }}
+                viewport={{ once: true, amount: 0.2 }}
+                whileHover={{ scale: 1.045, boxShadow: '0 12px 48px rgba(59,130,246,0.18)' }}
+              >
+                <h3>{card.title}</h3>
+                <ul className="eligibility-list">
+                  {card.list.map((item, i) => <li key={i}>{item}</li>)}
+                </ul>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

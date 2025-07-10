@@ -67,11 +67,8 @@ const Register = () => {
   const validateEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const validatePhone = phone => /^\d{10}$/.test(phone);
   const validatePincode = pincode => /^\d{5,6}$/.test(pincode);
-  const validatePassword = pw =>
-    pw.length >= 6 &&
-    /[A-Za-z]/.test(pw) &&
-    /\d/.test(pw) &&
-    /[^A-Za-z0-9]/.test(pw); // at least one symbol
+  // Change password validation: at least 6 chars, must include a letter and a number (no symbol required)
+  const validatePassword = pw => pw.length >= 6 && /[A-Za-z]/.test(pw) && /\d/.test(pw);
 
   const validateFields = () => {
     const errors = {};
@@ -82,7 +79,7 @@ const Register = () => {
     if (!city) errors.city = 'City is required.';
     if (!state) errors.state = 'State is required.';
     if (!pincode || !validatePincode(pincode)) errors.pincode = 'Enter a valid 5 or 6 digit pincode.';
-    if (!password || !validatePassword(password)) errors.password = 'Password must be at least 6 characters, include a letter, a number, and a symbol.';
+    if (!password || !validatePassword(password)) errors.password = 'Password must be at least 6 characters, include a letter and a number.';
     if (confirmPassword !== password) errors.confirmPassword = 'Passwords do not match.';
     if (!acceptTerms) errors.acceptTerms = 'You must accept the terms and conditions.';
     return errors;
@@ -95,7 +92,8 @@ const Register = () => {
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/users`, {
+      const API_URL = process.env.REACT_APP_API_URL;
+      const response = await fetch(`${API_URL}/api/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: name, email, password, phone, address, city, state, pincode })
@@ -155,7 +153,7 @@ const Register = () => {
     if (field === 'city' && !value) msg = 'City is required.';
     if (field === 'state' && !value) msg = 'State is required.';
     if (field === 'pincode' && !validatePincode(value)) msg = 'Enter a valid 5 or 6 digit pincode.';
-    if (field === 'password' && !validatePassword(value)) msg = 'Password must be at least 6 characters, include a letter, a number, and a symbol.';
+    if (field === 'password' && !validatePassword(value)) msg = 'Password must be at least 6 characters, include a letter and a number.';
     if (field === 'confirmPassword' && value !== password) msg = 'Passwords do not match.';
     setFieldErrors(prev => ({ ...prev, [field]: msg }));
   };

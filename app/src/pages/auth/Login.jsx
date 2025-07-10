@@ -12,6 +12,7 @@ const Login = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
   const { login } = useAuth();
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const inputStyle = {
     width: '100%',
@@ -42,13 +43,21 @@ const Login = () => {
 
   // Validation helpers
   const validateEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const validatePassword = pw => pw.length >= 6 && /[A-Za-z]/.test(pw) && /\d/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+  // Change password validation: at least 6 chars, must include a letter and a number (no symbol required)
+  const validatePassword = pw => pw.length >= 6 && /[A-Za-z]/.test(pw) && /\d/.test(pw);
 
   const validateFields = () => {
     const errors = {};
     if (!email || !validateEmail(email)) errors.email = 'Enter a valid email address.';
-    if (!password || !validatePassword(password)) errors.password = 'Password must be at least 6 characters, include a letter, a number, and a symbol.';
+    if (!password || !validatePassword(password)) errors.password = 'Password must be at least 6 characters, include a letter and a number.';
     return errors;
+  };
+
+  const handleBlur = (field, value) => {
+    let msg = '';
+    if (field === 'email' && !validateEmail(value)) msg = 'Enter a valid email address.';
+    if (field === 'password' && !validatePassword(value)) msg = 'Password must be at least 6 characters, include a letter and a number.';
+    setFieldErrors(prev => ({ ...prev, [field]: msg }));
   };
 
   const handleSubmit = async (e) => {
@@ -58,7 +67,7 @@ const Login = () => {
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/login`, {
+      const response = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -126,7 +135,7 @@ const Login = () => {
               placeholder="Enter your email"
               required
               onFocus={e => e.target.style.border = fieldErrors.email ? '1.5px solid #ef4444' : '1.5px solid #1e3a8a'}
-              onBlur={e => e.target.style.border = fieldErrors.email ? '1.5px solid #ef4444' : '1.5px solid #c7d2fe'}
+              onBlur={e => handleBlur('email', e.target.value)}
             />
           </div>
           {fieldErrors.email && errorBox(fieldErrors.email)}
@@ -143,7 +152,7 @@ const Login = () => {
               placeholder="Enter your password"
               required
               onFocus={e => e.target.style.border = fieldErrors.password ? '1.5px solid #ef4444' : '1.5px solid #1e3a8a'}
-              onBlur={e => e.target.style.border = fieldErrors.password ? '1.5px solid #ef4444' : '1.5px solid #c7d2fe'}
+              onBlur={e => handleBlur('password', e.target.value)}
             />
             <span
               onClick={() => setShowPassword(!showPassword)}

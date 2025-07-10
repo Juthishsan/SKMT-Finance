@@ -26,7 +26,7 @@ const Admins = () => {
     useEffect(() => {
         const fetchAdmins = async () => {
             try {
-                const res = await authFetch('http://localhost:5000/api/admins');
+                const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`);
                 const data = await res.json();
                 setTableData(data);
                 setFilteredData(data);
@@ -46,7 +46,7 @@ const Admins = () => {
             return;
         }
         try {
-            await authFetch(`http://localhost:5000/api/admins`, {
+            await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -56,7 +56,7 @@ const Admins = () => {
             Swal.fire('Success', 'Admin added successfully!', 'success');
             setForm({ name: '', email: '', phone: '', password: '' });
             setaddadmin(false);
-            const res = await authFetch('http://localhost:5000/api/admins');
+            const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`);
             const data = await res.json();
             setTableData(data);
             setFilteredData(data);
@@ -77,9 +77,9 @@ const Admins = () => {
         });
         if (result.isConfirmed) {
             try {
-                await authFetch(`http://localhost:5000/api/admins/${adminId}`, { method: 'DELETE' });
+                await authFetch(`${process.env.REACT_APP_API_URL}/api/admins/${adminId}`, { method: 'DELETE' });
                 Swal.fire('Deleted!', 'Admin has been deleted.', 'success');
-                const res = await authFetch('http://localhost:5000/api/admins');
+                const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`);
                 const data = await res.json();
                 setTableData(data);
                 setFilteredData(data);

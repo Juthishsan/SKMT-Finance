@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import UnderMaintenance from './components/underMaintanance';
+import UnderMaintanance from './components/underMaintanance';
 import Home from './pages/Home';
 import Loans from './pages/Loans';
 import Services from './pages/Services';
@@ -32,27 +32,27 @@ function App() {
       <div className="App">
         <Header />
         <main>
-          <Routes>
-            <Route path="/maintanance" element={<UnderMaintenance />} />
-            <Route path="/" element={<UnderMaintenance />} />
-            <Route path="/loans" element={<UnderMaintenance />} />
-            <Route path="/loans/:id" element={<UnderMaintenance />} />
-            <Route path="/products" element={<UnderMaintenance />} />
-            <Route path="/products/:id" element={<UnderMaintenance />} />
-            <Route path="/services" element={<UnderMaintenance />} />
-            <Route path="/about" element={<UnderMaintenance />} />
-            <Route path="/contact" element={<UnderMaintenance />} />
-            <Route path="/login" element={<UnderMaintenance />} />
-            <Route path="/register" element={<UnderMaintenance />} />
-            <Route path="/forgot-password" element={<UnderMaintenance />} />
-            <Route path="/reset-password/:token" element={<UnderMaintenance />} />
+          {/* <Routes>
+            <Route path="/maintanance" element={<UnderMaintanance />} />
+            <Route path="/" element={<UnderMaintanance />} />
+            <Route path="/loans" element={<UnderMaintanance />} />
+            <Route path="/loans/:id" element={<UnderMaintanance />} />
+            <Route path="/products" element={<UnderMaintanance />} />
+            <Route path="/products/:id" element={<UnderMaintanance />} />
+            <Route path="/services" element={<UnderMaintanance />} />
+            <Route path="/about" element={<UnderMaintanance />} />
+            <Route path="/contact" element={<UnderMaintanance />} />
+            <Route path="/login" element={<UnderMaintanance />} />
+            <Route path="/register" element={<UnderMainaenance />} />
+            <Route path="/forgot-password" element={<UnderMaintanance />} />
+            <Route path="/reset-password/:token" element={<UnderMaintanance />} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/sell-vehicle" element={<ProtectedRoute><SellVehicle /></ProtectedRoute>} />
-          </Routes>
+          </Routes> */}
 
 
-          {/* <Routes>
-            <Route path="/maintanance" element={<UnderMaintenance />} />
+          <Routes>
+            {/* <Route path="/maintanance" element={<UnderMaintanance />} /> */}
             <Route path="/" element={<Home />} />
             <Route path="/loans" element={<Loans />} />
             <Route path="/loans/:id" element={<LoanDetails />} />
@@ -67,7 +67,7 @@ function App() {
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/sell-vehicle" element={<ProtectedRoute><SellVehicle /></ProtectedRoute>} />
-          </Routes> */}
+          </Routes>
 
 
 

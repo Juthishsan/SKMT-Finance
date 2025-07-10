@@ -3,6 +3,8 @@ import axios from 'axios';
 import { BsCheckCircle, BsXCircle, BsTrash, BsSearch, BsEyeFill } from 'react-icons/bs';
 import Swal from 'sweetalert2';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const VehicleSales = () => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,8 +43,10 @@ const VehicleSales = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get(`http://localhost:5000/api/vehicle-sales`);
-      setVehicles(res.data);
+      const res = await axios.get(`${API_URL}/api/vehicle-sales`);
+      // Sort by createdAt descending (most recent first)
+      const sortedVehicles = res.data.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setVehicles(sortedVehicles);
     } catch (err) {
       setError('Failed to fetch vehicle sales.');
     }
@@ -51,24 +55,38 @@ const VehicleSales = () => {
 
   const handleApprove = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/vehicle-sales/${id}`, { status: 'approved' });
+      await axios.put(`${API_URL}/api/vehicle-sales/${id}`, { status: 'approved' });
       Swal.fire({ icon: 'success', title: 'Vehicle sale approved!', showConfirmButton: false, timer: 1200 });
       fetchVehicles();
     } catch {}
   };
   const handleReject = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/vehicle-sales/${id}`, { status: 'rejected' });
+      await axios.put(`${API_URL}/api/vehicle-sales/${id}`, { status: 'rejected' });
       Swal.fire({ icon: 'success', title: 'Vehicle sale rejected!', showConfirmButton: false, timer: 1200 });
       fetchVehicles();
     } catch {}
   };
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this vehicle sale?')) return;
+    const result = await Swal.fire({
+      title: 'Delete Vehicle Sale',
+      text: 'Are you sure you want to delete this vehicle sale?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    });
+    if (!result.isConfirmed) return;
     try {
-      await axios.delete(`http://localhost:5000/api/vehicle-sales/${id}`);
+      await axios.delete(`${API_URL}/api/vehicle-sales/${id}`);
+      Swal.fire({ icon: 'success', title: 'Deleted!', text: 'Vehicle sale has been deleted.', showConfirmButton: false, timer: 1200 });
       fetchVehicles();
-    } catch {}
+    } catch {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete vehicle sale.' });
+    }
   };
 
   const openModal = (vehicle) => {
@@ -88,7 +106,7 @@ const VehicleSales = () => {
       <div className="container">
         <div className="card" style={{ borderRadius: 18, boxShadow: '0 8px 32px rgba(30,58,138,0.10)', border: 'none', padding: 0, marginBottom: 32 }}>
           <div style={{ background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: '28px 0 18px 0', textAlign: 'center' }}>
-            <h2 style={{ color: '#fff', fontWeight: 700, letterSpacing: 1, margin: 0 }}>Vehicle Sale Submissions</h2>
+            <h2 style={{ color: '#fff', fontWeight: 700, letterSpacing: 1, margin: 0 }}>Vehicles For Sales</h2>
             {/* <p className="text-muted" style={{ color: '#e0e7ef', margin: 0, fontWeight: 500 }}>Review and manage vehicles submitted by users</p> */}
           </div>
           <div style={{ padding: 32 }}>
@@ -132,7 +150,7 @@ const VehicleSales = () => {
                       <tr key={vehicle._id} style={{ borderBottom: '1px solid #f1f5f9', verticalAlign: 'top' }}>
                         <td style={{ padding: 12, textAlign: 'center' }}>
                           {(vehicle.images && vehicle.images.length > 0) ? (
-                            <img src={vehicle.images[0].startsWith('/uploads/') ? `http://localhost:5000${vehicle.images[0]}` : `http://localhost:5000/uploads/${vehicle.images[0]}`} alt={vehicle.title} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+                            <img src={vehicle.images[0].startsWith('/uploads/') ? `${API_URL}${vehicle.images[0]}` : `${API_URL}/uploads/${vehicle.images[0]}`} alt={vehicle.title} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
                           ) : (
                             <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                           )}
@@ -140,7 +158,11 @@ const VehicleSales = () => {
                         <td style={{ padding: 12, fontWeight: 600 }}>{vehicle.brand}</td>
                         <td style={{ padding: 12 }}>{vehicle.year}</td>
                         <td style={{ padding: 12, fontWeight: 700 }}>₹{vehicle.price?.toLocaleString?.() || vehicle.price}</td>
-                        <td style={{ padding: 12 }}>{vehicle.user && (vehicle.user.username || vehicle.user.email || vehicle.user._id)}</td>
+                        <td style={{ padding: 12 }}>
+                          {vehicle.user && typeof vehicle.user === 'object'
+                            ? (vehicle.user.username || vehicle.user.email || vehicle.user._id || '-')
+                            : (typeof vehicle.user === 'string' ? vehicle.user : '-')}
+                        </td>
                         <td style={{ fontWeight: 600, color: vehicle.status === 'approved' ? '#10b981' : vehicle.status === 'rejected' ? '#dc2626' : '#1e3a8a', padding: 12 }}>
                           {vehicle.status || 'pending'}
                         </td>
@@ -219,7 +241,7 @@ const VehicleSales = () => {
                   <>
                     <img
                       className="admin-modal-image"
-                      src={selectedVehicle.images[slideshowIndex].startsWith('/uploads/') ? `http://localhost:5000${selectedVehicle.images[slideshowIndex]}` : `http://localhost:5000/uploads/${selectedVehicle.images[slideshowIndex]}`}
+                      src={selectedVehicle.images[slideshowIndex].startsWith('/uploads/') ? `${API_URL}${selectedVehicle.images[slideshowIndex]}` : `${API_URL}/uploads/${selectedVehicle.images[slideshowIndex]}`}
                       loading="lazy"
                       alt={selectedVehicle.title}
                       style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 18, boxShadow: '0 4px 24px #1e3a8a22', background: '#f1f5f9', objectFit: 'cover' }}

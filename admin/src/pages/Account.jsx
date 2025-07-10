@@ -7,13 +7,14 @@ const Account = () => {
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({ name: admin?.name || '', phone: admin?.phone || '' });
+  const API_URL = process.env.REACT_APP_API_URL;
 
   // Fetch latest admin data on mount
   useEffect(() => {
     const fetchAdmin = async () => {
       if (!admin?._id) return;
       try {
-        const res = await authFetch(`http://localhost:5000/api/admins`);
+        const res = await authFetch(`${API_URL}/api/admins`);
         if (!res.ok) return;
         const data = await res.json();
         const found = data.find(a => a._id === admin._id);
@@ -50,7 +51,7 @@ const Account = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await authFetch(`http://localhost:5000/api/admins/${admin._id}`, {
+      const res = await authFetch(`${API_URL}/api/admins/${admin._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),

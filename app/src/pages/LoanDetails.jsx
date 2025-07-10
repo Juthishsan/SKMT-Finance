@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import image1 from '../assets/image 11.jpg'
 import image2 from '../assets/image 4.jpg'
 import image3 from '../assets/image 6.jpg'
@@ -8,12 +8,13 @@ import image5 from '../assets/image 12.jpg'
 import image6 from '../assets/image 10.jpg'
 import { FaCheckCircle, FaUserShield, FaFileAlt, FaRegQuestionCircle, FaRegClock, FaRegMoneyBillAlt, FaArrowRight, FaPhoneAlt, FaCircle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactDOM from 'react-dom';
 
 const loans = [
   {
     id: 1,
     title: "Old Bike Loan",
-    description: "For customers looking to buy a reliable pre-owned two-wheeler, with fast approval, low EMIs, and minimal paperwork. Ideal for daily commuters and first-time buyers.",
+    description: `For customers looking to buy a reliable pre-owned two-wheeler, with fast approval, low EMIs, and minimal paperwork. Ideal for daily commuters and first-time buyers.\nEnjoy flexible repayment options and competitive interest rates tailored for your needs. Our expert team guides you through every step, ensuring a hassle-free experience. With minimal documentation and quick disbursal, you can get on the road faster. Choose from a wide range of eligible models and benefit from our transparent process with no hidden charges.`,
     image: image1,
     features: [
       "Up to 90% funding of bike value",
@@ -29,7 +30,7 @@ const loans = [
   {
     id: 2,
     title: "New Bike Loan",
-    description: "Finance your dream bike with up to 100% on-road price funding, low interest rates, and instant approval. Perfect for enthusiasts and daily riders.",
+    description: `Finance your dream bike with up to 100% on-road price funding, low interest rates, and instant approval. Perfect for enthusiasts and daily riders.\nBenefit from exclusive offers for salaried and self-employed individuals. Our digital process ensures instant approval and minimal down payment. Enjoy doorstep documentation and personalized customer support. Ride away with your new bike sooner, thanks to our fast-track loan processing.`,
     image: image2,
     features: [
       "Up to 100% on-road price funding",
@@ -45,7 +46,7 @@ const loans = [
   {
     id: 3,
     title: "Old Commercial Vehicle Loan",
-    description: "Expand your business fleet with easy loans for pre-owned commercial vehicles. Get high LTV, flexible repayment, and support for all vehicle types.",
+    description: `Expand your business fleet with easy loans for pre-owned commercial vehicles. Get high LTV, flexible repayment, and support for all vehicle types.\nOur loans are designed for small businesses and fleet owners seeking affordable solutions. Benefit from customized EMI plans and funding for all makes and models. Quick processing and expert assistance help you grow your business without delays. We support first-time buyers and offer guidance throughout the purchase process.`,
     image: image3,
     features: [
       "Up to 85% funding of vehicle value",
@@ -61,7 +62,7 @@ const loans = [
   {
     id: 4,
     title: "Old Cars Loan",
-    description: "Buy a quality pre-owned car with affordable EMIs, fast approval, and transparent process. Suitable for families and professionals.",
+    description: `Buy a quality pre-owned car with affordable EMIs, fast approval, and transparent process. Suitable for families and professionals.\nWe offer up to 90% funding of car value and flexible tenure up to 60 months. Enjoy attractive interest rates and no prepayment penalty. Our hassle-free transfer process and dedicated support make your car buying journey smooth and secure. Choose from a wide selection of eligible vehicles and drive home your dream car today.`,
     image: image4,
     features: [
       "Up to 90% funding of car value",
@@ -77,7 +78,7 @@ const loans = [
   {
     id: 5,
     title: "Gold Loan",
-    description: "Unlock the value of your gold instantly. Get cash in minutes with minimal paperwork, high per-gram rates, and secure storage.",
+    description: `Unlock the value of your gold instantly. Get cash in minutes with minimal paperwork, high per-gram rates, and secure storage.\nOur gold loans offer flexible repayment options and no income proof required. Benefit from safe and secure storage of your valuables. Transparent process ensures you get the best value for your gold. Use the funds for any personal or business need, with quick approval and disbursal.`,
     image: image5,
     features: [
       "Instant cash disbursal",
@@ -93,7 +94,7 @@ const loans = [
   {
     id: 6,
     title: "Property Loan",
-    description: "Leverage your residential or commercial property for a high-value loan. Enjoy long tenure, low rates, and multi-purpose usage.",
+    description: `Leverage your residential or commercial property for a high-value loan. Enjoy long tenure, low rates, and multi-purpose usage.\nAvail loans up to ₹50 Lakhs with tenure up to 15 years. Use the funds for business expansion, education, or personal needs. Our quick processing and balance transfer facility make it easy to manage your finances. Benefit from attractive interest rates and expert guidance throughout the process.`,
     image: "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&fit=crop&w=600&q=80",
     features: [
       "High loan amounts (up to ₹50 Lakhs)",
@@ -109,7 +110,7 @@ const loans = [
   {
     id: 7,
     title: "Personal Loan",
-    description: "Meet any personal need—wedding, travel, education, or emergency—with a quick, collateral-free loan. Fast approval and flexible EMIs.",
+    description: `Meet any personal need—wedding, travel, education, or emergency—with a quick, collateral-free loan. Fast approval and flexible EMIs.\nNo collateral required and minimal documentation for your convenience. Enjoy competitive interest rates and prepayment facility. Funds are disbursed quickly to help you meet urgent needs. Our customer support team is always available to assist you at every step.`,
     image: image6,
     features: [
       "No collateral required",
@@ -172,6 +173,8 @@ const loanDetailsExtras = {
   // ... repeat for other loan types with realistic, generic content ...
 };
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const LoanDetails = () => {
   const { id } = useParams();
   const loan = loans.find(l => l.id === Number(id));
@@ -182,6 +185,7 @@ const LoanDetails = () => {
   const totalPayable = emi * tenure;
   const [emiAnimated, setEmiAnimated] = useState(emi);
   const [totalAnimated, setTotalAnimated] = useState(totalPayable);
+  const totalInterest = totalAnimated - principal;
 
   // Animate EMI and total when values change
   useEffect(() => {
@@ -206,6 +210,7 @@ const LoanDetails = () => {
   const [form, setForm] = useState({ name: '', email: '', phone: '', amount: principal, message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const applyBtnRef = useRef(null);
 
   const handleFormChange = e => {
     const { name, value } = e.target;
@@ -216,7 +221,7 @@ const LoanDetails = () => {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch(`http://localhost:5000/api/loan-applications`, {
+      const res = await fetch(`${API_URL}/api/loan-applications`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, loanType: loan.title })
@@ -252,6 +257,21 @@ const LoanDetails = () => {
   const sparkleCount = 8;
   const sparkleAngles = Array.from({length: sparkleCount}, (_, i) => (i / sparkleCount) * 2 * Math.PI + (Math.PI / sparkleCount));
 
+  const handleShowModal = () => {
+    setShowModal(true);
+  };
+
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [showModal]);
+
   if (!loan) {
     return <div className="container" style={{padding: '64px 0', textAlign: 'center'}}>Loan not found.</div>;
   }
@@ -260,7 +280,7 @@ const LoanDetails = () => {
     <div className="container loan-details-glass" style={{padding: '64px 0', maxWidth: 1100}}>
       {/* Hero Section */}
       <motion.div className="loan-hero-glass" initial={{opacity:0, y:40}} animate={{opacity:1, y:0}} transition={{duration:0.7, type:'spring'}}>
-        <motion.img src={loan.image} alt={loan.title} className="loan-hero-img-glass" initial={{scale:0.9}} animate={{scale:1}} transition={{duration:0.7, type:'spring'}}/>
+        <motion.img src={loan.image} alt={loan.title} className="loan-hero-img-glass" initial={{scale:0.9}} animate={{scale:1}} transition={{duration:0.17, type:'spring'}}/>
         <div className="loan-hero-content-glass">
           <h1>{loan.title}</h1>
           <p className="loan-hero-desc-glass">{loan.description}</p>
@@ -272,198 +292,153 @@ const LoanDetails = () => {
       </motion.div>
       {/* Features & Benefits Section */}
       <motion.div className="glass-section-grid" initial="hidden" animate="visible" variants={{hidden:{opacity:0, y:30}, visible:{opacity:1, y:0, transition:{staggerChildren:0.12}}}}>
-        {[...Array(4)].map((_, idx) => (
-          <motion.div className="glass-card" key={idx} variants={{hidden:{opacity:0, y:30}, visible:{opacity:1, y:0}}} whileHover={{scale:1.03, boxShadow:'0 12px 48px rgba(59,130,246,0.18)'}}>
+        {[...Array(3)].map((_, idx) => (
+          <motion.div
+            className="glass-card"
+            key={idx}
+            initial={{ opacity: 0, y: 40, scale: 0.92 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: 'spring', duration: 0.25, delay: idx * 0.07 }}
+            viewport={{ once: true, amount: 0.2 }}
+            whileHover={{scale:1.03, boxShadow:'0 12px 48px rgba(59,130,246,0.18)'}}
+          >
             {idx === 0 && (<><h3><FaCheckCircle className="glass-icon" /> Features</h3><ul className="glass-list">{loan.features.map((f, i) => <li key={i}><FaCheckCircle className="glass-list-icon" /> {f}</li>)}</ul></>)}
             {idx === 1 && (<><h3><FaUserShield className="glass-icon" /> Eligibility</h3><ul className="glass-list">{(extras.eligibility || ['Indian resident', 'Age 21-60', 'Salaried or self-employed']).map((e, i) => <li key={i}><FaUserShield className="glass-list-icon" /> {e}</li>)}</ul></>)}
             {idx === 2 && (<><h3><FaFileAlt className="glass-icon" /> Required Documents</h3><ul className="glass-list">{(extras.documents || ['KYC documents', 'Address proof', 'Income proof']).map((d, i) => <li key={i}><FaFileAlt className="glass-list-icon" /> {d}</li>)}</ul></>)}
-            {idx === 3 && (<><h3><FaCheckCircle className="glass-icon" /> Benefits</h3><ul className="glass-list">{(extras.benefits || ['Quick approval', 'Low EMI', 'Minimal paperwork']).map((b, i) => <li key={i}><FaCheckCircle className="glass-list-icon" /> {b}</li>)}</ul></>)}
           </motion.div>
         ))}
       </motion.div>
       {/* Process Section */}
-      <motion.div className="glass-card glass-process" initial={{opacity:0, y:30}} animate={{opacity:1, y:0}} transition={{delay:0.2, duration:0.7, type:'spring'}}>
+      <motion.div
+        className="glass-card glass-process"
+        initial={{ opacity: 0, y: 40, scale: 0.92 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', duration: 0.25, delay: 0.21 }}
+        viewport={{ once: true, amount: 0.2 }}
+      >
         <h3><FaArrowRight className="glass-icon" /> How It Works</h3>
         <ol className="glass-process-list">
           {(extras.process || ['Apply online', 'Submit documents', 'Approval', 'Disbursal']).map((step, i) => <li key={i}><span className="glass-step-num">{i+1}</span> {step}</li>)}
         </ol>
       </motion.div>
-      {/* EMI Calculator Section (Mahindra-inspired, enhanced, new donut, sparkles) */}
-      <motion.div className="glass-card glass-emi-calc emi-calc-mahindra" initial={{opacity:0, y:30}} animate={{opacity:1, y:0}} transition={{delay:0.3, duration:0.7, type:'spring'}}>
+      {/* EMI Calculator Section (Redesigned to match Mahindra Finance) */}
+      <h3 style={{marginLeft: 22}}><FaArrowRight className="glass-icon" /> EMI Calculator</h3>
+      <motion.div
+        className="glass-card emi-calc-mahindra"
+        initial={{ opacity: 0, y: 40, scale: 0.92 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', duration: 0.35, delay: 0.28 }}
+        viewport={{ once: true, amount: 0.2 }}
+      >
         <div className="emi-mahindra-grid">
           {/* Left: Inputs */}
           <div className="emi-mahindra-inputs">
+            <div className="emi-mahindra-field">
+              <label>Select Your Loan Type</label>
+              <select
+                className="emi-mahindra-input"
+                value={loan.id}
+                onChange={e => {
+                  const selected = loans.find(l => l.id === Number(e.target.value));
+                  if (selected) {
+                    setPrincipal(selected.amount);
+                    setRate(selected.rate);
+                    setTenure(12);
+                    window.location.href = `/loans/${selected.id}`;
+                  }
+                }}
+                style={{marginBottom: 8}}
+              >
+                {loans.map(l => (
+                  <option key={l.id} value={l.id}>{l.title}</option>
+                ))}
+              </select>
+            </div>
             <div className="emi-mahindra-field">
               <label>Loan Amount</label>
               <input type="range" min={100000} max={2500000} step={10000} value={principal} onChange={e => setPrincipal(Number(e.target.value))} className="emi-mahindra-slider" />
               <div className="emi-mahindra-range-labels">
                 <span>₹ 1L</span>
-                <span>₹ 25L</span>
+                <span>₹ 1Cr</span>
               </div>
               <input type="number" value={principal} min={100000} max={2500000} step={10000} onChange={e => setPrincipal(Number(e.target.value))} className="emi-mahindra-input" />
             </div>
             <div className="emi-mahindra-field">
               <label>Rate of interest (p.a)</label>
-              <input type="range" min={6} max={26} step={0.1} value={rate} onChange={e => setRate(Number(e.target.value))} className="emi-mahindra-slider" />
+              <input type="range" min={1} max={20} step={0.1} value={rate} onChange={e => setRate(Number(e.target.value))} className="emi-mahindra-slider" />
               <div className="emi-mahindra-range-labels">
-                <span>6%</span>
-                <span>26%</span>
+                <span>1%</span>
+                <span>20%</span>
               </div>
-              <input type="number" value={rate} min={6} max={26} step={0.1} onChange={e => setRate(Number(e.target.value))} className="emi-mahindra-input" />
+              <input type="number" value={rate} min={1} max={20} step={0.1} onChange={e => setRate(Number(e.target.value))} className="emi-mahindra-input" />
             </div>
             <div className="emi-mahindra-field">
-              <label>Tenure (Months)</label>
-              <input type="range" min={12} max={60} step={1} value={tenure} onChange={e => setTenure(Number(e.target.value))} className="emi-mahindra-slider" />
+              <label>Tenure(Months)</label>
+              <input type="range" min={1} max={60} step={1} value={tenure} onChange={e => setTenure(Number(e.target.value))} className="emi-mahindra-slider" />
               <div className="emi-mahindra-range-labels">
-                <span>12</span>
+                <span>1</span>
                 <span>60</span>
               </div>
-              <input type="number" value={tenure} min={12} max={60} step={1} onChange={e => setTenure(Number(e.target.value))} className="emi-mahindra-input" />
+              <input type="number" value={tenure} min={1} max={60} step={1} onChange={e => setTenure(Number(e.target.value))} className="emi-mahindra-input" />
             </div>
           </div>
           {/* Right: Donut Chart & Results */}
           <div className="emi-mahindra-results">
-            <motion.svg width={donutSize} height={donutSize} className="emi-mahindra-donut emi-donut-3d" initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} transition={{duration:0.7, type:'spring'}}>
-              {/* Outer Glow Ring */}
+            <svg width="280" height="280" className="emi-mahindra-donut" viewBox="0 0 280 280">
+              <circle cx="140" cy="140" r="115" stroke="#e5e7eb" strokeWidth="24" fill="none" />
               <circle
-                stroke="url(#donutGlow)"
-                fill="transparent"
-                strokeWidth={donutStroke + 8}
-                r={donutRadius}
-                cx={donutSize/2}
-                cy={donutSize/2}
-                style={{filter:'blur(6px)', opacity:0.25}}
+                cx="140"
+                cy="140"
+                r="115"
+                stroke="#2563eb"
+                strokeWidth="24"
+                fill="none"
+                strokeDasharray={2 * Math.PI * 115}
+                strokeDashoffset={(2 * Math.PI * 115) - ((principal / (emi * tenure)) * 2 * Math.PI * 115)}
+                style={{transition: 'stroke-dashoffset 0.7s cubic-bezier(.4,0,.2,1)'}}
               />
-              {/* Background Ring */}
-              <circle
-                stroke="#e5e7eb"
-                fill="transparent"
-                strokeWidth={donutStroke}
-                r={donutRadius}
-                cx={donutSize/2}
-                cy={donutSize/2}
-              />
-              {/* Progress Ring (animated gradient) */}
-              <motion.circle
-                stroke="url(#donutGradient)"
-                fill="transparent"
-                strokeWidth={donutStroke}
-                strokeDasharray={donutCircum + ' ' + donutCircum}
-                style={{ strokeDashoffset: donutOffset, filter:'drop-shadow(0 2px 12px #38bdf8)' }}
-                r={donutRadius}
-                cx={donutSize/2}
-                cy={donutSize/2}
-                initial={{strokeDashoffset: donutCircum}}
-                animate={{strokeDashoffset: donutOffset}}
-                transition={{duration:0.7, type:'spring'}}
-                strokeLinecap="round"
-              />
-              {/* Animated Ticks */}
-              {ticks.map((_, i) => {
-                const angle = (i / tickCount) * 2 * Math.PI;
-                const x1 = donutSize/2 + Math.cos(angle) * (donutRadius - donutStroke/2 - 4);
-                const y1 = donutSize/2 + Math.sin(angle) * (donutRadius - donutStroke/2 - 4);
-                const x2 = donutSize/2 + Math.cos(angle) * (donutRadius + donutStroke/2 - 2);
-                const y2 = donutSize/2 + Math.sin(angle) * (donutRadius + donutStroke/2 - 2);
-                const active = i < Math.round(tickCount * donutPercent / 100);
-                return (
-                  <motion.line
-                    key={i}
-                    x1={x1}
-                    y1={y1}
-                    x2={x2}
-                    y2={y2}
-                    stroke={active ? 'url(#donutGradient)' : '#e5e7eb'}
-                    strokeWidth={active ? 3.5 : 2}
-                    initial={{opacity:0}}
-                    animate={{opacity:1}}
-                    transition={{delay:0.2 + i*0.01}}
-                  />
-                );
-              })}
-              {/* Animated Sparkles */}
-              {sparkleAngles.map((angle, i) => {
-                const r = donutRadius + donutStroke/2 + 10;
-                const x = donutSize/2 + Math.cos(angle) * r;
-                const y = donutSize/2 + Math.sin(angle) * r;
-                return (
-                  <motion.circle
-                    key={i}
-                    cx={x}
-                    cy={y}
-                    r={7}
-                    fill="url(#sparkleGradient)"
-                    style={{filter:'blur(0.5px)'}}
-                    animate={{
-                      opacity: [0.7, 1, 0.7],
-                      scale: [1, 1.4, 1],
-                      x: [0, Math.cos(angle)*6, 0],
-                      y: [0, Math.sin(angle)*6, 0]
-                    }}
-                    transition={{
-                      duration: 1.8 + i*0.13,
-                      repeat: Infinity,
-                      repeatType: 'loop',
-                      delay: i*0.18
-                    }}
-                  />
-                );
-              })}
-              {/* Center Glassy Badge */}
-              <g>
-                <ellipse cx={donutSize/2} cy={donutSize/2} rx={donutRadius-32} ry={donutRadius-38} fill="url(#centerGlass)" filter="url(#glassShadow)" />
-                <text x={donutSize/2} y={donutSize/2-12} textAnchor="middle" fontSize="1.1rem" fill="#1e3a8a" fontWeight="600">Total Amount Payable</text>
-                <motion.text x={donutSize/2} y={donutSize/2+22} textAnchor="middle" fontSize="2.1rem" fill="#2563eb" fontWeight="700" initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.5}}>
-                  ₹ {totalAnimated ? totalAnimated.toLocaleString(undefined, {maximumFractionDigits: 0}) : 0}
-                </motion.text>
-              </g>
-              {/* SVG Gradients & Filters */}
-              <defs>
-                <linearGradient id="donutGradient" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#38bdf8" />
-                  <stop offset="60%" stopColor="#6366f1" />
-                  <stop offset="100%" stopColor="#1e3a8a" />
-                </linearGradient>
-                <radialGradient id="donutGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.7" />
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0.1" />
-                </radialGradient>
-                <radialGradient id="centerGlass" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#fff" stopOpacity="0.95" />
-                  <stop offset="100%" stopColor="#e0e7ef" stopOpacity="0.7" />
-                </radialGradient>
-                <radialGradient id="sparkleGradient" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#fff" stopOpacity="1" />
-                  <stop offset="60%" stopColor="#38bdf8" stopOpacity="0.7" />
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0.2" />
-                </radialGradient>
-                <filter id="glassShadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="6" floodColor="#38bdf8" floodOpacity="0.13" />
-                </filter>
-              </defs>
-            </motion.svg>
-            <div className="emi-mahindra-breakdown">
-              <div className="emi-mahindra-legend">
-                <FaCircle style={{color:'#1e3a8a', fontSize:12, marginRight:6}}/> Principal Amount
+              <text x="140" y="130" textAnchor="middle" fontSize="1.2rem" fill="#1e3a8a" fontWeight="600">Total Amount Payable</text>
+              <text x="140" y="165" textAnchor="middle" fontSize="2.1rem" fill="#2563eb" fontWeight="700">₹ {totalAnimated ? totalAnimated.toLocaleString(undefined, {maximumFractionDigits: 0}) : 0}</text>
+            </svg>
+            <div style={{display:'flex', flexDirection:'column', alignItems:'flex-start', width:'100%', marginTop:8}}>
+              <div className="emi-mahindra-breakdown-card">
+                <div className="emi-mahindra-breakdown-row">
+                  <span className="emi-mahindra-breakdown-label" style={{flex: 1, whiteSpace: 'nowrap'}}>Principal Amount</span>
+                  <span className="emi-mahindra-breakdown-value" style={{display:'inline-block', minWidth:250, textAlign:'right', marginLeft:'auto', whiteSpace: 'nowrap'}}>₹ {principal.toLocaleString()}</span>
+                </div>
+                <div className="emi-mahindra-breakdown-row interest">
+                  <span className="emi-mahindra-breakdown-label" style={{flex: 1, whiteSpace: 'nowrap'}}>Total Interest</span>
+                  <span className="emi-mahindra-breakdown-value" style={{display:'inline-block', minWidth:280, textAlign:'right', marginLeft:'auto', whiteSpace: 'nowrap'}}>₹ {totalInterest > 0 ? totalInterest.toLocaleString(undefined, {maximumFractionDigits: 0}) : 0}</span>
+                </div>
+                <div className="emi-mahindra-breakdown-row total">
+                  <span className="emi-mahindra-breakdown-label" style={{flex: 1, whiteSpace: 'nowrap'}}>Total Amount</span>
+                  <span className="emi-mahindra-breakdown-value" style={{display:'inline-block', minWidth:290, textAlign:'right', marginLeft:'auto', whiteSpace: 'nowrap'}}>₹ {totalAnimated ? totalAnimated.toLocaleString(undefined, {maximumFractionDigits: 0}) : 0}</span>
               </div>
-              <div className="emi-mahindra-amount">₹ {principal.toLocaleString()}</div>
-              <div className="emi-mahindra-legend">
-                <FaCircle style={{color:'#e5e7eb', fontSize:12, marginRight:6}}/> Total Amount
               </div>
-              <div className="emi-mahindra-amount">₹ {totalAnimated ? totalAnimated.toLocaleString(undefined, {maximumFractionDigits: 0}) : 0}</div>
             </div>
-            <div className="emi-mahindra-emi-row">
-              <div>Monthly EMI</div>
-              <div className="emi-mahindra-emi">₹ {emiAnimated ? emiAnimated.toLocaleString(undefined, {maximumFractionDigits: 0}) : 0}</div>
-              <motion.button className="emi-mahindra-apply" whileHover={{scale:1.05, background:'linear-gradient(90deg, #3b82f6 60%, #1e3a8a 100%)'}} onClick={() => setShowModal(true)}>
+            <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', marginTop:18, background:'#f3f4f6', borderRadius:10, padding:'10px 14px'}}>
+              <div style={{fontSize:'1.08rem', color:'#1e3a8a', fontWeight:600}}>Monthly EMI</div>
+              <div style={{fontSize:'1.25rem', fontWeight:700, color:'#2563eb', letterSpacing:1}}>₹ {emiAnimated ? emiAnimated.toLocaleString(undefined, {maximumFractionDigits: 0}) : 0}</div>
+              <button
+                className="emi-mahindra-apply"
+                ref={applyBtnRef}
+                onClick={handleShowModal}
+                style={{marginLeft:16}}
+              >
                 APPLY NOW
-              </motion.button>
+              </button>
             </div>
           </div>
         </div>
       </motion.div>
       {/* FAQ Section */}
-      <motion.div className="glass-card glass-faq" initial={{opacity:0, y:30}} animate={{opacity:1, y:0}} transition={{delay:0.4, duration:0.7, type:'spring'}}>
+      <motion.div
+        className="glass-card glass-faq"
+        initial={{ opacity: 0, y: 40, scale: 0.92 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', duration: 0.35, delay: 0.35 }}
+        viewport={{ once: true, amount: 0.2 }}
+      >
         <h3><FaRegQuestionCircle className="glass-icon" /> Frequently Asked Questions</h3>
         <div className="glass-faq-list">
           {(extras.faqs || [
@@ -478,23 +453,46 @@ const LoanDetails = () => {
         </div>
       </motion.div>
       {/* Contact/Help Section */}
-      <motion.div className="glass-card glass-help" initial={{opacity:0, y:30}} animate={{opacity:1, y:0}} transition={{delay:0.5, duration:0.7, type:'spring'}}>
+      <motion.div
+        className="glass-card glass-help"
+        initial={{ opacity: 0, y: 40, scale: 0.92 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', duration: 0.45, delay: 0.42 }}
+        viewport={{ once: true, amount: 0.2 }}
+      >
         <h3><FaPhoneAlt className="glass-icon" /> Need Help?</h3>
-        <p>Call us at <a href="tel:+919999999999">+91 99999 99999</a> or <Link to="/contact">contact us online</Link> for assistance.</p>
+        <p>Call us at <a href="tel:+919999999999">+91 9486281880</a> or <Link to="/contact">contact us online</Link> for assistance.</p>
       </motion.div>
       {/* Application Modal (modernized glass style) */}
-      <AnimatePresence>
-      {showModal && (
-        <motion.div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(30,58,138,0.10)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.3}}>
-          <motion.div style={{ background: '#fff', borderRadius: 18, boxShadow: '0 8px 32px rgba(30,58,138,0.18)', padding: 36, minWidth: 340, maxWidth: 400, width: '100%', position: 'relative' }} initial={{scale:0.8, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.8, opacity:0}} transition={{type:'spring', duration:0.4}}>
+      {showModal && ReactDOM.createPortal(
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 9999,
+          // background: 'transparent',
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: 18,
+            boxShadow: '0 8px 32px rgba(30,58,138,0.18)',
+            padding: 36,
+            minWidth: 340,
+            maxWidth: 400,
+            width: 400,
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: 0,
+            boxSizing: 'border-box',
+          }}>
             <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: 18, right: 18, background: 'transparent', border: 'none', fontSize: 22, color: '#1e3a8a', cursor: 'pointer' }}>&times;</button>
             <h3 style={{ color: '#1e3a8a', textAlign: 'center', marginBottom: 18 }}>Apply for {loan.title}</h3>
             {submitted ? (
-              <motion.div style={{ color: '#10b981', textAlign: 'center', fontWeight: 600, fontSize: 18, padding: 24 }} initial={{scale:0.8, opacity:0}} animate={{scale:1, opacity:1}} transition={{type:'spring', duration:0.5}}>
-                Application submitted successfully!
-              </motion.div>
+              <div style={{ color: '#10b981', textAlign: 'center', fontWeight: 600, fontSize: 18, padding: 24 }}>Application submitted successfully!</div>
             ) : (
               <form onSubmit={handleFormSubmit}>
                 <div style={{ marginBottom: 14 }}>
@@ -521,10 +519,10 @@ const LoanDetails = () => {
                 <button type="submit" style={{ width: '100%', padding: 12, borderRadius: 8, background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', color: '#fff', fontWeight: 700, fontSize: 16, border: 'none', cursor: 'pointer', letterSpacing: 1 }}>Submit Application</button>
               </form>
             )}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>,
+        document.body
       )}
-      </AnimatePresence>
     </div>
   );
 };

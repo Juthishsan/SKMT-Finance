@@ -23,6 +23,7 @@ const Login = ({ componentrender }) => {
   const [error, setError] = useState('');
   const { login, token, admin } = useAuth();
   const [fieldErrors, setFieldErrors] = useState({});
+  const API_URL = process.env.REACT_APP_API_URL;
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
@@ -42,12 +43,13 @@ const Login = ({ componentrender }) => {
 
   // Validation helpers
   const validateEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const validatePassword = pw => pw.length >= 6 && /[A-Za-z]/.test(pw) && /\d/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+  // Change password validation: at least 6 chars, must include a letter and a number (no symbol required)
+  const validatePassword = pw => pw.length >= 6 && /[A-Za-z]/.test(pw) && /\d/.test(pw);
 
   const validateFields = () => {
     const errors = {};
     if (!formData.email || !validateEmail(formData.email)) errors.email = 'Enter a valid email address.';
-    if (!formData.password || !validatePassword(formData.password)) errors.password = 'Password must be at least 6 characters, include a letter, a number, and a symbol.';
+    if (!formData.password || !validatePassword(formData.password)) errors.password = 'Password must be at least 6 characters, include a letter and a number.';
     return errors;
   };
 
@@ -55,7 +57,7 @@ const Login = ({ componentrender }) => {
   const handleBlur = (field, value) => {
     let msg = '';
     if (field === 'email' && !validateEmail(value)) msg = 'Enter a valid email address.';
-    if (field === 'password' && !validatePassword(value)) msg = 'Password must be at least 6 characters, include a letter, a number, and a symbol.';
+    if (field === 'password' && !validatePassword(value)) msg = 'Password must be at least 6 characters, include a letter and a number.';
     setFieldErrors(prev => ({ ...prev, [field]: msg }));
   };
 
@@ -109,7 +111,7 @@ const Login = ({ componentrender }) => {
       timer: 800,
     });
     try {
-      const response = await axios.post(`http://localhost:5000/api/admin-login`, formData);
+      const response = await axios.post(`${API_URL}/api/admin-login`, formData);
       const data = response.data;
       login(data.admin, data.token);
       Swal.fire({

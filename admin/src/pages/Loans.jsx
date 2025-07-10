@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BsEyeFill, BsTrashFill, BsCheckCircle, BsCircle } from 'react-icons/bs';
+import { BsEyeFill, BsTrashFill, BsCheckCircle, BsCircle, BsXCircle } from 'react-icons/bs';
 import Swal from 'sweetalert2';
 import { useAuth } from '../AuthProvider';
 
@@ -15,11 +15,12 @@ const Loans = () => {
   const [deleteAppId, setDeleteAppId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const fetchApplications = async () => {
     setError('');
     try {
-      const res = await authFetch('http://localhost:5000/api/loan-applications');
+      const res = await authFetch(`${API_URL}/api/loan-applications`);
       const data = await res.json();
       setApplications(data);
     } catch (err) {
@@ -35,7 +36,7 @@ const Loans = () => {
   const handleDelete = async (id) => {
     setActionLoading(id + '-delete');
     try {
-      const res = await authFetch(`http://localhost:5000/api/loan-applications/${id}`, { method: 'DELETE' });
+      const res = await authFetch(`${API_URL}/api/loan-applications/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Delete failed');
       setApplications(applications => applications.filter(app => app._id !== id));
     } catch (err) {
@@ -48,11 +49,25 @@ const Loans = () => {
   const handleMarkProcessed = async (id) => {
     setActionLoading(id + '-process');
     try {
-      const res = await authFetch(`http://localhost:5000/api/loan-applications/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' } });
+      const res = await authFetch(`${API_URL}/api/loan-applications/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' } });
       if (!res.ok) throw new Error('Failed to mark as processed');
       const updated = await res.json();
       setApplications(apps => apps.map(app => app._id === id ? updated : app));
       Swal.fire({ icon: 'success', title: 'Loan marked as processed!', showConfirmButton: false, timer: 1200 });
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
+    setActionLoading('');
+  };
+
+  const handleCancel = async (id) => {
+    setActionLoading(id + '-cancel');
+    try {
+      const res = await authFetch(`${API_URL}/api/loan-applications/${id}/cancel`, { method: 'PATCH' });
+      if (!res.ok) throw new Error('Cancel failed');
+      const updated = await res.json();
+      setApplications(apps => apps.map(app => app._id === id ? updated : app));
+      Swal.fire({ icon: 'success', title: 'Loan application cancelled!', showConfirmButton: false, timer: 1200 });
     } catch (err) {
       alert('Error: ' + err.message);
     }
@@ -165,7 +180,9 @@ const Loans = () => {
                         <td style={{ padding: 12 }}>₹ {Number(app.amount).toLocaleString()}</td>
                         <td style={{ padding: 12 }}>{app.loanType}</td>
                         <td style={{ padding: 12 }}>
-                          {app.processed ? (
+                          {app.cancelled ? (
+                            <span style={{ color: '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}><BsXCircle size={18} /> Cancelled</span>
+                          ) : app.processed ? (
                             <span style={{ color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><BsCheckCircle size={18} /> Processed</span>
                           ) : (
                             <span style={{ color: '#f59e42', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><BsCircle size={18} /> Pending</span>
@@ -185,10 +202,19 @@ const Loans = () => {
                               className="btn btn-sm action-btn-edit"
                               style={{ background: 'none', color: app.processed ? '#10b981' : '#64748b', border: 'none', padding: 6, display: 'flex', alignItems: 'center', cursor: app.processed ? 'not-allowed' : 'pointer' }}
                               title={app.processed ? 'Processed' : 'Mark as Processed'}
-                              disabled={app.processed || actionLoading === app._id + '-process'}
+                              disabled={app.processed || app.cancelled || actionLoading === app._id + '-process'}
                               onClick={() => handleMarkProcessed(app._id)}
                             >
                               <BsCheckCircle size={20} />
+                            </button>
+                            <button
+                              className="btn btn-sm action-btn-cancel"
+                              style={{ background: 'none', color: '#dc2626', border: 'none', padding: 6, display: 'flex', alignItems: 'center', cursor: app.cancelled ? 'not-allowed' : 'pointer' }}
+                              title={app.cancelled ? 'Cancelled' : 'Cancel Application'}
+                              disabled={app.cancelled || actionLoading === app._id + '-cancel'}
+                              onClick={() => handleCancel(app._id)}
+                            >
+                              <BsXCircle size={20} />
                             </button>
                             <button
                               className="btn btn-sm action-btn-delete"

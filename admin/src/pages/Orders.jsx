@@ -32,6 +32,8 @@ const Orders = () => {
     Cancelled: '#ef4444',
   };
 
+  const API_URL = process.env.REACT_APP_API_URL;
+
   const openModal = (rowData) => {
     setSelectedRowData(rowData);
     setModalOpen(true);
@@ -184,7 +186,7 @@ const Orders = () => {
     {
       name: 'Image',
       cell: row => row.product && row.product.images && row.product.images.length > 0 ? (
-        <img src={row.product.images[0].startsWith('http') ? row.product.images[0] : `http://localhost:5000${row.product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+        <img src={row.product.images[0].startsWith('http') ? row.product.images[0] : `${API_URL}${row.product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
       ) : (
         <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
       ),
@@ -235,7 +237,7 @@ const Orders = () => {
 
   useEffect(() => {
     // Fetch orders data from backend
-    fetch(`http://localhost:5000/api/orders`)
+    fetch(`${API_URL}/api/orders`)
       .then(res => res.json())
       .then(async data => {
         console.log("fetched orders", data);
@@ -245,7 +247,7 @@ const Orders = () => {
           if (typeof product === 'string') {
             // Legacy order, fetch full product
             try {
-              const res = await fetch(`http://localhost:5000/api/products/${product}`);
+              const res = await fetch(`${API_URL}/api/products/${product}`);
               if (res.ok) {
                 product = await res.json();
               } else {
@@ -287,7 +289,7 @@ const Orders = () => {
         confirmButtonText: 'Yes, change it!'
       }).then((result) => {
         if (result.isConfirmed) {
-          fetch(`http://localhost:5000/api/orders/${row._id}/status`, {
+          fetch(`${API_URL}/api/orders/${row._id}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
@@ -320,7 +322,7 @@ const Orders = () => {
           background: 'transparent',
         });
         try {
-          const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+          const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
             method: 'DELETE',
           });
           if (response.ok) {
@@ -434,7 +436,7 @@ const Orders = () => {
                     <tr key={order._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: 12, textAlign: 'center' }}>
                         {order.product && order.product.images && order.product.images.length > 0 ? (
-                          <img src={order.product.images[0].startsWith('http') ? order.product.images[0] : `http://localhost:5000${order.product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+                          <img src={order.product.images[0].startsWith('http') ? order.product.images[0] : `${API_URL}${order.product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
                         ) : (
                           <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                         )}
@@ -544,7 +546,7 @@ const Orders = () => {
                 {selectedRowData.product && selectedRowData.product.images && selectedRowData.product.images.length > 0 ? (
                   <img
                     className="admin-modal-image"
-                    src={selectedRowData.product.images[0].startsWith('http') ? selectedRowData.product.images[0] : `http://localhost:5000${selectedRowData.product.images[0]}`}
+                    src={selectedRowData.product.images[0].startsWith('http') ? selectedRowData.product.images[0] : `${API_URL}${selectedRowData.product.images[0]}`}
                     loading="lazy"
                     alt="Product"
                     style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 18, boxShadow: '0 4px 24px #1e3a8a22', background: '#f1f5f9', objectFit: 'cover' }}

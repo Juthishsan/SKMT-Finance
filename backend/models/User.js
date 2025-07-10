@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema({
   // You can add more fields here if needed, e.g. country, dob, gender, etc.
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
-});
+}, { timestamps: true }); // <-- Add timestamps
 
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();

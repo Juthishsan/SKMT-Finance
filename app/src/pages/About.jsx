@@ -3,6 +3,8 @@ import manikkamPhoto from '../assets/manikkam photo.jpg';
 import midhunPhoto from '../assets/midhun photo 3.jpg';
 import thiruPhoto from '../assets/thiru photo 3.jpg';
 import AboutSlideshow from '../components/AboutSlideshow';
+import logo from '../assets/skmt logo (1).png';
+import { motion } from 'framer-motion';
 
 const About = () => {
   return (
@@ -42,42 +44,44 @@ const About = () => {
             <p>Meet the experienced professionals leading SKMT finance towards continued success</p>
           </div>
           <div className="grid grid-3">
-            <div className="leader-card">
-              <div className="leader-image">
-                <img src={manikkamPhoto} alt="CEO" />
-              </div>
-              <div className="leader-info">
-                <h4>Manickavasakan</h4>
-                <span className="leader-role">Chief Executive Officer</span>
-                <p>With over 10 years of experience in financial services, Manickavasakan leads our strategic vision and growth initiatives.</p>
-              </div>
-            </div>
-
-
-            <div className="leader-card">
-              <div className="leader-image">
-                <img src={midhunPhoto} alt="CTO" />
-              </div>
-              <div className="leader-info">
-                <h4>Midhun Pravesh</h4>
-                <span className="leader-role">Chief Technology Officer</span>
-                <p>Midhun drives our digital transformation initiatives and technology innovation across all platforms.</p>
-              </div>
-            </div>
-
-
-            <div className="leader-card">
-              <div className="leader-image">
-                <img src={thiruPhoto} alt="CFO" />
-              </div>
-              <div className="leader-info">
-                <h4>Thiru</h4>
-                <span className="leader-role">Chief Financial Officer</span>
-                <p>Thiru oversees financial operations and risk management with his extensive expertise in corporate finance.</p>
-              </div>
-            </div>
-
-
+            {[
+              {
+                name: 'Manickavasakan',
+                role: 'Chief Executive Officer',
+                img: manikkamPhoto,
+                desc: 'With over 10 years of experience in financial services, Manickavasakan leads our strategic vision and growth initiatives.'
+              },
+              {
+                name: 'Midhun Pravesh',
+                role: 'Chief Technology Officer',
+                img: midhunPhoto,
+                desc: 'Midhun drives our digital transformation initiatives and technology innovation across all platforms.'
+              },
+              {
+                name: 'Thiru',
+                role: 'Chief Financial Officer',
+                img: thiruPhoto,
+                desc: 'Thiru oversees financial operations and risk management with his extensive expertise in corporate finance.'
+              }
+            ].map((leader, idx) => (
+              <motion.div
+                className="leader-card"
+                key={leader.name}
+                initial={{ opacity: 0, y: 40, scale: 0.92 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', duration: 0.05, delay: idx * 0.07 }}
+                viewport={{ once: true, amount: 0.2 }}
+              >
+                <div className="leader-image">
+                  <img src={leader.img} alt={leader.role} />
+                </div>
+                <div className="leader-info">
+                  <h4>{leader.name}</h4>
+                  <span className="leader-role">{leader.role}</span>
+                  <p>{leader.desc}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -88,16 +92,31 @@ const About = () => {
       <section className="section">
         <div className="container">
           <div className="grid grid-2">
-            <div className="mission-card">
-              <div className="card-icon">🎯</div>
-              <h3>Our Mission</h3>
-              <p>To provide accessible, innovative, and customer-centric financial solutions that empower individuals and businesses to achieve their dreams and aspirations while maintaining the highest standards of integrity and transparency.</p>
-            </div>
-            <div className="mission-card">
-              <div className="card-icon">👁️</div>
-              <h3>Our Vision</h3>
-              <p>To be India's most trusted and preferred financial services partner, recognized for our commitment to customer satisfaction, technological innovation, and sustainable growth across all communities we serve.</p>
-            </div>
+            {[
+              {
+                icon: '🎯',
+                title: 'Our Mission',
+                desc: 'To provide accessible, innovative, and customer-centric financial solutions that empower individuals and businesses to achieve their dreams and aspirations while maintaining the highest standards of integrity and transparency.'
+              },
+              {
+                icon: '👁️',
+                title: 'Our Vision',
+                desc: `To be India's most trusted and preferred financial services partner, recognized for our commitment to customer satisfaction, technological innovation, and sustainable growth across all communities we serve.`
+              }
+            ].map((card, idx) => (
+              <motion.div
+                className="mission-card"
+                key={card.title}
+                initial={{ opacity: 0, y: 40, scale: 0.92 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', duration: 0.05, delay: idx * 0.07 }}
+                viewport={{ once: true, amount: 0.2 }}
+              >
+                <div className="card-icon">{card.icon}</div>
+                <h3>{card.title}</h3>
+                <p>{card.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -108,9 +127,15 @@ const About = () => {
       <section className="section section-bg-light">
         <div className="container">
           <div className="story-section">
-            <div className="story-content">
+            <motion.div
+              className="story-content"
+              initial={{ opacity: 0, y: 40, scale: 0.92 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: 'spring', duration: 0.05, delay: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+            >
               <h2>Our Journey</h2>
-              <p>Founded in 1999, SKMT finance has grown from a small financial services company to one of India's leading non-banking financial companies (NBFCs). Our journey has been marked by continuous innovation, customer-first approach, and unwavering commitment to excellence.</p>
+              <p>Founded in 2010, SKMT finance has grown from a small financial services company to one of top financial company. Our journey has been marked by continuous innovation, customer-first approach, and unwavering commitment to excellence.</p>
 
               {/* <div className="milestones">
                 <div className="milestone">
@@ -161,11 +186,17 @@ const About = () => {
                   </div>
                 </div>
               </div> */}
-            </div>
+            </motion.div>
 
-            <div className="story-image">
-              <img src="https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Our Journey" />
-            </div>
+            <motion.div
+              className="story-image"
+              initial={{ opacity: 0, y: 40, scale: 0.92 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: 'spring', duration: 0.05, delay: 0.07 }}
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              <img src={logo} alt="Our Journey" />
+            </motion.div>
           </div>
         </div>
       </section>
@@ -178,26 +209,24 @@ const About = () => {
             <p>The principles that guide every decision we make and every service we provide</p>
           </div>
           <div className="grid grid-4">
-            <div className="value-card">
-              <div className="value-icon">🤝</div>
-              <h4>Trust</h4>
-              <p>Building lasting relationships through transparency, honesty, and reliability in all our interactions</p>
-            </div>
-            {/* <div className="value-card">
-              <div className="value-icon">⚡</div>
-              <h4>Innovation</h4>
-              <p>Continuously evolving our services through cutting-edge technology and creative solutions</p>
-            </div> */}
-            <div className="value-card">
-              <div className="value-icon">🎯</div>
-              <h4>Excellence</h4>
-              <p>Delivering superior quality in every product and service we offer to our customers</p>
-            </div>
-            <div className="value-card">
-              <div className="value-icon">💖</div>
-              <h4>Customer First</h4>
-              <p>Putting our customers at the heart of everything we do, understanding their needs and exceeding expectations</p>
-            </div>
+            {[
+              { icon: '🤝', title: 'Trust', desc: 'Building lasting relationships through transparency, honesty, and reliability in all our interactions' },
+              { icon: '🎯', title: 'Excellence', desc: 'Delivering superior quality in every product and service we offer to our customers' },
+              { icon: '💖', title: 'Customer First', desc: 'Putting our customers at the heart of everything we do, understanding their needs and exceeding expectations' },
+            ].map((value, idx) => (
+              <motion.div
+                className="value-card"
+                key={value.title}
+                initial={{ opacity: 0, y: 40, scale: 0.92 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', duration: 0.05, delay: idx * 0.07 }}
+                viewport={{ once: true, amount: 0.2 }}
+              >
+                <div className="value-icon">{value.icon}</div>
+                <h4>{value.title}</h4>
+                <p>{value.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

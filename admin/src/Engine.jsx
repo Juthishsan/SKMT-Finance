@@ -17,13 +17,14 @@ import { useAuth } from './AuthProvider';
 
 const Engine = ({ component, componentrender }) => {
     const { authFetch, logout } = useAuth();
+    const API_URL = process.env.REACT_APP_API_URL;
     // Global loan notification logic
     const [loanNotification, setLoanNotification] = useState('');
     const seenLoanIds = useRef(new Set());
     useEffect(() => {
         const fetchLoanApps = async (showNotification = false) => {
             try {
-                const res = await authFetch('http://localhost:5000/api/loan-applications');
+                const res = await authFetch(`${API_URL}/api/loan-applications`);
                 if (!res.ok) return;
                 const data = await res.json();
                 if (showNotification && seenLoanIds.current.size > 0) {

@@ -541,6 +541,12 @@ input[type="file"].input-field {
   transform: scale(1.07);
   box-shadow: 0 4px 16px rgba(239,68,68,0.18);
 }
+.action-btn-cancel:hover {
+  background: #dc2626 !important;
+  color: #fff !important;
+  transform: scale(1.07);
+  box-shadow: 0 4px 16px rgba(220,38,38,0.18);
+}
 
 /* Admin modal styles to match user app */
 .admin-modal {

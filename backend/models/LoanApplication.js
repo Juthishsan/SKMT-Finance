@@ -8,6 +8,7 @@ const LoanApplicationSchema = new mongoose.Schema({
   message: { type: String },
   loanType: { type: String, required: true },
   processed: { type: Boolean, default: false },
+  cancelled: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -10,13 +10,14 @@ const ContactMessages = () => {
   const [viewMsg, setViewMsg] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchMessages = async () => {
       setLoading(true);
       setError('');
       try {
-        const res = await authFetch('http://localhost:5000/api/contact-messages');
+        const res = await authFetch(`${API_URL}/api/contact-messages`);
         const data = await res.json();
         setMessages(data);
       } catch (err) {

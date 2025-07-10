@@ -35,12 +35,12 @@ export const AuthProvider = ({ children }) => {
     navigate('/login');
   }, [navigate]);
 
-  // Helper: Reset inactivity timer
+  // Helper: Reset inactivity timer (2 hours)
   const resetInactivityTimer = useCallback(() => {
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
     inactivityTimer.current = setTimeout(() => {
       logout();
-    }, 60 * 60 * 1000); // 1 hour
+    }, 2 * 60 * 60 * 1000); // 2 hours
   }, [logout]);
 
   // Set up inactivity listeners
@@ -55,32 +55,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, [token, resetInactivityTimer]);
 
-  // Set up token expiry and warning
-  useEffect(() => {
-    if (!token) return;
-    const data = getTokenData(token);
-    if (!data || !data.exp) {
-      logout();
-      return;
-    }
-    const exp = data.exp * 1000;
-    const now = Date.now();
-    const msToExpiry = exp - now;
-    if (msToExpiry <= 0) {
-      logout();
-      return;
-    }
-    // Show warning 1 min before expiry
-    if (warningTimer.current) clearTimeout(warningTimer.current);
-    warningTimer.current = setTimeout(() => setSessionWarning(true), Math.max(msToExpiry - 60 * 1000, 0));
-    // Auto-logout at expiry
-    if (logoutTimer.current) clearTimeout(logoutTimer.current);
-    logoutTimer.current = setTimeout(() => logout(), msToExpiry);
-    return () => {
-      if (logoutTimer.current) clearTimeout(logoutTimer.current);
-      if (warningTimer.current) clearTimeout(warningTimer.current);
-    };
-  }, [token, logout]);
+  // Remove token expiry-based logout and warning
 
   // Login handler
   const login = (userData, jwt) => {
@@ -102,7 +77,7 @@ export const AuthProvider = ({ children }) => {
   );
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, authFetch, sessionWarning, setSessionWarning, isAuthenticated: !!user && !!token }}>
+    <AuthContext.Provider value={{ user, setUser, token, login, logout, authFetch, sessionWarning, setSessionWarning, isAuthenticated: !!user && !!token }}>
       {children}
     </AuthContext.Provider>
   );

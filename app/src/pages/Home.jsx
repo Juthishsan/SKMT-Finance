@@ -7,6 +7,7 @@ import image3 from '../assets/image 6.jpg'
 import image4 from '../assets/image 8.jpg'
 import image5 from '../assets/image 12.jpg'
 import image6 from '../assets/image 10.jpg'
+import { motion } from 'framer-motion';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -40,7 +41,7 @@ const Home = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/products`);
+        const response = await fetch(`${API_URL}/api/products`);
         if (!response.ok) {
           throw new Error('Failed to fetch products');
         }
@@ -98,62 +99,27 @@ const Home = () => {
             <p>Discover our range of loan products designed to meet your diverse needs</p>
           </div>
           <div className="grid grid-2">
-            <div className="product-card">
-              <img src={image1} alt="Old Bike Loan" />
-              <div className="product-content">
-                <h3>Old Bike Loan</h3>
-                <p>For customers looking to buy a reliable pre-owned two-wheeler, with fast approval, low EMIs, and minimal paperwork. Ideal for daily commuters and first-time buyers.</p>
-                <Link to="/loans/1" className="btn btn-primary">Learn More</Link>
-              </div>
-            </div>
-            {/* <div className="product-card">
-              <img src={image2} alt="New Bike Loan" />
-              <div className="product-content">
-                <h3>New Bike Loan</h3>
-                <p>Finance your dream bike with up to 100% on-road price funding, low interest rates, and instant approval. Perfect for enthusiasts and daily riders.</p>
-                <Link to="/loans/2" className="btn btn-primary">Learn More</Link>
-              </div>
-            </div> */}
-            <div className="product-card">
-              <img src={image3} alt="Old Commercial Vehicle Loan" />
-              <div className="product-content">
-                <h3>Old Commercial Vehicle Loan</h3>
-                <p>Expand your business fleet with easy loans for pre-owned commercial vehicles. Get high LTV, flexible repayment, and support for all vehicle types.</p>
-                <Link to="/loans/3" className="btn btn-primary">Learn More</Link>
-              </div>
-            </div>
-            <div className="product-card">
-              <img src={image4} alt="Old Cars Loan" />
-              <div className="product-content">
-                <h3>Old Cars Loan</h3>
-                <p>Buy a quality pre-owned car with affordable EMIs, fast approval, and transparent process. Suitable for families and professionals.</p>
-                <Link to="/loans/4" className="btn btn-primary">Learn More</Link>
-              </div>
-            </div>
-            {/* <div className="product-card">
-              <img src="https://images.pexels.com/photos/1128782/pexels-photo-1128782.jpeg?auto=compress&fit=crop&w=800&q=80" alt="Gold Loan" />
-              <div className="product-content">
-                <h3>Gold Loan</h3>
-                <p>Unlock the value of your gold instantly. Get cash in minutes with minimal paperwork, high per-gram rates, and secure storage.</p>
-                <Link to="/loans/5" className="btn btn-primary">Learn More</Link>
-              </div>
-            </div>
-            <div className="product-card">
-              <img src="https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&fit=crop&w=800&q=80" alt="Property Loan" />
-              <div className="product-content">
-                <h3>Property Loan</h3>
-                <p>Leverage your residential or commercial property for a high-value loan. Enjoy long tenure, low rates, and multi-purpose usage.</p>
-                <Link to="/loans/6" className="btn btn-primary">Learn More</Link>
-              </div>
-            </div>
-            <div className="product-card">
-              <img src="https://images.pexels.com/photos/3182812/pexels-photo-3182812.jpeg?auto=compress&fit=crop&w=800&q=80" alt="Personal Loan" />
-              <div className="product-content">
-                <h3>Personal Loan</h3>
-                <p>Meet any personal need—wedding, travel, education, or emergency—with a quick, collateral-free loan. Fast approval and flexible EMIs.</p>
-                <Link to="/loans/7" className="btn btn-primary">Learn More</Link>
-              </div>
-            </div> */}
+            {[
+              { img: image1, alt: 'Old Bike Loan', title: 'Old Bike Loan', desc: 'For customers looking to buy a reliable pre-owned two-wheeler, with fast approval, low EMIs, and minimal paperwork. Ideal for daily commuters and first-time buyers.', link: '/loans/1' },
+              { img: image3, alt: 'Old Commercial Vehicle Loan', title: 'Old Commercial Vehicle Loan', desc: 'Expand your business fleet with easy loans for pre-owned commercial vehicles. Get high LTV, flexible repayment, and support for all vehicle types.', link: '/loans/3' },
+              { img: image4, alt: 'Old Cars Loan', title: 'Old Cars Loan', desc: 'Buy a quality pre-owned car with affordable EMIs, fast approval, and transparent process. Suitable for families and professionals.', link: '/loans/4' },
+            ].map((card, idx) => (
+              <motion.div
+                className="product-card"
+                key={card.title}
+                initial={{ opacity: 0, y: 40, scale: 0.92 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', duration: 0.05, delay: idx * 0.07 }}
+                viewport={{ once: true, amount: 0.2 }}
+              >
+                <img src={card.img} alt={card.alt} />
+                <div className="product-content">
+                  <h3>{card.title}</h3>
+                  <p>{card.desc}</p>
+                  <Link to={card.link} className="btn btn-primary">Learn More</Link>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -193,12 +159,19 @@ const Home = () => {
 
           {!loading && !error && products.length > 0 && (
             <div className="grid grid-3 products-grid">
-              {products.filter(product => product.stock).slice(0, 3).map((product) => (
-                <div key={product._id} className="card product-item">
+              {products.filter(product => product.stock).slice(0, 3).map((product, idx) => (
+                <motion.div
+                  key={product._id}
+                  className="card product-item"
+                  initial={{ opacity: 0, y: 40, scale: 0.92 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ type: 'spring', duration: 0.05, delay: idx * 0.07 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                >
                   <div className="product-image-container">
                     {product.images && product.images.length > 0 ? (
                       <img 
-                        src={`http://localhost:5000${product.images[0]}`} 
+                        src={`${API_URL}${product.images[0]}`} 
                         alt={product.name}
                         className="product-image"
                         onError={(e) => {
@@ -253,7 +226,7 @@ const Home = () => {
                       View Details
                     </Link>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
@@ -272,22 +245,24 @@ const Home = () => {
       <section className="section bg-primary">
         <div className="container">
           <div className="stats-grid">
-            <div className="stat-item text-center">
-              <h3>1000+</h3>
-              <p>Happy Customers</p>
-            </div>
-            <div className="stat-item text-center">
-              <h3>₹1 Cr+</h3>
-              <p>Loans Disbursed</p>
-            </div>
-            <div className="stat-item text-center">
-              <h3>3+</h3>
-              <p>Branches</p>
-            </div>
-            <div className="stat-item text-center">
-              <h3>10+ Years</h3>
-              <p>Industry Experience</p>
-            </div>
+            {[
+              { value: '1000+', label: 'Happy Customers' },
+              { value: '₹1 Cr+', label: 'Loans Disbursed' },
+              { value: '3+', label: 'Branches' },
+              { value: '10+ Years', label: 'Industry Experience' },
+            ].map((stat, idx) => (
+              <motion.div
+                className="stat-item text-center"
+                key={stat.label}
+                initial={{ opacity: 0, y: 40, scale: 0.92 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', duration: 0.05, delay: idx * 0.07 }}
+                viewport={{ once: true, amount: 0.2 }}
+              >
+                <h3>{stat.value}</h3>
+                <p>{stat.label}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -300,36 +275,27 @@ const Home = () => {
             <p>We offer comprehensive loan solutions tailored to your unique needs</p>
           </div>
           <div className="grid grid-3">
-            <div className="card feature-card">
-              <div className="feature-icon">🚗</div>
-              <h3>Vehicle Loans</h3>
-              <p>Get the best deals on vehicle loans with competitive interest rates and flexible repayment options.</p>
-            </div>
-            <div className="card feature-card">
-              <div className="feature-icon">🏠</div>
-              <h3>Property Loans</h3>
-              <p>Make your dream property a reality with our attractive property loan packages and quick approval process.</p>
-            </div>
-            <div className="card feature-card">
-              <div className="feature-icon">💼</div>
-              <h3>Business Loans</h3>
-              <p>Fuel your business growth with our comprehensive business loan solutions and expert guidance.</p>
-            </div>
-            <div className="card feature-card">
-              <div className="feature-icon">💰</div>
-              <h3>Personal Loans</h3>
-              <p>Meet your personal financial needs with our hassle-free personal loan products and instant approvals.</p>
-            </div>
-            <div className="card feature-card">
-              <div className="feature-icon">🛡️</div>
-              <h3>Insurance</h3>
-              <p>Protect what matters most with our comprehensive insurance solutions for you and your family.</p>
-            </div>
-            <div className="card feature-card">
-              <div className="feature-icon">📊</div>
-              <h3>Investment Planning</h3>
-              <p>Build wealth for the future with our expert investment advisory and portfolio management services.</p>
-            </div>
+            {[
+              { icon: '🚗', title: 'Vehicle Loans', desc: 'Get the best deals on vehicle loans with competitive interest rates and flexible repayment options.' },
+              { icon: '🏠', title: 'Property Loans', desc: 'Make your dream property a reality with our attractive property loan packages and quick approval process.' },
+              { icon: '💼', title: 'Business Loans', desc: 'Fuel your business growth with our comprehensive business loan solutions and expert guidance.' },
+              { icon: '💰', title: 'Personal Loans', desc: 'Meet your personal financial needs with our hassle-free personal loan products and instant approvals.' },
+              { icon: '🛡️', title: 'Insurance', desc: 'Protect what matters most with our comprehensive insurance solutions for you and your family.' },
+              { icon: '📊', title: 'Investment Planning', desc: 'Build wealth for the future with our expert investment advisory and portfolio management services.' },
+            ].map((feature, idx) => (
+              <motion.div
+                className="card feature-card"
+                key={feature.title}
+                initial={{ opacity: 0, y: 40, scale: 0.92 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: 'spring', duration: 0.05, delay: idx * 0.07 }}
+                viewport={{ once: true, amount: 0.2 }}
+              >
+                <div className="feature-icon">{feature.icon}</div>
+                <h3>{feature.title}</h3>
+                <p>{feature.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
