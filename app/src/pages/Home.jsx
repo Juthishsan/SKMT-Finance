@@ -14,6 +14,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentHero, setCurrentHero] = useState(0);
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const heroSlides = [
     {
