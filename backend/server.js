@@ -18,7 +18,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
 const API_URL=process.env.REACT_APP_API_URL;
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
 
 const app = express();
 app.use(express.json());
