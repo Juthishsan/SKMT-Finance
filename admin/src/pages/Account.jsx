@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { useAuth } from '../AuthProvider';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Account = () => {
   const { admin, authFetch, login, token, componentrender } = useAuth();
@@ -61,15 +62,24 @@ const Account = () => {
       // Update context
       login(updated, token);
       setEditMode(false);
-      Swal.fire({ icon: 'success', title: 'Profile updated!', timer: 1200, showConfirmButton: false });
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({ icon: 'success', title: 'Profile updated!', timer: 1200, showConfirmButton: false });
+      }, 1000);
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'Failed to update profile', text: err.message });
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({ icon: 'error', title: 'Failed to update profile', text: err.message });
+      }, 1000);
     }
-    setLoading(false);
   };
 
   if (!admin) {
     return <div className="container text-center py-5">No admin profile found.</div>;
+  }
+
+  if (loading) {
+    return <LoadingSpinner fullscreen text="Loading Account..." />;
   }
 
   return (

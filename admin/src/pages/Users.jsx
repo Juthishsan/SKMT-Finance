@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import { useAuth } from '../AuthProvider';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Users = () => {
   const { authFetch } = useAuth();
@@ -13,6 +14,7 @@ const Users = () => {
   const itemsPerPage = 10;
   const paginatedData = (searchText ? filteredData : tableData).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil((searchText ? filteredData.length : tableData.length) / itemsPerPage);
+  const [loading, setLoading] = useState(true);
   useEffect(() => { setCurrentPage(1); }, [searchText]);
 
   const openModal = (rowData) => {
@@ -22,6 +24,7 @@ const Users = () => {
 
   useEffect(() => {
     const fetchUsers = async () => {
+      setLoading(true);
       try {
         const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/users`);
         const data = await res.json();
@@ -31,6 +34,7 @@ const Users = () => {
         setTableData([]);
         setFilteredData([]);
       }
+      setLoading(false);
     };
     fetchUsers();
   }, [authFetch]);
@@ -46,16 +50,23 @@ const Users = () => {
       confirmButtonText: 'Yes, delete it!'
     });
     if (result.isConfirmed) {
+      setLoading(true);
       try {
         await authFetch(`${process.env.REACT_APP_API_URL}/api/users/${userId}`, { method: 'DELETE' });
-        Swal.fire('Deleted!', 'User has been deleted.', 'success');
+        setLoading(false);
+        setTimeout(() => {
+          Swal.fire({ icon: 'success', title: 'Deleted!',text:'User has been deleted!', timer: 1200, showConfirmButton: false });
+        }, 1000);
         // Refresh user list
         const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/users`);
         const data = await res.json();
         setTableData(data);
         setFilteredData(data);
       } catch (err) {
-        Swal.fire('Error', 'Failed to delete user.', 'error');
+        setLoading(false);
+        setTimeout(() => {
+          Swal.fire({ icon: 'error', title: 'Error!',text:'Failed to delete user!', timer: 1200, showConfirmButton: false });
+        }, 1000);
       }
     }
   };
@@ -71,6 +82,9 @@ const Users = () => {
     setFilteredData(filteredItems);
   };
 
+  if (loading) {
+    return <LoadingSpinner fullscreen text="Loading Users..." />;
+  }
   return (
     <div style={{ background: 'var(--bg-light)', minHeight: '100vh', padding: '32px 0' }}>
       <div className="container">
@@ -108,7 +122,13 @@ const Users = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedData.map(user => (
+                  {loading ? (
+                    <tr>
+                      <td colSpan="4" style={{ textAlign: 'center', padding: 20 }}>
+                        <LoadingSpinner fullscreen text="Loading Users..." />
+                      </td>
+                    </tr>
+                  ) : paginatedData.map(user => (
                     <tr key={user._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: 12, fontWeight: 600 }}>{user.username}</td>
                       <td style={{ padding: 12 }}>{user.email}</td>

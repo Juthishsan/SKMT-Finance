@@ -38,8 +38,8 @@ const Navbar = ({ componentrender, component }) => {
                 icon: 'success',
                 title: 'Logged out',
                 text: 'You have been logged out successfully.',
-                showConfirmButton: true,
-                timer: 3000,
+                showConfirmButton: false,
+                timer: 1200,
             });
             logout();
         }

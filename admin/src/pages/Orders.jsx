@@ -3,6 +3,7 @@ import DataTable from 'react-data-table-component';
 import * as XLSX from 'xlsx';
 import Swal from 'sweetalert2';
 import { BsTrashFill } from 'react-icons/bs';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Orders = () => {
   const [tableData, setTableData] = useState([]);
@@ -22,6 +23,7 @@ const Orders = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [loading, setLoading] = useState(true);
 
   const ORDER_STATUSES = ['Pending', 'Processing', 'Completed', 'Cancelled'];
 
@@ -267,6 +269,12 @@ const Orders = () => {
         }));
         setTableData(mapped);
         setFilteredData(mapped);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error("Error fetching orders:", error);
+        Swal.fire('Error', 'Failed to fetch orders. Please try again later.', 'error');
+        setLoading(false);
       });
   }, []);
 
@@ -277,9 +285,9 @@ const Orders = () => {
   }, [isModalOpen, selectedRowData]);
 
   // Update the handler to accept the new status
-  const handleChangeStatus = (row, newStatus) => {
+  const handleChangeStatus = async (row, newStatus) => {
     if (newStatus && newStatus !== row.orderstatus) {
-      Swal.fire({
+      const result = await Swal.fire({
         title: 'Change Order Status?',
         text: `Are you sure you want to change the status to "${newStatus}"?`,
         icon: 'warning',
@@ -287,26 +295,41 @@ const Orders = () => {
         confirmButtonColor: '#1e3a8a',
         cancelButtonColor: '#d33',
         confirmButtonText: 'Yes, change it!'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          fetch(`${API_URL}/api/orders/${row._id}/status`, {
+      });
+      
+      if (result.isConfirmed) {
+        setLoading(true);
+        try {
+          const response = await fetch(`${API_URL}/api/orders/${row._id}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
-          })
-            .then(res => res.json())
-            .then(data => {
-              setTableData(prev => prev.map(o => o._id === row._id ? { ...o, orderstatus: newStatus } : o));
-              setFilteredData(prev => prev.map(o => o._id === row._id ? { ...o, orderstatus: newStatus } : o));
-              Swal.fire('Updated!', 'Order status has been changed.', 'success');
+          });
+          const data = await response.json();
+          setTableData(prev => prev.map(o => o._id === row._id ? { ...o, orderstatus: newStatus } : o));
+          setFilteredData(prev => prev.map(o => o._id === row._id ? { ...o, orderstatus: newStatus } : o));
+          setLoading(false);
+          setTimeout(() => {
+            Swal.fire({ icon: 'success', title: 'Updated!',text:'Order status has been changed!', timer: 1200, showConfirmButton: false });
+          }, 1000);
+        } catch (error) {
+          setLoading(false);
+          setTimeout(() => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to update order status.',
+              timer: 1200, 
+              showConfirmButton: 'false'
             });
+          }, 1000);
         }
-      });
+      }
     }
   };
 
-  const handleDeleteOrder = (orderId) => {
-    Swal.fire({
+  const handleDeleteOrder = async (orderId) => {
+    const result = await Swal.fire({
       title: 'Are you sure?',
       text: 'You will not be able to recover this order!',
       icon: 'warning',
@@ -314,48 +337,61 @@ const Orders = () => {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Yes, delete it!',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          html: `<div className=""><div className="spinner-border text-dark" role="status"><span className="visually-hidden">Loading...</span></div></div>`,
-          showConfirmButton: false,
-          background: 'transparent',
+    });
+    
+    if (result.isConfirmed) {
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
+          method: 'DELETE',
         });
-        try {
-          const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
-            method: 'DELETE',
-          });
-          if (response.ok) {
+        if (response.ok) {
+          setLoading(false);
+          setTimeout(() => {
             Swal.fire({
               icon: 'success',
-              title: 'Order deleted successfully!',
-              showConfirmButton: true,
-              confirmButtonColor: 'black',
+              title: 'Deleted!',
+              text: 'Order deleted successfully!',
+              timer: 1200,
+              showConfirmButton: false
             });
-            setTableData(prev => prev.filter(o => o._id !== orderId));
-            setFilteredData(prev => prev.filter(o => o._id !== orderId));
-          } else {
-            const errorData = await response.json();
+            // Delay table update until after SweetAlert timer
+            setTimeout(() => {
+              setTableData(prev => prev.filter(o => o._id !== orderId));
+              setFilteredData(prev => prev.filter(o => o._id !== orderId));
+            }, 1200); // Match the SweetAlert timer
+          }, 1000);
+        } else {
+          const errorData = await response.json();
+          setLoading(false);
+          setTimeout(() => {
             Swal.fire({
               icon: 'error',
               title: 'Failed to delete order',
               text: errorData.error || '',
-              showConfirmButton: true,
+              showConfirmButton: false,
               confirmButtonColor: 'black',
             });
-          }
-        } catch (error) {
+          }, 1000);
+        }
+      } catch (error) {
+        setLoading(false);
+        setTimeout(() => {
           Swal.fire({
             icon: 'error',
             title: 'Error',
             text: error.message,
-            showConfirmButton: true,
+            showConfirmButton: false,
             confirmButtonColor: 'black',
           });
-        }
+        }, 100);
       }
-    });
+    }
   };
+
+  if (loading) {
+    return <LoadingSpinner fullscreen text="Loading Orders..." />;
+  }
 
   return (
     <div style={{ background: 'var(--bg-light)', minHeight: '100vh', padding: '32px 0' }}>

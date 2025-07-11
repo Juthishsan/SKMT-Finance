@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import { useAuth } from '../AuthProvider';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Admins = () => {
     const { authFetch } = useAuth();
@@ -11,7 +12,7 @@ const Admins = () => {
     const [selectedRowData, setSelectedRowData] = useState(null);
     const [addadmin, setaddadmin] = useState(false);
     const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
     const paginatedData = (searchText ? filteredData : tableData).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -45,23 +46,38 @@ const Admins = () => {
             Swal.fire('Error', 'Name, email, and password are required.', 'error');
             return;
         }
+        setLoading(true);
         try {
-            await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`, {
+            const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(form)
             });
-            Swal.fire('Success', 'Admin added successfully!', 'success');
-            setForm({ name: '', email: '', phone: '', password: '' });
-            setaddadmin(false);
-            const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`);
             const data = await res.json();
-            setTableData(data);
-            setFilteredData(data);
+            if (res.ok) {
+                setLoading(false);
+                setTimeout(() => {
+                  Swal.fire({ icon: 'success', title: 'Success!',text:'Admin added successfully!', timer: 1200, showConfirmButton: false });
+                }, 1000);
+                setForm({ name: '', email: '', phone: '', password: '' });
+                setaddadmin(false);
+                const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`);
+                const data = await res.json();
+                setTableData(data);
+                setFilteredData(data);
+            } else {
+                setLoading(false);
+                setTimeout(() => {
+                    Swal.fire('Error', data.error || 'Failed to add admin.', 'error');
+                }, 1000);
+            }
         } catch (err) {
-            Swal.fire('Error', err.response?.data?.error || 'Failed to add admin.', 'error');
+            setLoading(false);
+            setTimeout(() => {
+                Swal.fire('Error', err.response?.data?.error || 'Failed to add admin.', 'error');
+            }, 1000);
         }
     };
 
@@ -76,15 +92,30 @@ const Admins = () => {
             confirmButtonText: 'Yes, delete it!'
         });
         if (result.isConfirmed) {
+            setLoading(true);
             try {
-                await authFetch(`${process.env.REACT_APP_API_URL}/api/admins/${adminId}`, { method: 'DELETE' });
-                Swal.fire('Deleted!', 'Admin has been deleted.', 'success');
-                const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`);
+                const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins/${adminId}`, { method: 'DELETE' });
                 const data = await res.json();
-                setTableData(data);
-                setFilteredData(data);
+                if (res.ok) {
+                    setLoading(false);
+                    setTimeout(() => {
+                      Swal.fire({ icon: 'success', title: 'Deleted!',text:'Admin has been deleted', timer: 1200, showConfirmButton: false });
+                    }, 1000);
+                    const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`);
+                    const data = await res.json();
+                    setTableData(data);
+                    setFilteredData(data);
+                } else {
+                    setLoading(false);
+                    setTimeout(() => {
+                        Swal.fire('Error', 'Failed to delete admin.', 'error');
+                    }, 1000);
+                }
             } catch (err) {
-                Swal.fire('Error', 'Failed to delete admin.', 'error');
+                setLoading(false);
+                setTimeout(() => {
+                    Swal.fire('Error', 'Failed to delete admin.', 'error');
+                }, 1000);
             }
         }
     };
@@ -99,6 +130,10 @@ const Admins = () => {
         }
         setFilteredData(filteredItems);
     };
+
+    if (loading) {
+      return <LoadingSpinner fullscreen text="Loading Admins..." />;
+    }
 
     return (
         <div style={{ background: 'var(--bg-light)', minHeight: '100vh', padding: '32px 0' }}>

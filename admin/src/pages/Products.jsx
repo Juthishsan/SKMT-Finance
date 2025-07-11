@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import AddProducts from './forms/AddProducts';
 import Swal from 'sweetalert2';
 import { BsEyeFill, BsPencilFill, BsTrashFill } from 'react-icons/bs';
+import LoadingSpinner from '../components/LoadingSpinner';
+import axios from 'axios';
 
 const Products = () => {
   const [addproduct, setaddproduct] = useState(false);
@@ -21,6 +23,8 @@ const Products = () => {
   const itemsPerPage = 10;
   const uniqueProductTypes = [...new Set(tableData.map(product => product.type))];
   const API_URL = process.env.REACT_APP_API_URL;
+  const [loading, setLoading] = useState(true);
+  const [selectedProducts, setSelectedProducts] = useState([]);
 
   useEffect(() => {
     fetchProducts();
@@ -35,6 +39,7 @@ const Products = () => {
 
 
   const fetchProducts = async () => {
+    setLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/products`);
       const data = await response.json();
@@ -42,6 +47,7 @@ const Products = () => {
     } catch (error) {
       console.error('Error fetching products:', error);
     }
+    setLoading(false);
   };
 
 
@@ -55,62 +61,45 @@ const Products = () => {
     seteditdata(row);
   };
 
-  const handleDelete = (id) => {
-    console.log('Delete clicked for', id);
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'You will not be able to recover this product!',
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: 'Delete Product',
+      text: 'Are you sure you want to delete this product?',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#d33',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Yes, delete it!',
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          html: `
-            <div className="">
-              <div className="spinner-border text-dark" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
-            </div>
-          `,
-          showConfirmButton: false,
-          background: 'transparent',
-        });
-        try {
-          const response = await fetch(`${API_URL}/api/products/${id}`, {
-            method: 'DELETE',
-          });
-          if (response.ok) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Product deleted successfully!',
-              showConfirmButton: true,
-              confirmButtonColor: 'black',
-            });
-            getproducts();
-          } else {
-            const errorData = await response.json();
-            Swal.fire({
-              icon: 'error',
-              title: 'Failed to delete product',
-              text: errorData.error || '',
-              showConfirmButton: true,
-              confirmButtonColor: 'black',
-            });
-          }
-        } catch (error) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message,
-            showConfirmButton: true,
-            confirmButtonColor: 'black',
-          });
-        }
-      }
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
     });
+    if (!result.isConfirmed) return;
+    setLoading(true);
+    try {
+      await fetch(`${API_URL}/api/products/${id}`, {
+        method: 'DELETE',
+      });
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'Product has been deleted.',
+          showConfirmButton: false,
+          timer: 1200
+        });
+      }, 1000);
+      fetchProducts();
+    } catch (err) {
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to delete product.'
+        });
+      }, 1000);
+    }
   };
 
   const handleEditSave = async (e) => {
@@ -133,12 +122,15 @@ const Products = () => {
 
       if (response.ok) {
         seteditproduct(false);
-        Swal.fire({
-          icon: 'success',
-          title: 'Product updated successfully!',
-          showConfirmButton: true,
-          confirmButtonColor: 'black',
-        });
+        setTimeout(() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Updated!',
+            text: 'Product has been updated.',
+            showConfirmButton: false,
+            timer: 1200
+          });
+        }, 1000);
         getproducts();
       } else {
         const errorData = await response.json();
@@ -146,8 +138,9 @@ const Products = () => {
           icon: 'error',
           title: 'Failed to update product',
           text: errorData.error || '',
-          showConfirmButton: true,
+          showConfirmButton: false,
           confirmButtonColor: 'black',
+          timer: 1200
         });
       }
     } catch (error) {
@@ -155,7 +148,7 @@ const Products = () => {
         icon: 'error',
         title: 'Error',
         text: error.message,
-        showConfirmButton: true,
+        showConfirmButton: false,
         confirmButtonColor: 'black',
       });
     }
@@ -183,16 +176,137 @@ const Products = () => {
     setModalOpen(true);
   };
 
+  const handleToggleStatus = async (id, currentStatus) => {
+    setLoading(true);
+    try {
+      await axios.put(`${API_URL}/api/products/${id}`, { 
+        status: currentStatus === 'active' ? 'inactive' : 'active' 
+      });
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Status Updated!',
+          text: `Product is now ${currentStatus === 'active' ? 'inactive' : 'active'}.`,
+          showConfirmButton: false,
+          timer: 1200
+        });
+      }, 100);
+      fetchProducts();
+    } catch (err) {
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to update product status.'
+        });
+      }, 1000);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProducts.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Products Selected',
+        text: 'Please select products to delete.'
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: 'Delete Selected Products',
+      text: `Are you sure you want to delete ${selectedProducts.length} products?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete them!',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
+    setLoading(true);
+    try {
+      await Promise.all(selectedProducts.map(id => axios.delete(`${API_URL}/api/products/${id}`)));
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: `${selectedProducts.length} products have been deleted.`,
+          showConfirmButton: false,
+          timer: 1200
+        });
+      }, 100);
+      setSelectedProducts([]);
+      fetchProducts();
+    } catch (err) {
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to delete some products.'
+        });
+      }, 1000);
+    }
+  };
+
+  const handleBulkToggleStatus = async (status) => {
+    if (selectedProducts.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Products Selected',
+        text: 'Please select products to update.'
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await Promise.all(selectedProducts.map(id => 
+        axios.put(`${API_URL}/api/products/${id}`, { status })
+      ));
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Status Updated!',
+          text: `${selectedProducts.length} products are now ${status}.`,
+          showConfirmButton: false,
+          timer: 1200
+        });
+      }, 1000);
+      setSelectedProducts([]);
+      fetchProducts();
+    } catch (err) {
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to update some products.'
+        });
+      }, 1000);
+    }
+  };
+
   const paginatedData = (searchText ? filteredData : tableData).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil((searchText ? filteredData.length : tableData.length) / itemsPerPage);
   useEffect(() => { setCurrentPage(1); }, [searchText, selectedType]);
 
+  if (loading) {
+    return <LoadingSpinner fullscreen text="Loading Vehicles..." />;
+  }
   return (
     <div style={{ background: 'var(--bg-light)', minHeight: '100vh', padding: '32px 0' }}>
       <div className="container">
         <div className="card" style={{ borderRadius: 18, boxShadow: '0 8px 32px rgba(30,58,138,0.10)', border: 'none', padding: 0 }}>
           <div style={{ background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: '28px 0 18px 0', textAlign: 'center' }}>
-            <h2 style={{ color: '#fff', fontWeight: 700, letterSpacing: 1, margin: 0 }}>Products</h2>
+            <h2 style={{ color: '#fff', fontWeight: 700, letterSpacing: 1, margin: 0 }}>Vehicles</h2>
           </div>
           <div style={{ padding: 32 }}>
             <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">

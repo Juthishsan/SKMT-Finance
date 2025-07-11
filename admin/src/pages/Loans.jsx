@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BsEyeFill, BsTrashFill, BsCheckCircle, BsCircle, BsXCircle } from 'react-icons/bs';
 import Swal from 'sweetalert2';
 import { useAuth } from '../AuthProvider';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Loans = () => {
   const { authFetch } = useAuth();
@@ -53,11 +54,16 @@ const Loans = () => {
       if (!res.ok) throw new Error('Failed to mark as processed');
       const updated = await res.json();
       setApplications(apps => apps.map(app => app._id === id ? updated : app));
-      Swal.fire({ icon: 'success', title: 'Loan marked as processed!', showConfirmButton: false, timer: 1200 });
+      setActionLoading('');
+      setTimeout(() => {
+        Swal.fire({ icon: 'success', title: 'Loan marked as processed!', showConfirmButton: false, timer: 1200 });
+      }, 1000);
     } catch (err) {
-      alert('Error: ' + err.message);
+      setActionLoading('');
+      setTimeout(() => {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to mark as processed.' });
+      }, 1000);
     }
-    setActionLoading('');
   };
 
   const handleCancel = async (id) => {
@@ -67,11 +73,16 @@ const Loans = () => {
       if (!res.ok) throw new Error('Cancel failed');
       const updated = await res.json();
       setApplications(apps => apps.map(app => app._id === id ? updated : app));
-      Swal.fire({ icon: 'success', title: 'Loan application cancelled!', showConfirmButton: false, timer: 1200 });
+      setActionLoading('');
+      setTimeout(() => {
+        Swal.fire({ icon: 'success', title: 'Loan application cancelled!', showConfirmButton: false, timer: 1200 });
+      }, 1000);
     } catch (err) {
-      alert('Error: ' + err.message);
+      setActionLoading('');
+      setTimeout(() => {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to cancel application.' });
+      }, 1000);
     }
-    setActionLoading('');
   };
 
   // Filter by search and status
@@ -116,6 +127,9 @@ const Loans = () => {
     URL.revokeObjectURL(url);
   };
 
+  if (loading) {
+    return <LoadingSpinner fullscreen text="Loading Loans..." />;
+  }
   return (
     <div style={{ background: 'var(--bg-light)', minHeight: '100vh', padding: '32px 0' }}>
       <div className="container">
@@ -165,9 +179,7 @@ const Loans = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? (
-                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: 32 }}>Loading...</td></tr>
-                  ) : error ? (
+                  {error ? (
                     <tr><td colSpan={7} style={{ textAlign: 'center', color: '#dc2626', padding: 32 }}>{error}</td></tr>
                   ) : filtered.length === 0 ? (
                     <tr><td colSpan={7} style={{ textAlign: 'center', padding: 32 }}>No applications found.</td></tr>

@@ -6,8 +6,17 @@ import AuthProvider from './AuthProvider';
 import ScrollToTop from './ScrollToTop';
 import AdminForgotPassword from './pages/auth/AdminForgotPassword';
 import AdminResetPassword from './pages/auth/AdminResetPassword';
+import LoadingSpinner from './components/LoadingSpinner';
+import { useState, useEffect } from 'react';
 
 function App() {
+  const [appLoading, setAppLoading] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setAppLoading(false), 600); // Simulate initial load
+    return () => clearTimeout(timer);
+  }, []);
+  if (appLoading) return <LoadingSpinner fullscreen text="Loading Admin Panel..." />;
+
   return (
     <Router>
       <div className="App">

@@ -15,6 +15,7 @@ import {
   PointElement,
   LineElement,
 } from 'chart.js';
+import LoadingSpinner from '../components/LoadingSpinner';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement);
 
 const Dashboard = ({ componentrender }) => {
@@ -219,6 +220,10 @@ const Dashboard = ({ componentrender }) => {
       },
     },
   ];
+
+  if (loading) {
+    return <LoadingSpinner fullscreen text="Loading Dashboard..." />;
+  }
 
   return (
     <div style={{ background: 'var(--bg-light)', minHeight: '100vh', padding: '32px 0' }}>

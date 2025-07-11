@@ -3,6 +3,7 @@ import Swal from 'sweetalert2';
 import axios from 'axios';
 import { useAuth } from '../../AuthProvider';
 import { FaExclamationCircle, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 const getTokenData = (token) => {
   if (!token) return null;
@@ -24,6 +25,7 @@ const Login = ({ componentrender }) => {
   const { login, token, admin } = useAuth();
   const [fieldErrors, setFieldErrors] = useState({});
   const API_URL = process.env.REACT_APP_API_URL;
+  const [loading, setLoading] = useState(false);
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
@@ -98,39 +100,37 @@ const Login = ({ componentrender }) => {
     const errors = validateFields();
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) return;
-    Swal.fire({
-      html: `
-        <div class="p-5">
-          <div class="spinner-border text-dark" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-        </div>
-      `,
-      showConfirmButton: false,
-      background: 'transparent',
-      timer: 800,
-    });
+    setLoading(true);
     try {
       const response = await axios.post(`${API_URL}/api/admin-login`, formData);
       const data = response.data;
+      setLoading(false);
       login(data.admin, data.token);
-      Swal.fire({
-        icon: 'success',
-        title: 'Logged in Successfully',
-        showConfirmButton: true,
-        timer: 2000
-      });
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Logged in',
+          text:'You have been logged in successfully!',
+          showConfirmButton: false,
+          timer: 1500
+        });
+      }, 3500);
       componentrender('Dashboard');
     } catch (err) {
+      setLoading(false);
       setError(err.response?.data?.error || 'Username or Password is Wrong');
-      Swal.fire({
-        icon: 'error',
-        title: err.response?.data?.error || 'Username or Password is Wrong',
-        showConfirmButton: true,
-        timer: 2000
-      });
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'error',
+          title: err.response?.data?.error || 'Username or Password is Wrong',
+          showConfirmButton: false,
+          timer: 1200
+        });
+      }, 2000);
     }
   };
+
+  if (loading) return <LoadingSpinner fullscreen text="Logging in..." />;
 
   return (
     <div style={{

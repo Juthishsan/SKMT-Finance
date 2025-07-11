@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../AuthProvider';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const ContactMessages = () => {
   const { authFetch } = useAuth();
@@ -39,6 +40,9 @@ const ContactMessages = () => {
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   useEffect(() => { setCurrentPage(1); }, [search]);
 
+  if (loading) {
+    return <LoadingSpinner fullscreen text="Loading Contact Messages..." />;
+  }
   return (
     <div style={{ background: 'var(--bg-light)', minHeight: '100vh', padding: '32px 0' }}>
       <div className="container">
@@ -76,9 +80,7 @@ const ContactMessages = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? (
-                    <tr><td colSpan={4} style={{ textAlign: 'center', padding: 32 }}>Loading...</td></tr>
-                  ) : error ? (
+                  {error ? (
                     <tr><td colSpan={4} style={{ textAlign: 'center', color: '#dc2626', padding: 32 }}>{error}</td></tr>
                   ) : filtered.length === 0 ? (
                     <tr><td colSpan={4} style={{ textAlign: 'center', padding: 32 }}>No messages found.</td></tr>

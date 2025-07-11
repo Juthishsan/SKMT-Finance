@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import Swal from 'sweetalert2';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
     const productname = useRef();
@@ -15,6 +16,7 @@ const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
     const [productType, setProductType] = useState('');
     const [isNewProductType, setIsNewProductType] = useState(false);
     const [newProductType, setNewProductType] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleFileChange = (e) => {
         const selectedFiles = Array.from(e.target.files);
@@ -35,6 +37,7 @@ const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         const formData = new FormData();
         formData.append('name', productname.current.value);
         formData.append('price', productprice.current.value);
@@ -52,33 +55,45 @@ const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
                 method: 'POST',
                 body: formData,
             });
+            setLoading(false);
             if (response.ok) {
-            Swal.fire({
-                icon: 'success',
-                    title: 'Product added successfully!',
-                showConfirmButton: true,
-                confirmButtonColor: 'black',
-            });
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Product added successfully!',
+                        showConfirmButton: false,
+                        timer:1200,
+                        confirmButtonColor: 'black',
+                    });
+                }, 1000);
                 setaddproduct(false);
-            getproducts();
+                getproducts();
             } else {
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed to add product',
+                        showConfirmButton: false,
+                        timer:1200,
+                        confirmButtonColor: 'black',
+                    });
+                }, 100);
+            }
+        } catch (error) {
+            setLoading(false);
+            setTimeout(() => {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Failed to add product',
+                    title: 'Error',
+                    text: error.message,
                     showConfirmButton: true,
                     confirmButtonColor: 'black',
                 });
-            }
-        } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message,
-                showConfirmButton: true,
-                confirmButtonColor: 'black',
-            });
+            }, 1000);
         }
     };
+
+    if (loading) return <LoadingSpinner fullscreen text="Adding Product..." />;
 
     return (
         <form onSubmit={handleSubmit} className="grid grid-2 gap-4 add-product-form">

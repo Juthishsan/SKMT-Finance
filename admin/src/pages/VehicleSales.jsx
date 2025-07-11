@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BsCheckCircle, BsXCircle, BsTrash, BsSearch, BsEyeFill } from 'react-icons/bs';
 import Swal from 'sweetalert2';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -54,18 +55,36 @@ const VehicleSales = () => {
   };
 
   const handleApprove = async (id) => {
+    setLoading(true);
     try {
       await axios.put(`${API_URL}/api/vehicle-sales/${id}`, { status: 'approved' });
-      Swal.fire({ icon: 'success', title: 'Vehicle sale approved!', showConfirmButton: false, timer: 1200 });
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({ icon: 'success', title: 'Vehicle sale approved!', showConfirmButton: false, timer: 1200 });
+      }, 1000);
       fetchVehicles();
-    } catch {}
+    } catch (err) {
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to approve vehicle sale.' });
+      }, 1000);
+    }
   };
   const handleReject = async (id) => {
+    setLoading(true);
     try {
       await axios.put(`${API_URL}/api/vehicle-sales/${id}`, { status: 'rejected' });
-      Swal.fire({ icon: 'success', title: 'Vehicle sale rejected!', showConfirmButton: false, timer: 1200 });
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({ icon: 'success', title: 'Vehicle sale rejected!', showConfirmButton: false, timer: 1200 });
+      }, 100);
       fetchVehicles();
-    } catch {}
+    } catch (err) {
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to reject vehicle sale.' });
+      }, 100);
+    }
   };
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -80,12 +99,19 @@ const VehicleSales = () => {
       reverseButtons: true
     });
     if (!result.isConfirmed) return;
+    setLoading(true);
     try {
       await axios.delete(`${API_URL}/api/vehicle-sales/${id}`);
-      Swal.fire({ icon: 'success', title: 'Deleted!', text: 'Vehicle sale has been deleted.', showConfirmButton: false, timer: 1200 });
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({ icon: 'success', title: 'Deleted!', text: 'Vehicle sale has been deleted.', showConfirmButton: false, timer: 1200 });
+      }, 1000);
       fetchVehicles();
-    } catch {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete vehicle sale.' });
+    } catch (err) {
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete vehicle sale.' });
+      }, 1000);
     }
   };
 
@@ -101,6 +127,9 @@ const VehicleSales = () => {
     setSlideshowIndex(0);
   };
 
+  if (loading) {
+    return <LoadingSpinner fullscreen text="Loading Vehicle Sales..." />;
+  }
   return (
     <div style={{ background: 'var(--bg-light)', minHeight: '100vh', padding: '32px 0' }}>
       <div className="container">
@@ -127,9 +156,7 @@ const VehicleSales = () => {
               </div>
             </div>
             {error && <div style={{ color: '#dc2626', marginBottom: 12, fontWeight: 600 }}>{error}</div>}
-            {loading ? (
-              <div>Loading...</div>
-            ) : filteredVehicles.length === 0 ? (
+            {filteredVehicles.length === 0 ? (
               <div>No vehicle sales found.</div>
             ) : (
               <div className="table-responsive admins-table-responsive">
