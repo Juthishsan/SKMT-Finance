@@ -17,7 +17,6 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
-const API_URL=process.env.REACT_APP_API_URL;
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
 
 const app = express();
@@ -798,7 +797,7 @@ app.post('/api/orders', async (req, res) => {
           <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
             <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
               <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
-                <img src="${BASE_URL}/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+                <img src="https://skmt-backend.onrender.com/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
                 <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Order Placed Successfully!</h2>
               </div>
               <div style="padding: 32px 28px 18px 28px;">
