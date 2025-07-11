@@ -348,19 +348,10 @@ const Orders = () => {
         if (response.ok) {
           setLoading(false);
           setTimeout(() => {
-            Swal.fire({
-              icon: 'success',
-              title: 'Deleted!',
-              text: 'Order deleted successfully!',
-              timer: 1200,
-              showConfirmButton: false
-            });
-            // Delay table update until after SweetAlert timer
-            setTimeout(() => {
-              setTableData(prev => prev.filter(o => o._id !== orderId));
-              setFilteredData(prev => prev.filter(o => o._id !== orderId));
-            }, 1200); // Match the SweetAlert timer
+            Swal.fire({ icon: 'success', title: 'Deleted!',text:'Order deleted successfully!', timer: 1200, showConfirmButton: false });
           }, 1000);
+          setTableData(prev => prev.filter(o => o._id !== orderId));
+          setFilteredData(prev => prev.filter(o => o._id !== orderId));
         } else {
           const errorData = await response.json();
           setLoading(false);
@@ -381,7 +372,7 @@ const Orders = () => {
             icon: 'error',
             title: 'Error',
             text: error.message,
-            showConfirmButton: false,
+            showConfirmButton: true,
             confirmButtonColor: 'black',
           });
         }, 100);

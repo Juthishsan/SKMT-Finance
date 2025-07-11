@@ -18,6 +18,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
 const API_URL=process.env.REACT_APP_API_URL;
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const app = express();
 app.use(express.json());
@@ -344,7 +345,7 @@ app.post('/api/loan-applications', async (req, res) => {
         <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
           <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
             <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
-              <img src="http://localhost:5000/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+              <img src="${BASE_URL}/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
               <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Loan Application Received</h2>
             </div>
             <div style="padding: 32px 28px 18px 28px;">
@@ -443,7 +444,7 @@ app.patch('/api/loan-applications/:id', authenticateJWT, async (req, res) => {
           <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
             <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
               <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
-                <img src="http://localhost:5000/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+                <img src="${BASE_URL}/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
                 <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Loan Application Status Updated</h2>
               </div>
               <div style="padding: 32px 28px 18px 28px;">
@@ -605,7 +606,7 @@ app.post('/api/vehicle-sales', upload.array('images', 10), async (req, res) => {
           <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
             <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
               <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
-                <img src="http://localhost:5000/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+                <img src="${BASE_URL}/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
                 <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Vehicle Sale Submission Received</h2>
               </div>
               <div style="padding: 32px 28px 18px 28px;">
@@ -712,7 +713,7 @@ app.put('/api/vehicle-sales/:id', async (req, res) => {
             <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
               <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
                 <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
-                  <img src="http://localhost:5000/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+                  <img src="${BASE_URL}/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
                   <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Vehicle Sale Status Updated</h2>
                 </div>
                 <div style="padding: 32px 28px 18px 28px;">
@@ -797,7 +798,7 @@ app.post('/api/orders', async (req, res) => {
           <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
             <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
               <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
-                <img src="{API_URL}/uploads/backend/uploads/skmt logo (1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+                <img src="${BASE_URL}/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
                 <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Order Placed Successfully!</h2>
               </div>
               <div style="padding: 32px 28px 18px 28px;">
@@ -816,7 +817,7 @@ app.post('/api/orders', async (req, res) => {
                     <li><b>Name:</b> ${userSnapshot.username || ''}</li>
                     <li><b>Email:</b> ${userSnapshot.email}</li>
                     <li><b>Phone:</b> ${userSnapshot.phone || ''}</li>
-                    ${productSnapshot.images && productSnapshot.images.length > 0 ? `<li style="margin-top: 12px;"><img src="http://localhost:5000${productSnapshot.images[0]}" alt="Product Image" style="max-width: 180px; border-radius: 8px; border: 1.5px solid #c7d2fe;" /></li>` : ''}
+                    ${productSnapshot.images && productSnapshot.images.length > 0 ? `<li style="margin-top: 12px;"><img src="${BASE_URL}${productSnapshot.images[0]}" alt="Product Image" style="max-width: 180px; border-radius: 8px; border: 1.5px solid #c7d2fe;" /></li>` : ''}
                   </ul>
                 </div>
                 <div style="margin: 24px 0 0 0; border-top: 1.5px solid #e5e7eb; padding-top: 18px; text-align: center; color: #6b7280; font-size: 0.98rem;">
@@ -906,7 +907,7 @@ app.put('/api/orders/:id/status', async (req, res) => {
           <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
             <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
               <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
-                <img src="http://localhost:5000/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
+                <img src="${BASE_URL}/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
                 <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Order Status Updated</h2>
               </div>
               <div style="padding: 32px 28px 18px 28px;">
@@ -925,7 +926,7 @@ app.put('/api/orders/:id/status', async (req, res) => {
                     <li><b>Name:</b> ${userSnapshot.username || ''}</li>
                     <li><b>Email:</b> ${userSnapshot.email}</li>
                     <li><b>Phone:</b> ${userSnapshot.phone || ''}</li>
-                    ${prodImages.length > 0 ? `<li style="margin-top: 12px;"><img src="http://localhost:5000${prodImages[0]}" alt="Product Image" style="max-width: 180px; border-radius: 8px; border: 1.5px solid #c7d2fe;" /></li>` : ''}
+                    ${prodImages.length > 0 ? `<li style="margin-top: 12px;"><img src="${BASE_URL}${prodImages[0]}" alt="Product Image" style="max-width: 180px; border-radius: 8px; border: 1.5px solid #c7d2fe;" /></li>` : ''}
                   </ul>
                 </div>
                 <div style="margin: 24px 0 0 0; border-top: 1.5px solid #e5e7eb; padding-top: 18px; text-align: center; color: #6b7280; font-size: 0.98rem;">
@@ -1008,7 +1009,7 @@ app.post('/api/forgot-password', async (req, res) => {
       port: 587,
       secure: false
     });
-    const resetUrl = `http://localhost:3000/reset-password/${token}`;
+    const resetUrl = `${BASE_URL}/reset-password/${token}`;
     const mailOptions = {
       to: user.email,
       from: process.env.GMAIL_USER,
@@ -1066,7 +1067,7 @@ app.post('/api/admin-forgot-password', async (req, res) => {
       port: 587,
       secure: false
     });
-    const resetUrl = `http://localhost:3001/admin-reset-password/${token}`;
+    const resetUrl = `${BASE_URL}/admin-reset-password/${token}`;
     const mailOptions = {
       to: admin.email,
       from: process.env.GMAIL_USER,

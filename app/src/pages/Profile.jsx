@@ -281,57 +281,57 @@ const Profile = () => {
           transition={{ type: 'spring', bounce: 0.45, duration: 0.8, delay: 0.1 }}
           viewport={{ once: true, amount: 0.3 }}
         >
-          <div style={{ background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', padding: '24px 0 14px 0', textAlign: 'center' }}>
-            <h3 className="loans-title" style={{ color: '#fff', fontWeight: 700, fontSize: 24, margin: 0, letterSpacing: 1 }}>My Loan Applications</h3>
-          </div>
+            <div style={{ background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', padding: '24px 0 14px 0', textAlign: 'center' }}>
+              <h3 className="loans-title" style={{ color: '#fff', fontWeight: 700, fontSize: 24, margin: 0, letterSpacing: 1 }}>My Loan Applications</h3>
+            </div>
           <div style={{ padding: 0 }}>
-            {loansLoading ? (
-              <div className="text-center">
-                <div className="loading-spinner"></div>
-                <p className="loading-text">Loading your loans...</p>
-              </div>
-            ) : loans.length === 0 ? (
-              <div className="no-loans" style={{ textAlign: 'center', color: '#64748b', padding: 18 }}>
-                <div className="no-loans-icon" style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
-                <p>No loan applications found.</p>
-                <p>Apply for a loan to see your applications here.</p>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
-                {loans.map((loan, index) => (
-                  <div key={index} className="loan-item" style={{ background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 8px #1e3a8a11', padding: 20, borderLeft: '4px solid #3b82f6', transition: 'box-shadow 0.18s, transform 0.18s', cursor: 'pointer' }} onMouseOver={e => { e.currentTarget.style.boxShadow = '0 4px 16px #1e3a8a22'; e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseOut={e => { e.currentTarget.style.boxShadow = '0 2px 8px #1e3a8a11'; e.currentTarget.style.transform = 'none'; }}>
-                    <div className="loan-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span className="loan-type" style={{ fontWeight: 700, color: '#1e3a8a', fontSize: 17 }}>{loan.loanType}</span>
-                      <span className={`loan-status ${getLoanStatus(loan).toLowerCase()}`} style={{ display: 'inline-block', padding: '2px 12px', borderRadius: 8, background: getLoanStatus(loan) === 'Approved' ? '#10b981' : getLoanStatus(loan) === 'Rejected' ? '#dc2626' : '#f97316', color: '#fff', fontWeight: 600, fontSize: 15, letterSpacing: 0.5 }}>{getLoanStatus(loan)}</span>
-                    </div>
-                    <div className="loan-details" style={{ marginBottom: 8 }}>
-                      <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
-                        <FaMoneyCheckAlt className="loan-detail-icon" />
-                        <span>Amount: ₹{loan.amount?.toLocaleString()}</span>
+              {loansLoading ? (
+                <div className="text-center">
+                  <div className="loading-spinner"></div>
+                  <p className="loading-text">Loading your loans...</p>
+                </div>
+              ) : loans.length === 0 ? (
+                <div className="no-loans" style={{ textAlign: 'center', color: '#64748b', padding: 18 }}>
+                  <div className="no-loans-icon" style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
+                  <p>No loan applications found.</p>
+                  <p>Apply for a loan to see your applications here.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                  {loans.map((loan, index) => (
+                    <div key={index} className="loan-item" style={{ background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 8px #1e3a8a11', padding: 20, borderLeft: '4px solid #3b82f6', transition: 'box-shadow 0.18s, transform 0.18s', cursor: 'pointer' }} onMouseOver={e => { e.currentTarget.style.boxShadow = '0 4px 16px #1e3a8a22'; e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseOut={e => { e.currentTarget.style.boxShadow = '0 2px 8px #1e3a8a11'; e.currentTarget.style.transform = 'none'; }}>
+                      <div className="loan-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <span className="loan-type" style={{ fontWeight: 700, color: '#1e3a8a', fontSize: 17 }}>{loan.loanType}</span>
+                        <span className={`loan-status ${getLoanStatus(loan).toLowerCase()}`} style={{ display: 'inline-block', padding: '2px 12px', borderRadius: 8, background: getLoanStatus(loan) === 'Approved' ? '#10b981' : getLoanStatus(loan) === 'Rejected' ? '#dc2626' : '#f97316', color: '#fff', fontWeight: 600, fontSize: 15, letterSpacing: 0.5 }}>{getLoanStatus(loan)}</span>
                       </div>
-                      <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
-                        <FaCalendarAlt className="loan-detail-icon" />
-                        <span>Applied: {new Date(loan.createdAt).toLocaleDateString()}</span>
+                      <div className="loan-details" style={{ marginBottom: 8 }}>
+                        <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
+                          <FaMoneyCheckAlt className="loan-detail-icon" />
+                          <span>Amount: ₹{loan.amount?.toLocaleString()}</span>
+                        </div>
+                        <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
+                          <FaCalendarAlt className="loan-detail-icon" />
+                          <span>Applied: {new Date(loan.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        {loan.status === 'Approved' && (
+                          <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#10b981', fontWeight: 500, fontSize: 15 }}>
+                            <FaCheckCircle className="loan-detail-icon" />
+                            <span>Approved on: {new Date(loan.updatedAt).toLocaleDateString()}</span>
+                          </div>
+                        )}
+                        {loan.status === 'Pending' && (
+                          <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#f97316', fontWeight: 500, fontSize: 15 }}>
+                            <FaClock className="loan-detail-icon" />
+                            <span>Under review</span>
+                          </div>
+                        )}
                       </div>
-                      {loan.status === 'Approved' && (
-                        <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#10b981', fontWeight: 500, fontSize: 15 }}>
-                          <FaCheckCircle className="loan-detail-icon" />
-                          <span>Approved on: {new Date(loan.updatedAt).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                      {loan.status === 'Pending' && (
-                        <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#f97316', fontWeight: 500, fontSize: 15 }}>
-                          <FaClock className="loan-detail-icon" />
-                          <span>Under review</span>
-                        </div>
-                      )}
+                      <div className="loan-amount" style={{ fontWeight: 700, color: '#1e3a8a', fontSize: 16 }}>Loan Amount: ₹{loan.amount?.toLocaleString()}</div>
                     </div>
-                    <div className="loan-amount" style={{ fontWeight: 700, color: '#1e3a8a', fontSize: 16 }}>Loan Amount: ₹{loan.amount?.toLocaleString()}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
         </motion.div>
         {/* Orders List - Bottom */}
         <motion.div
@@ -341,44 +341,44 @@ const Profile = () => {
           transition={{ type: 'spring', bounce: 0.45, duration: 0.8, delay: 0.2 }}
           viewport={{ once: true, amount: 0.3 }}
         >
-          <div style={{ background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', padding: '24px 0 14px 0', textAlign: 'center' }}>
-            <h3 className="loans-title" style={{ color: '#fff', fontWeight: 700, fontSize: 24, margin: 0, letterSpacing: 1 }}>My Orders</h3>
-          </div>
+            <div style={{ background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', padding: '24px 0 14px 0', textAlign: 'center' }}>
+              <h3 className="loans-title" style={{ color: '#fff', fontWeight: 700, fontSize: 24, margin: 0, letterSpacing: 1 }}>My Orders</h3>
+            </div>
           <div style={{ padding: 0 }}>
-            {ordersLoading ? (
-              <div className="text-center">
-                <div className="loading-spinner"></div>
-                <p className="loading-text">Loading your orders...</p>
-              </div>
-            ) : orders.length === 0 ? (
-              <div className="no-loans" style={{ textAlign: 'center', color: '#64748b', padding: 18 }}>
-                <div className="no-loans-icon" style={{ fontSize: 32, marginBottom: 8 }}>🛒</div>
-                <p>No orders found.</p>
-                <p>Order a product to see it here.</p>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
-                {orders.map((order, idx) => (
-                  <div key={order._id || idx} className="loan-item" style={{ background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 8px #1e3a8a11', padding: 20, borderLeft: '4px solid #3b82f6', transition: 'box-shadow 0.18s, transform 0.18s', cursor: 'pointer' }} onMouseOver={e => { e.currentTarget.style.boxShadow = '0 4px 16px #1e3a8a22'; e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseOut={e => { e.currentTarget.style.boxShadow = '0 2px 8px #1e3a8a11'; e.currentTarget.style.transform = 'none'; }}>
-                    <div className="loan-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span className="loan-type" style={{ fontWeight: 700, color: '#1e3a8a', fontSize: 17 }}>{order.productSnapshot?.name || 'Product'}</span>
-                      <span className={`loan-status ${order.orderstatus ? order.orderstatus.toLowerCase() : 'pending'}`} style={{ display: 'inline-block', padding: '2px 12px', borderRadius: 8, background: order.orderstatus === 'Approved' ? '#10b981' : order.orderstatus === 'Rejected' ? '#dc2626' : '#f97316', color: '#fff', fontWeight: 600, fontSize: 15, letterSpacing: 0.5 }}>{order.orderstatus || 'Pending'}</span>
-                    </div>
-                    <div className="loan-details" style={{ marginBottom: 8 }}>
-                      <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
-                        <FaMoneyCheckAlt className="loan-detail-icon" />
-                        <span>Price: ₹{order.productSnapshot?.price?.toLocaleString() || '-'}</span>
+              {ordersLoading ? (
+                <div className="text-center">
+                  <div className="loading-spinner"></div>
+                  <p className="loading-text">Loading your orders...</p>
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="no-loans" style={{ textAlign: 'center', color: '#64748b', padding: 18 }}>
+                  <div className="no-loans-icon" style={{ fontSize: 32, marginBottom: 8 }}>🛒</div>
+                  <p>No orders found.</p>
+                  <p>Order a product to see it here.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                  {orders.map((order, idx) => (
+                    <div key={order._id || idx} className="loan-item" style={{ background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 8px #1e3a8a11', padding: 20, borderLeft: '4px solid #3b82f6', transition: 'box-shadow 0.18s, transform 0.18s', cursor: 'pointer' }} onMouseOver={e => { e.currentTarget.style.boxShadow = '0 4px 16px #1e3a8a22'; e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseOut={e => { e.currentTarget.style.boxShadow = '0 2px 8px #1e3a8a11'; e.currentTarget.style.transform = 'none'; }}>
+                      <div className="loan-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <span className="loan-type" style={{ fontWeight: 700, color: '#1e3a8a', fontSize: 17 }}>{order.productSnapshot?.name || 'Product'}</span>
+                        <span className={`loan-status ${order.orderstatus ? order.orderstatus.toLowerCase() : 'pending'}`} style={{ display: 'inline-block', padding: '2px 12px', borderRadius: 8, background: order.orderstatus === 'Approved' ? '#10b981' : order.orderstatus === 'Rejected' ? '#dc2626' : '#f97316', color: '#fff', fontWeight: 600, fontSize: 15, letterSpacing: 0.5 }}>{order.orderstatus || 'Pending'}</span>
                       </div>
-                      <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
-                        <FaCalendarAlt className="loan-detail-icon" />
-                        <span>Order Date: {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : '-'}</span>
+                      <div className="loan-details" style={{ marginBottom: 8 }}>
+                        <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
+                          <FaMoneyCheckAlt className="loan-detail-icon" />
+                          <span>Price: ₹{order.productSnapshot?.price?.toLocaleString() || '-'}</span>
+                        </div>
+                        <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
+                          <FaCalendarAlt className="loan-detail-icon" />
+                          <span>Order Date: {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : '-'}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
         </motion.div>
       </div>
     </div>

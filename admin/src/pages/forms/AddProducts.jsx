@@ -58,38 +58,36 @@ const AddProducts = ({ setaddproduct, getproducts, productTypes }) => {
             setLoading(false);
             if (response.ok) {
                 setTimeout(() => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Product added successfully!',
-                        showConfirmButton: false,
-                        timer:1200,
-                        confirmButtonColor: 'black',
-                    });
-                }, 1000);
+            Swal.fire({
+                icon: 'success',
+                    title: 'Product added successfully!',
+                showConfirmButton: true,
+                confirmButtonColor: 'black',
+            });
+                }, 100);
                 setaddproduct(false);
-                getproducts();
+            getproducts();
             } else {
                 setTimeout(() => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Failed to add product',
-                        showConfirmButton: false,
-                        timer:1200,
-                        confirmButtonColor: 'black',
-                    });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to add product',
+                    showConfirmButton: true,
+                    confirmButtonColor: 'black',
+                });
                 }, 100);
             }
         } catch (error) {
             setLoading(false);
             setTimeout(() => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message,
-                    showConfirmButton: true,
-                    confirmButtonColor: 'black',
-                });
-            }, 1000);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message,
+                showConfirmButton: true,
+                confirmButtonColor: 'black',
+            });
+            }, 100);
         }
     };
 

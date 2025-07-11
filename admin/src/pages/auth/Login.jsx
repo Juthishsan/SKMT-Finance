@@ -107,26 +107,25 @@ const Login = ({ componentrender }) => {
       setLoading(false);
       login(data.admin, data.token);
       setTimeout(() => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Logged in',
-          text:'You have been logged in successfully!',
-          showConfirmButton: false,
-          timer: 1500
-        });
-      }, 3500);
+      Swal.fire({
+        icon: 'success',
+        title: 'Logged in Successfully',
+        showConfirmButton: true,
+        timer: 2000
+      });
+      }, 100);
       componentrender('Dashboard');
     } catch (err) {
       setLoading(false);
       setError(err.response?.data?.error || 'Username or Password is Wrong');
       setTimeout(() => {
-        Swal.fire({
-          icon: 'error',
-          title: err.response?.data?.error || 'Username or Password is Wrong',
-          showConfirmButton: false,
-          timer: 1200
-        });
-      }, 2000);
+      Swal.fire({
+        icon: 'error',
+        title: err.response?.data?.error || 'Username or Password is Wrong',
+        showConfirmButton: true,
+        timer: 2000
+      });
+      }, 100);
     }
   };
 

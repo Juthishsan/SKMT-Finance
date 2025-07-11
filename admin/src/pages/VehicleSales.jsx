@@ -60,14 +60,14 @@ const VehicleSales = () => {
       await axios.put(`${API_URL}/api/vehicle-sales/${id}`, { status: 'approved' });
       setLoading(false);
       setTimeout(() => {
-        Swal.fire({ icon: 'success', title: 'Vehicle sale approved!', showConfirmButton: false, timer: 1200 });
-      }, 1000);
+      Swal.fire({ icon: 'success', title: 'Vehicle sale approved!', showConfirmButton: false, timer: 1200 });
+      }, 100);
       fetchVehicles();
     } catch (err) {
       setLoading(false);
       setTimeout(() => {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to approve vehicle sale.' });
-      }, 1000);
+      }, 100);
     }
   };
   const handleReject = async (id) => {
@@ -76,7 +76,7 @@ const VehicleSales = () => {
       await axios.put(`${API_URL}/api/vehicle-sales/${id}`, { status: 'rejected' });
       setLoading(false);
       setTimeout(() => {
-        Swal.fire({ icon: 'success', title: 'Vehicle sale rejected!', showConfirmButton: false, timer: 1200 });
+      Swal.fire({ icon: 'success', title: 'Vehicle sale rejected!', showConfirmButton: false, timer: 1200 });
       }, 100);
       fetchVehicles();
     } catch (err) {
@@ -104,14 +104,14 @@ const VehicleSales = () => {
       await axios.delete(`${API_URL}/api/vehicle-sales/${id}`);
       setLoading(false);
       setTimeout(() => {
-        Swal.fire({ icon: 'success', title: 'Deleted!', text: 'Vehicle sale has been deleted.', showConfirmButton: false, timer: 1200 });
-      }, 1000);
+      Swal.fire({ icon: 'success', title: 'Deleted!', text: 'Vehicle sale has been deleted.', showConfirmButton: false, timer: 1200 });
+      }, 100);
       fetchVehicles();
     } catch (err) {
       setLoading(false);
       setTimeout(() => {
-        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete vehicle sale.' });
-      }, 1000);
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete vehicle sale.' });
+      }, 100);
     }
   };
 

@@ -74,21 +74,21 @@ const Header = () => {
           </Link>
         </div>
         {/* Move toggle button here for absolute visibility */}
-        <button
-          className={`simple-toggle-btn${isMenuOpen ? ' open' : ''}`}
-          aria-label="Toggle navigation menu"
-          aria-expanded={isMenuOpen}
-          onClick={toggleMenu}
+          <button
+            className={`simple-toggle-btn${isMenuOpen ? ' open' : ''}`}
+            aria-label="Toggle navigation menu"
+            aria-expanded={isMenuOpen}
+            onClick={toggleMenu}
           style={{marginLeft: 12, background: 'none', border: 'none', cursor: 'pointer', zIndex: 130, position: 'absolute', right: 16, top: 24}}
-        >
-          <span className="simple-toggle-icon" aria-hidden="true">
-            <svg width="32" height="32" viewBox="0 0 32 32">
-              <rect className={`simple-bar top${isMenuOpen ? ' open' : ''}`} x="6" y="8" width="22" height="3" rx="1.5" />
-              <rect className={`simple-bar middle${isMenuOpen ? ' open' : ''}`} x="6" y="16" width="22" height="3" rx="1.5" />
-              <rect className={`simple-bar bottom${isMenuOpen ? ' open' : ''}`} x="6" y="23" width="22" height="3" rx="1.5" />
-            </svg>
-          </span>
-        </button>
+          >
+            <span className="simple-toggle-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 32 32">
+                <rect className={`simple-bar top${isMenuOpen ? ' open' : ''}`} x="6" y="8" width="22" height="3" rx="1.5" />
+                <rect className={`simple-bar middle${isMenuOpen ? ' open' : ''}`} x="6" y="16" width="22" height="3" rx="1.5" />
+                <rect className={`simple-bar bottom${isMenuOpen ? ' open' : ''}`} x="6" y="23" width="22" height="3" rx="1.5" />
+              </svg>
+            </span>
+          </button>
         <div className="nav-right-group">
           <nav className={`nav${isMenuOpen ? ' nav-open' : ''}`} aria-label="Main navigation">
             <Link 

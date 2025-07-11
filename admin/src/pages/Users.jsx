@@ -55,8 +55,8 @@ const Users = () => {
         await authFetch(`${process.env.REACT_APP_API_URL}/api/users/${userId}`, { method: 'DELETE' });
         setLoading(false);
         setTimeout(() => {
-          Swal.fire({ icon: 'success', title: 'Deleted!',text:'User has been deleted!', timer: 1200, showConfirmButton: false });
-        }, 1000);
+        Swal.fire('Deleted!', 'User has been deleted.', 'success');
+        }, 100);
         // Refresh user list
         const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/users`);
         const data = await res.json();
@@ -65,8 +65,8 @@ const Users = () => {
       } catch (err) {
         setLoading(false);
         setTimeout(() => {
-          Swal.fire({ icon: 'error', title: 'Error!',text:'Failed to delete user!', timer: 1200, showConfirmButton: false });
-        }, 1000);
+        Swal.fire('Error', 'Failed to delete user.', 'error');
+        }, 100);
       }
     }
   };
