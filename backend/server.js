@@ -901,13 +901,13 @@ app.put('/api/orders/:id/status', async (req, res) => {
       const mailOptions = {
         to: userSnapshot.email,
         from: process.env.GMAIL_USER,
-        subject: `Order Status Update - ${prodName} | SKMT Finance`,
+        subject: `Booking Status Update - ${prodName} | SKMT Finance`,
         html: `
           <div style="background: #f4f8fb; padding: 32px 0; font-family: 'Segoe UI', Arial, sans-serif;">
             <div style="max-width: 540px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(30,58,138,0.10); overflow: hidden;">
               <div style="background: linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%); padding: 32px 0 18px 0; text-align: center;">
                 <img src="${BASE_URL}/uploads/skmt%20logo%20(1).png" alt="SKMT Logo" style="height: 48px; margin-bottom: 10px; border-radius: 8px; background: #f4f8fb;" />
-                <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Order Status Updated</h2>
+                <h2 style="color: #fff; margin: 0; font-size: 1.7rem; font-weight: 700; letter-spacing: 1px;">Booking Status Updated</h2>
               </div>
               <div style="padding: 32px 28px 18px 28px;">
                 <div style="border-left: 5px solid #1e3a8a; padding-left: 18px; margin-bottom: 18px;">
@@ -915,12 +915,12 @@ app.put('/api/orders/:id/status', async (req, res) => {
                   <p style="font-size: 1.05rem; color: #222; margin-bottom: 0;">The status of your order for <b>${prodName}</b> has been updated to <span style="display:inline-block;padding:2px 12px;border-radius:8px;background:${badgeColor};color:#fff;font-weight:600;font-size:0.98rem;letter-spacing:0.5px;">${orderstatus}</span>.</p>
                 </div>
                 <div style="background: #f9fafb; border-radius: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.06); padding: 20px 18px 10px 18px; margin-bottom: 18px; border-left: 4px solid #3b82f6;">
-                  <h4 style="color: #1e3a8a; margin-bottom: 10px; font-size: 1.1rem; font-weight: 700;">Order Details</h4>
+                  <h4 style="color: #1e3a8a; margin-bottom: 10px; font-size: 1.1rem; font-weight: 700;">Booking Details</h4>
                   <ul style="list-style: none; padding: 0; margin: 0; font-size: 1rem; color: #333;">
                     <li><b>Product:</b> ${prodName}</li>
                     <li><b>Type:</b> ${prodType}</li>
                     <li><b>Price:</b> ₹${prodPrice}</li>
-                    <li><b>Order Date:</b> ${new Date(orderDate).toLocaleString()}</li>
+                    <li><b>Booking Date:</b> ${new Date(orderDate).toLocaleString()}</li>
                     <li><b>Status:</b> <span style="display:inline-block;padding:2px 12px;border-radius:8px;background:${badgeColor};color:#fff;font-weight:600;font-size:0.98rem;letter-spacing:0.5px;">${orderstatus}</span></li>
                     <li><b>Name:</b> ${userSnapshot.username || ''}</li>
                     <li><b>Email:</b> ${userSnapshot.email}</li>
