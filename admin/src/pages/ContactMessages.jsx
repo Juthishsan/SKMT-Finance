@@ -20,7 +20,7 @@ const ContactMessages = () => {
       try {
         const res = await authFetch(`${API_URL}/api/contact-messages`);
         const data = await res.json();
-        setMessages(data);
+        setMessages(Array.isArray(data.data) ? data.data : []);
       } catch (err) {
         setError('Failed to fetch contact messages');
       }

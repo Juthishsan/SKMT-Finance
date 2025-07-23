@@ -3,10 +3,12 @@ import axios from 'axios';
 import { BsCheckCircle, BsXCircle, BsTrash, BsSearch, BsEyeFill } from 'react-icons/bs';
 import Swal from 'sweetalert2';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useAuth } from '../AuthProvider';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const VehicleSales = () => {
+  const { authFetch } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,6 +21,9 @@ const VehicleSales = () => {
   const itemsPerPage = 10;
   const paginatedData = filteredVehicles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil(filteredVehicles.length / itemsPerPage);
+  const [deleteVehicleId, setDeleteVehicleId] = useState(null);
+  const [approveId, setApproveId] = useState(null);
+  const [rejectId, setRejectId] = useState(null);
 
   useEffect(() => {
     fetchVehicles();
@@ -44,9 +49,37 @@ const VehicleSales = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get(`${API_URL}/api/vehicle-sales`);
+      const res = await authFetch(`${API_URL}/api/vehicle-sales`);
+      const data = await res.json();
       // Sort by createdAt descending (most recent first)
-      const sortedVehicles = res.data.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      let sortedVehicles = Array.isArray(data.data) ? data.data.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : [];
+      // For any vehicle where user is a string (user ID), fetch user details
+      sortedVehicles = await Promise.all(sortedVehicles.map(async v => {
+        if (v.user && typeof v.user === 'string') {
+          try {
+            const userRes = await authFetch(`${API_URL}/api/users/${v.user}`);
+            if (userRes.ok) {
+              const userData = await userRes.json();
+              if (userData.data) {
+                v.user = {
+                  username: userData.data.username || 'Not provided',
+                  email: userData.data.email || 'Not provided',
+                  phone: userData.data.phone || 'Not provided',
+                  address: userData.data.address || 'Not provided',
+                  city: userData.data.city || '',
+                  state: userData.data.state || '',
+                  pincode: userData.data.pincode || '',
+                  createdAt: userData.data.createdAt || '',
+                  _id: userData.data._id || '',
+                };
+              } else {
+                v.user = { username: 'Not provided', email: 'Not provided', phone: 'Not provided', address: 'Not provided', city: '', state: '', pincode: '', createdAt: '', _id: '' };
+              }
+            }
+          } catch {}
+        }
+        return v;
+      }));
       setVehicles(sortedVehicles);
     } catch (err) {
       setError('Failed to fetch vehicle sales.');
@@ -54,14 +87,29 @@ const VehicleSales = () => {
     setLoading(false);
   };
 
-  const handleApprove = async (id) => {
+  const handleApprove = (id) => {
+    setApproveId(id);
+  };
+  const confirmApprove = async () => {
     setLoading(true);
     try {
-      await axios.put(`${API_URL}/api/vehicle-sales/${id}`, { status: 'approved' });
+      await authFetch(`${API_URL}/api/vehicle-sales/${approveId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'approved' })
+      });
       setLoading(false);
       setTimeout(() => {
-      Swal.fire({ icon: 'success', title: 'Vehicle sale approved!', showConfirmButton: false, timer: 1200 });
-      }, 100);
+        Swal.fire({
+          icon: 'success',
+          title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Vehicle Sale Approved!</span>',
+          html: '<div style="color:#444;font-size:16px;margin-top:8px;">The vehicle sale was approved.</div>',
+          background: '#f0fdfa',
+          showConfirmButton: false,
+          timer: 1400,
+          customClass: { popup: 'swal2-animate-success' }
+        });
+      }, 400);
       fetchVehicles();
     } catch (err) {
       setLoading(false);
@@ -69,15 +117,31 @@ const VehicleSales = () => {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to approve vehicle sale.' });
       }, 100);
     }
+    setApproveId(null);
   };
-  const handleReject = async (id) => {
+  const handleReject = (id) => {
+    setRejectId(id);
+  };
+  const confirmReject = async () => {
     setLoading(true);
     try {
-      await axios.put(`${API_URL}/api/vehicle-sales/${id}`, { status: 'rejected' });
+      await authFetch(`${API_URL}/api/vehicle-sales/${rejectId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'rejected' })
+      });
       setLoading(false);
       setTimeout(() => {
-      Swal.fire({ icon: 'success', title: 'Vehicle sale rejected!', showConfirmButton: false, timer: 1200 });
-      }, 100);
+        Swal.fire({
+          icon: 'success',
+          title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Vehicle Sale Rejected!</span>',
+          html: '<div style="color:#444;font-size:16px;margin-top:8px;">The vehicle sale was rejected.</div>',
+          background: '#f0fdfa',
+          showConfirmButton: false,
+          timer: 1400,
+          customClass: { popup: 'swal2-animate-success' }
+        });
+      }, 400);
       fetchVehicles();
     } catch (err) {
       setLoading(false);
@@ -85,34 +149,35 @@ const VehicleSales = () => {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to reject vehicle sale.' });
       }, 100);
     }
+    setRejectId(null);
   };
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: 'Delete Vehicle Sale',
-      text: 'Are you sure you want to delete this vehicle sale?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true
-    });
-    if (!result.isConfirmed) return;
+  const handleDelete = (id) => {
+    setDeleteVehicleId(id);
+  };
+  const confirmDeleteVehicle = async () => {
     setLoading(true);
     try {
-      await axios.delete(`${API_URL}/api/vehicle-sales/${id}`);
+      await authFetch(`${API_URL}/api/vehicle-sales/${deleteVehicleId}`, { method: 'DELETE' });
       setLoading(false);
       setTimeout(() => {
-      Swal.fire({ icon: 'success', title: 'Deleted!', text: 'Vehicle sale has been deleted.', showConfirmButton: false, timer: 1200 });
-      }, 100);
+        Swal.fire({
+          icon: 'success',
+          title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Vehicle Sale Deleted!</span>',
+          html: '<div style="color:#444;font-size:16px;margin-top:8px;">The vehicle sale was successfully deleted.</div>',
+          background: '#f0fdfa',
+          showConfirmButton: false,
+          timer: 1400,
+          customClass: { popup: 'swal2-animate-success' }
+        });
+      }, 400);
       fetchVehicles();
     } catch (err) {
       setLoading(false);
       setTimeout(() => {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete vehicle sale.' });
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to delete vehicle sale.' });
       }, 100);
     }
+    setDeleteVehicleId(null);
   };
 
   const openModal = (vehicle) => {
@@ -169,6 +234,8 @@ const VehicleSales = () => {
                       <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Price</th>
                       <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>User</th>
                       <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Status</th>
+                      <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>FC</th>
+                      <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Insurance</th>
                       <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Actions</th>
                     </tr>
                   </thead>
@@ -177,7 +244,7 @@ const VehicleSales = () => {
                       <tr key={vehicle._id} style={{ borderBottom: '1px solid #f1f5f9', verticalAlign: 'top' }}>
                         <td style={{ padding: 12, textAlign: 'center' }}>
                           {(vehicle.images && vehicle.images.length > 0) ? (
-                            <img src={vehicle.images[0].startsWith('/uploads/') ? `${API_URL}${vehicle.images[0]}` : `${API_URL}/uploads/${vehicle.images[0]}`} alt={vehicle.title} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+                            <img src={vehicle.images[0]} alt={vehicle.title} style={{ width: 48, height: 48, objectFit: 'cover' }} />
                           ) : (
                             <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                           )}
@@ -188,10 +255,16 @@ const VehicleSales = () => {
                         <td style={{ padding: 12 }}>
                           {vehicle.user && typeof vehicle.user === 'object'
                             ? (vehicle.user.username || vehicle.user.email || vehicle.user._id || '-')
-                            : (typeof vehicle.user === 'string' ? vehicle.user : '-')}
+                            : '-'}
                         </td>
                         <td style={{ fontWeight: 600, color: vehicle.status === 'approved' ? '#10b981' : vehicle.status === 'rejected' ? '#dc2626' : '#1e3a8a', padding: 12 }}>
                           {vehicle.status || 'pending'}
+                        </td>
+                        <td style={{ padding: 12 }}>
+                          {vehicle.fc === 'Yes' ? `Yes (${vehicle.fcDuration || '-'} ${vehicle.fcUnit || ''})` : 'No'}
+                        </td>
+                        <td style={{ padding: 12 }}>
+                          {vehicle.insurance === 'Yes' ? `Yes (${vehicle.insuranceDuration || '-'} ${vehicle.insuranceUnit || ''})` : 'No'}
                         </td>
                         <td style={{ padding: 12 }}>
                           <div className="d-flex gap-2">
@@ -268,7 +341,7 @@ const VehicleSales = () => {
                   <>
                     <img
                       className="admin-modal-image"
-                      src={selectedVehicle.images[slideshowIndex].startsWith('/uploads/') ? `${API_URL}${selectedVehicle.images[slideshowIndex]}` : `${API_URL}/uploads/${selectedVehicle.images[slideshowIndex]}`}
+                      src={selectedVehicle.images[slideshowIndex]}
                       loading="lazy"
                       alt={selectedVehicle.title}
                       style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 18, boxShadow: '0 4px 24px #1e3a8a22', background: '#f1f5f9', objectFit: 'cover' }}
@@ -348,6 +421,22 @@ const VehicleSales = () => {
                       <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Status</div>
                       <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17, color: selectedVehicle.status === 'approved' ? '#10b981' : selectedVehicle.status === 'rejected' ? '#dc2626' : '#1e3a8a' }}>{selectedVehicle.status || 'pending'}</div>
                     </div>
+                    <div>
+                      <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>FC</div>
+                      <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>
+                        {selectedVehicle.fc === 'Yes'
+                          ? `Yes (${selectedVehicle.fcDuration || '-'} ${selectedVehicle.fcUnit || ''})`
+                          : 'No'}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Insurance</div>
+                      <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>
+                        {selectedVehicle.insurance === 'Yes'
+                          ? `Yes (${selectedVehicle.insuranceDuration || '-'} ${selectedVehicle.insuranceUnit || ''})`
+                          : 'No'}
+                      </div>
+                    </div>
                     <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
                       <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Description</div>
                       <div className="admin-modal-value" style={{ fontWeight: 500, fontSize: 16, color: '#222', background: '#f9fafb', borderRadius: 10, padding: 12, marginTop: 2 }}>{selectedVehicle.description}</div>
@@ -408,6 +497,78 @@ const VehicleSales = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Approve Confirmation Modal */}
+      {approveId && (
+        <div>
+          <div
+            className="modal d-block border-0 admins-modal-bg"
+            role="dialog"
+            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+          >
+            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(16,196,34,0.18)', background: '#fff' }}>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 44, color: '#16a34a', marginBottom: 12 }}>✔️</div>
+                  <h3 style={{ color: '#16a34a', marginBottom: 10 }}>Approve Vehicle Sale?</h3>
+                  <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to approve this vehicle sale?</div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button onClick={() => setApproveId(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={confirmApprove} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #16a34a 60%, #4ade80 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Approve</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Reject Confirmation Modal */}
+      {rejectId && (
+        <div>
+          <div
+            className="modal d-block border-0 admins-modal-bg"
+            role="dialog"
+            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+          >
+            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(220,38,38,0.18)', background: '#fff' }}>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 44, color: '#dc2626', marginBottom: 12 }}>⚠️</div>
+                  <h3 style={{ color: '#dc2626', marginBottom: 10 }}>Reject Vehicle Sale?</h3>
+                  <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to reject this vehicle sale?</div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button onClick={() => setRejectId(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={confirmReject} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #dc2626 60%, #f87171 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Reject</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {deleteVehicleId && (
+        <div>
+          <div
+            className="modal d-block border-0 admins-modal-bg"
+            role="dialog"
+            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+          >
+            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(220,38,38,0.18)', background: '#fff' }}>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 44, color: '#dc2626', marginBottom: 12 }}>⚠️</div>
+                  <h3 style={{ color: '#dc2626', marginBottom: 10 }}>Delete Vehicle Sale?</h3>
+                  <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to delete this vehicle sale? This action cannot be undone.</div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button onClick={() => setDeleteVehicleId(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={confirmDeleteVehicle} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #dc2626 60%, #f87171 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Delete</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

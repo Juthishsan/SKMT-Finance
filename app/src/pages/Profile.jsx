@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const Profile = () => {
-  const { user, setUser, isAuthenticated } = useAuth();
+  const { user, setUser, isAuthenticated, authFetch } = useAuth();
   const navigate = useNavigate();
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(user || {});
@@ -23,17 +23,17 @@ const Profile = () => {
     }
     if (user?.email) {
       setLoansLoading(true);
-      fetch(`${process.env.REACT_APP_API_URL}/api/user-loan-applications?email=${encodeURIComponent(user.email)}`)
+      authFetch(`${process.env.REACT_APP_API_URL}/api/loan-applications/user?email=${encodeURIComponent(user.email)}`)
         .then(res => res.json())
-        .then(data => setLoans(Array.isArray(data) ? data : []))
+        .then(data => setLoans(Array.isArray(data.data) ? data.data : []))
         .catch(() => setLoans([]))
         .finally(() => setLoansLoading(false));
       // Fetch all orders and filter by user email
       setOrdersLoading(true);
-      fetch(`${process.env.REACT_APP_API_URL}/api/orders`)
+      authFetch(`${process.env.REACT_APP_API_URL}/api/orders`)
         .then(res => res.json())
         .then(async data => {
-          let filtered = Array.isArray(data) ? data.filter(o => o.userSnapshot?.email === user.email) : [];
+          let filtered = Array.isArray(data.data) ? data.data.filter(o => o.userSnapshot?.email === user.email) : [];
           // For any order where productSnapshot is a string, fetch the product details
           const updatedOrders = await Promise.all(filtered.map(async order => {
             if (order.productSnapshot && typeof order.productSnapshot === 'string') {
@@ -52,7 +52,7 @@ const Profile = () => {
         .catch(() => setOrders([]))
         .finally(() => setOrdersLoading(false));
     }
-  }, [user, isAuthenticated, navigate]);
+  }, [user, isAuthenticated, navigate, authFetch]);
 
   if (!user) {
     return (

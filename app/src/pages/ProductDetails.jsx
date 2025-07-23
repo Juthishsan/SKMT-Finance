@@ -15,7 +15,7 @@ const ProductDetails = () => {
     const fetchProduct = async () => {
       try {
         const res = await axios.get(`${API_URL}/api/products/${id}`);
-        setProduct(res.data);
+        setProduct(res.data.data);
       } catch (err) {
         setProduct(null);
       } finally {
@@ -89,7 +89,9 @@ const ProductDetails = () => {
     try {
       const res = await fetch(`${API_URL}/api/products/${id}`);
       if (res.ok) {
-        freshProduct = await res.json();
+        const apiResponse = await res.json();
+        // Use .data if present, otherwise fallback
+        freshProduct = apiResponse.data ? apiResponse.data : apiResponse;
       }
     } catch {}
     const userSnapshot = {
@@ -102,8 +104,19 @@ const ProductDetails = () => {
       state: user.state,
       pincode: user.pincode,
     };
-    // Use the freshly fetched product object
-    const productSnapshot = { ...freshProduct };
+    // Use the freshly fetched product object (not the API response wrapper)
+    const productSnapshot = {
+      _id: freshProduct._id,
+      name: freshProduct.name,
+      price: freshProduct.price,
+      type: freshProduct.type,
+      modelYear: freshProduct.modelYear,
+      owners: freshProduct.owners,
+      fcYears: freshProduct.fcYears,
+      insurance: freshProduct.insurance,
+      images: freshProduct.images,
+      description: freshProduct.description,
+    };
     const orderData = {
       userSnapshot,
       productSnapshot,
@@ -211,7 +224,11 @@ const ProductDetails = () => {
             {product.type && <span style={{background: '#e3f2fd', color: '#1976d2', padding: '2px 10px', borderRadius: '12px', fontSize: '0.95rem'}}>{product.type}</span>}
             {product.modelYear && <span style={{background: '#f3e5f5', color: '#7b1fa2', padding: '2px 10px', borderRadius: '12px', fontSize: '0.95rem'}}>{product.modelYear}</span>}
             {product.owners && <span style={{background: '#e8f5e8', color: '#388e3c', padding: '2px 10px', borderRadius: '12px', fontSize: '0.95rem'}}>{product.owners} Owner{product.owners > 1 ? 's' : ''}</span>}
-            {product.fcYears && <span style={{background: '#fff3e0', color: '#ff9800', padding: '2px 10px', borderRadius: '12px', fontSize: '0.95rem'}}>{product.fcYears} FC Years</span>}
+            {product.fc && product.fcDuration && product.fcUnit && (
+              <span style={{background: '#fff3e0', color: '#ff9800', padding: '2px 10px', borderRadius: '12px', fontSize: '0.95rem'}}>
+                FC: {product.fcDuration} {product.fcUnit}{product.fcDuration > 1 ? 's' : ''}
+              </span>
+            )}
             {typeof product.insurance === 'boolean' && (
               <span style={{background: '#e1f5fe', color: '#0288d1', padding: '2px 10px', borderRadius: '12px', fontSize: '0.95rem'}}>{product.insurance ? 'Insured' : 'No Insurance'}</span>
             )}
@@ -227,7 +244,12 @@ const ProductDetails = () => {
               <li><strong>Model Year:</strong> {product.modelYear || 'N/A'}</li>
               <li><strong>Type:</strong> {product.type || 'N/A'}</li>
               <li><strong>Owners:</strong> {product.owners || 'N/A'}</li>
-              <li><strong>FC Years:</strong> {product.fcYears || 'N/A'}</li>
+              <li>
+                <strong>FC:</strong>{' '}
+                {product.fc
+                  ? `Yes${product.fcDuration && product.fcUnit ? ` (${product.fcDuration} ${product.fcUnit}${product.fcDuration > 1 ? 's' : ''})` : ''}`
+                  : 'No'}
+              </li>
               <li><strong>Insurance:</strong> {typeof product.insurance === 'boolean' ? (product.insurance ? 'Yes' : 'No') : 'N/A'}</li>
               <li><strong>Status:</strong> {product.stock ? 'Available' : 'Out of Stock'}</li>
             </ul>

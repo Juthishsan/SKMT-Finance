@@ -102,10 +102,10 @@ const Login = ({ componentrender }) => {
     if (Object.keys(errors).length > 0) return;
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/api/admin-login`, formData);
+      const response = await axios.post(`${API_URL}/api/admins/login`, formData);
       const data = response.data;
       setLoading(false);
-      login(data.admin, data.token);
+      login(data.data.admin, data.data.token);
       setTimeout(() => {
       Swal.fire({
         icon: 'success',
@@ -156,11 +156,11 @@ const Login = ({ componentrender }) => {
           animation: 'fadeInUp 0.7s cubic-bezier(.39,.575,.565,1) both',
         }}
       >
-        {/* <img
-          src={require('../../public/Images/logo5.png')}
-          alt="Admin Logo"
-          style={{ width: 64, height: 64, marginBottom: 12, borderRadius: 12, boxShadow: '0 2px 8px #1e3a8a22' }}
-        /> */}
+        <img
+          src="https://res.cloudinary.com/dipgt9ow3/image/upload/v1753209298/skmt_uploads/skmt_logo_1_t9yd5o.png"
+          alt="SKMT Logo"
+          style={{ width: 64, height: 64, marginBottom: 12, borderRadius: 12, boxShadow: '0 2px 8px #1e3a8a22', objectFit: 'cover' }}
+        />
         <h2 style={{textAlign: 'center', marginBottom: 18, color: '#1e3a8a', fontWeight: 700, letterSpacing: 1}}>Admin Login</h2>
         <form onSubmit={handleLoginSubmit} style={{width: '100%'}} autoComplete="off">
           <div className="form-group" style={{marginBottom: 18}}>

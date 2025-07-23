@@ -12,6 +12,12 @@ const VehicleSaleSchema = new mongoose.Schema({
   description: { type: String, required: true },
   price: { type: Number, required: true },
   images: [{ type: String }],
+  fc: { type: String, enum: ['Yes', 'No'], default: 'No' },
+  fcDuration: { type: Number },
+  fcUnit: { type: String, enum: ['year', 'month'], default: 'year' },
+  insurance: { type: String, enum: ['Yes', 'No'], default: 'No' },
+  insuranceDuration: { type: Number },
+  insuranceUnit: { type: String, enum: ['year', 'month'], default: 'year' },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   createdAt: { type: Date, default: Date.now }
 });

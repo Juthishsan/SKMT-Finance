@@ -15,7 +15,8 @@ const Products = () => {
     const fetchProducts = async () => {
       try {
         const res = await axios.get(`${API_URL}/api/products`);
-        setProducts(res.data);
+        const products = Array.isArray(res.data.data) ? res.data.data : [];
+        setProducts(products);
       } catch (err) {
         setError('Failed to fetch products');
         setProducts([]);
@@ -133,7 +134,13 @@ const Products = () => {
                   <div className="product-image-container">
                     {product.images && product.images.length > 0 ? (
                       <img 
-                        src={`${API_URL}${product.images[0]}`} 
+                        src={
+                          product.images[0]
+                            ? product.images[0].startsWith('http')
+                              ? product.images[0]
+                              : `${API_URL}${product.images[0]}`
+                            : ''
+                        }
                         alt={product.name}
                         className="product-image"
                         onError={(e) => {

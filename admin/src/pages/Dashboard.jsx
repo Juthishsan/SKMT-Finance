@@ -20,13 +20,12 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
 
 const Dashboard = ({ componentrender }) => {
   const { authFetch } = useAuth();
-  const [stats, setStats] = useState({ productCount: 0, categoryCount: 0, userCount: 0, orderCount: 0 });
+  const [stats, setStats] = useState({ productCount: 0, categoryCount: 0, userCount: 0, orderCount: 0, vehicleSaleCount: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
   const [recentLoans, setRecentLoans] = useState([]);
   const [loanCount, setLoanCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loanLoading, setLoanLoading] = useState(true);
-  const [vehicleSaleCount, setVehicleSaleCount] = useState(0);
   const [userGrowthStats, setUserGrowthStats] = useState([]);
 
   useEffect(() => {
@@ -34,7 +33,6 @@ const Dashboard = ({ componentrender }) => {
     fetchRecentOrders();
     fetchRecentLoans();
     fetchLoanCount();
-    fetchVehicleSaleCount();
     fetchUserGrowthStats();
   }, []);
 
@@ -42,9 +40,9 @@ const Dashboard = ({ componentrender }) => {
     try {
       const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/dashboard-stats`);
       const data = await res.json();
-      setStats(data);
+      setStats(data.data || { productCount: 0, categoryCount: 0, userCount: 0, orderCount: 0, vehicleSaleCount: 0 });
     } catch (err) {
-      setStats({ productCount: 0, categoryCount: 0, userCount: 0, orderCount: 0 });
+      setStats({ productCount: 0, categoryCount: 0, userCount: 0, orderCount: 0, vehicleSaleCount: 0 });
     }
   };
 
@@ -52,7 +50,7 @@ const Dashboard = ({ componentrender }) => {
     try {
       const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/loan-applications`);
       const data = await res.json();
-      setLoanCount(data.length);
+      setLoanCount((data.data && data.data.length) || 0);
     } catch (err) {
       setLoanCount(0);
     }
@@ -61,17 +59,19 @@ const Dashboard = ({ componentrender }) => {
   const fetchRecentOrders = async () => {
     setLoading(true);
     try {
-      const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/recent-orders`);
+      const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/orders/recent`);
       let data = await res.json();
+      let orders = Array.isArray(data.data) ? data.data : [];
       // For any order where productSnapshot is just an ID, fetch the full product
-      data = await Promise.all(data.map(async order => {
+      orders = await Promise.all(orders.map(async order => {
         let product = order.productSnapshot;
         if (typeof product === 'string') {
           // Legacy order, fetch full product
           try {
-            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/products/${product}`);
+            const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/products/${product}`);
             if (res.ok) {
-              product = await res.json();
+              const prodRes = await res.json();
+              product = prodRes.data ? prodRes.data : prodRes;
             } else {
               product = { name: '-' };
             }
@@ -81,7 +81,7 @@ const Dashboard = ({ componentrender }) => {
         }
         return { ...order, productSnapshot: product };
       }));
-      setRecentOrders(data);
+      setRecentOrders(orders);
     } catch (err) {
       setRecentOrders([]);
     }
@@ -94,29 +94,19 @@ const Dashboard = ({ componentrender }) => {
       const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/loan-applications`);
       const data = await res.json();
       // Get the 10 most recent loan applications
-      const recent = data.slice(0, 10);
-      setRecentLoans(recent);
+      setRecentLoans(Array.isArray(data.data) ? data.data.slice(0, 10) : []);
     } catch (err) {
       setRecentLoans([]);
     }
     setLoanLoading(false);
   };
 
-  const fetchVehicleSaleCount = async () => {
-    try {
-      const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/vehicle-sales`);
-      const data = await res.json();
-      setVehicleSaleCount(data.length);
-    } catch (err) {
-      setVehicleSaleCount(0);
-    }
-  };
-
   const fetchUserGrowthStats = async () => {
     try {
-      const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/user-growth-stats`);
+      // Updated endpoint to match backend
+      const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/users/growth-stats`);
       const data = await res.json();
-      setUserGrowthStats(data);
+      setUserGrowthStats(Array.isArray(data.data) ? data.data : []);
     } catch (err) {
       setUserGrowthStats([]);
     }
@@ -238,28 +228,28 @@ const Dashboard = ({ componentrender }) => {
               <div className="card shadow-sm text-center p-4 dashboard-card" style={{ borderRadius: 18, minWidth: 180, flex: '0 0 180px', background: '#fff', boxShadow: '0 2px 8px rgba(30,58,138,0.08)', cursor: 'pointer', transition: 'box-shadow 0.18s, transform 0.18s' }} onClick={() => componentrender('Products')} tabIndex={0} title="Go to Products">
                 <BsFillArchiveFill size={36} className="mb-2" style={{ color: '#1e3a8a' }} />
                 <h5 className="fw-bold">Vehicles</h5>
-                <div className="fs-2 fw-bold" style={{ color: '#1e3a8a' }}>{stats.productCount}</div>
+                <div className="fs-2 fw-bold" style={{ color: '#1e3a8a' }}>{stats.productCount ?? 0}</div>
               </div>
               <div className="card shadow-sm text-center p-4 dashboard-card" style={{ borderRadius: 18, minWidth: 180, flex: '0 0 180px', background: '#fff', boxShadow: '0 2px 8px rgba(30,58,138,0.08)', cursor: 'pointer', transition: 'box-shadow 0.18s, transform 0.18s' }} onClick={() => componentrender('VehicleSales')} tabIndex={0} title="Go to Vehicle Sales">
                 <BsCarFrontFill size={36} className="mb-2" style={{ color: '#1e3a8a' }} />
                 <h5 className="fw-bold">Vehicle For Sales</h5>
-                <div className="fs-2 fw-bold" style={{ color: '#1e3a8a' }}>{vehicleSaleCount}</div>
+                <div className="fs-2 fw-bold" style={{ color: '#1e3a8a' }}>{stats.vehicleSaleCount ?? 0}</div>
               </div>
               
               <div className="card shadow-sm text-center p-4 dashboard-card" style={{ borderRadius: 18, minWidth: 180, flex: '0 0 180px', background: '#fff', boxShadow: '0 2px 8px rgba(30,58,138,0.08)', cursor: 'pointer', transition: 'box-shadow 0.18s, transform 0.18s' }} onClick={() => componentrender('Orders')} tabIndex={0} title="Go to Orders">
                 <BsCartFill size={36} className="mb-2" style={{ color: '#1e3a8a' }} />
                 <h5 className="fw-bold">Orders</h5>
-                <div className="fs-2 fw-bold" style={{ color: '#1e3a8a' }}>{stats.orderCount}</div>
+                <div className="fs-2 fw-bold" style={{ color: '#1e3a8a' }}>{stats.orderCount ?? 0}</div>
               </div>
               <div className="card shadow-sm text-center p-4 dashboard-card" style={{ borderRadius: 18, minWidth: 180, flex: '0 0 180px', background: '#fff', color: '#1e3a8a', boxShadow: '0 2px 8px rgba(30,58,138,0.08)', cursor: 'pointer', transition: 'box-shadow 0.18s, transform 0.18s' }} onClick={() => componentrender('Loans')} tabIndex={0} title="Go to Loans">
                 <BsCurrencyRupee size={36} className="mb-2" style={{ color: '#1e3a8a' }} />
-                <h5 className="fw-bold" style={{ color: '#1e3a8a' }}>Loan Applications</h5>
-                <div className="fs-2 fw-bold" style={{ color: '#1e3a8a' }}>{loanCount}</div>
+                <h5 className="fw-bold">Loan Applications</h5>
+                <div className="fs-2 fw-bold" style={{ color: '#1e3a8a' }}>{loanCount ?? 0}</div>
               </div>
               <div className="card shadow-sm text-center p-4 dashboard-card" style={{ borderRadius: 18, minWidth: 180, flex: '0 0 180px', background: '#fff', boxShadow: '0 2px 8px rgba(30,58,138,0.08)', cursor: 'pointer', transition: 'box-shadow 0.18s, transform 0.18s' }} onClick={() => componentrender('Users')} tabIndex={0} title="Go to Users">
                 <BsPeopleFill size={36} className="mb-2" style={{ color: '#1e3a8a' }} />
                 <h5 className="fw-bold">Users</h5>
-                <div className="fs-2 fw-bold" style={{ color: '#1e3a8a' }}>{stats.userCount}</div>
+                <div className="fs-2 fw-bold" style={{ color: '#1e3a8a' }}>{stats.userCount ?? 0}</div>
               </div>
             </div>
             

@@ -22,7 +22,12 @@ const getTokenData = (token) => {
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(() => {
     const stored = localStorage.getItem('admin');
-    return stored ? JSON.parse(stored) : null;
+    if (!stored || stored === 'undefined') return null;
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return null;
+    }
   });
   const [token, setToken] = useState(() => localStorage.getItem('adminToken'));
   const [sessionWarning, setSessionWarning] = useState(false);

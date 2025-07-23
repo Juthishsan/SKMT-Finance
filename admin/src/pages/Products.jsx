@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import { BsEyeFill, BsPencilFill, BsTrashFill } from 'react-icons/bs';
 import LoadingSpinner from '../components/LoadingSpinner';
 import axios from 'axios';
+import { useAuth } from '../AuthProvider';
 
 const Products = () => {
   const [addproduct, setaddproduct] = useState(false);
@@ -25,6 +26,12 @@ const Products = () => {
   const API_URL = process.env.REACT_APP_API_URL;
   const [loading, setLoading] = useState(true);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  // Add state to track removed images and combine previews
+  const [removedImages, setRemovedImages] = useState([]);
+  const [deleteProductId, setDeleteProductId] = useState(null);
+  const [bulkDelete, setBulkDelete] = useState(false);
+  const [statusChange, setStatusChange] = useState(null);
+  const { authFetch } = useAuth();
 
   useEffect(() => {
     fetchProducts();
@@ -43,9 +50,10 @@ const Products = () => {
     try {
       const response = await fetch(`${API_URL}/api/products`);
       const data = await response.json();
-      setTableData(data);
+      setTableData(Array.isArray(data.data) ? data.data : []);
     } catch (error) {
       console.error('Error fetching products:', error);
+      setTableData([]);
     }
     setLoading(false);
   };
@@ -61,34 +69,27 @@ const Products = () => {
     seteditdata(row);
   };
 
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: 'Delete Product',
-      text: 'Are you sure you want to delete this product?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true
-    });
-    if (!result.isConfirmed) return;
+  const handleDelete = (id) => {
+    setDeleteProductId(id);
+  };
+  const confirmDeleteProduct = async () => {
     setLoading(true);
     try {
-      await fetch(`${API_URL}/api/products/${id}`, {
+      await fetch(`${API_URL}/api/products/${deleteProductId}`, {
         method: 'DELETE',
       });
       setLoading(false);
       setTimeout(() => {
         Swal.fire({
           icon: 'success',
-          title: 'Deleted!',
-          text: 'Product has been deleted.',
+          title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Product Deleted!</span>',
+          html: '<div style="color:#444;font-size:16px;margin-top:8px;">The product was successfully deleted.</div>',
+          background: '#f0fdfa',
           showConfirmButton: false,
-          timer: 1200
+          timer: 1400,
+          customClass: { popup: 'swal2-animate-success' }
         });
-      }, 1000);
+      }, 400);
       fetchProducts();
     } catch (err) {
       setLoading(false);
@@ -100,28 +101,41 @@ const Products = () => {
         });
       }, 1000);
     }
+    setDeleteProductId(null);
   };
 
   const handleEditSave = async (e) => {
     e.preventDefault();
+    seteditproduct(false); // Close modal immediately on submit
     const { _id, ...updatedDetails } = editdata;
     try {
       const formData = new FormData();
       formData.append('name', updatedDetails.name);
-      formData.append('price', updatedDetails.price);
+      formData.append('price', updatedDetails.price ? Number(updatedDetails.price) : '');
       formData.append('stock', updatedDetails.stock === true);
       formData.append('type', updatedDetails.type);
+      formData.append('modelYear', updatedDetails.modelYear ? Number(updatedDetails.modelYear) : '');
+      formData.append('owners', updatedDetails.owners ? Number(updatedDetails.owners) : '');
       formData.append('description', updatedDetails.info || updatedDetails.description || '');
-      if (newImages && newImages.length > 0) {
-        newImages.forEach(file => formData.append('images', file));
+      // Combine newImages and images that are not removed
+      const allImages = [...newImages, ...editdata.images.filter(img => !removedImages.includes(img))];
+      allImages.forEach(file => formData.append('images', file));
+      formData.append('fc', editdata.fc ? 'true' : 'false');
+      if (editdata.fc) {
+        formData.append('fcDuration', editdata.fcDuration);
+        formData.append('fcUnit', editdata.fcUnit);
       }
-      const response = await fetch(`${API_URL}/api/products/${_id}`, {
+      formData.append('insurance', editdata.insurance ? 'true' : 'false');
+      if (editdata.insurance) {
+        formData.append('insuranceDuration', editdata.insuranceDuration);
+        formData.append('insuranceUnit', editdata.insuranceUnit);
+      }
+      const response = await authFetch(`${API_URL}/api/products/${_id}`, {
         method: 'PUT',
         body: formData,
       });
 
       if (response.ok) {
-        seteditproduct(false);
         setTimeout(() => {
           Swal.fire({
             icon: 'success',
@@ -176,22 +190,27 @@ const Products = () => {
     setModalOpen(true);
   };
 
-  const handleToggleStatus = async (id, currentStatus) => {
+  const handleToggleStatus = (id, currentStatus) => {
+    setStatusChange({ id, newStatus: currentStatus === 'active' ? 'inactive' : 'active' });
+  };
+  const confirmStatusChange = async () => {
     setLoading(true);
     try {
-      await axios.put(`${API_URL}/api/products/${id}`, { 
-        status: currentStatus === 'active' ? 'inactive' : 'active' 
+      await axios.put(`${API_URL}/api/products/${statusChange.id}`, { 
+        status: statusChange.newStatus
       });
       setLoading(false);
       setTimeout(() => {
         Swal.fire({
           icon: 'success',
-          title: 'Status Updated!',
-          text: `Product is now ${currentStatus === 'active' ? 'inactive' : 'active'}.`,
+          title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Status Updated!</span>',
+          html: `<div style="color:#444;font-size:16px;margin-top:8px;">Product is now <b>${statusChange.newStatus}</b>.</div>`,
+          background: '#f0fdfa',
           showConfirmButton: false,
-          timer: 1200
+          timer: 1400,
+          customClass: { popup: 'swal2-animate-success' }
         });
-      }, 100);
+      }, 400);
       fetchProducts();
     } catch (err) {
       setLoading(false);
@@ -203,31 +222,13 @@ const Products = () => {
         });
       }, 1000);
     }
+    setStatusChange(null);
   };
 
-  const handleBulkDelete = async () => {
-    if (selectedProducts.length === 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'No Products Selected',
-        text: 'Please select products to delete.'
-      });
-      return;
-    }
-
-    const result = await Swal.fire({
-      title: 'Delete Selected Products',
-      text: `Are you sure you want to delete ${selectedProducts.length} products?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete them!',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true
-    });
-
-    if (!result.isConfirmed) return;
+  const handleBulkDelete = () => {
+    setBulkDelete(true);
+  };
+  const confirmBulkDelete = async () => {
     setLoading(true);
     try {
       await Promise.all(selectedProducts.map(id => axios.delete(`${API_URL}/api/products/${id}`)));
@@ -235,12 +236,14 @@ const Products = () => {
       setTimeout(() => {
         Swal.fire({
           icon: 'success',
-          title: 'Deleted!',
-          text: `${selectedProducts.length} products have been deleted.`,
+          title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Products Deleted!</span>',
+          html: `<div style="color:#444;font-size:16px;margin-top:8px;">${selectedProducts.length} products were successfully deleted.</div>`,
+          background: '#f0fdfa',
           showConfirmButton: false,
-          timer: 1200
+          timer: 1400,
+          customClass: { popup: 'swal2-animate-success' }
         });
-      }, 100);
+      }, 400);
       setSelectedProducts([]);
       fetchProducts();
     } catch (err) {
@@ -253,6 +256,7 @@ const Products = () => {
         });
       }, 1000);
     }
+    setBulkDelete(false);
   };
 
   const handleBulkToggleStatus = async (status) => {
@@ -365,7 +369,7 @@ const Products = () => {
                     <tr key={product._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: 12, textAlign: 'center' }}>
                         {(product.images && product.images.length > 0) ? (
-                          <img src={`${API_URL}${product.images[0]}`} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
+                          <img src={product.images[0]} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
                         ) : (
                           <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                         )}
@@ -450,164 +454,309 @@ const Products = () => {
               </button>
             </div>
             <div style={{ padding: '32px 24px', background: '#fff', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
-              <form onSubmit={handleEditSave} className="grid grid-2 gap-4 add-product-form">
-                <div className="form-group full-width">
-                  <label className="mb-2 fw-bold text-primary-blue">Product Images</label>
-                  <input
-                    accept="image/*"
-                    type="file"
-                    multiple
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files);
-                      setNewImages(files);
-                      setPreviewImages(files.map(file => URL.createObjectURL(file)));
-                    }}
-                    className="input-field pt-2"
-                    id="images"
-                  />
-                  {previewImages.length > 0 && (
-                    <div className="image-preview-list">
-                      {previewImages.map((src, idx) => (
-                        <div key={idx} className="image-preview-item" style={{ position: 'relative' }}>
-                          <img src={src} alt="Preview" className="image-preview-img" />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newImgs = [...newImages];
-                              const newPrevs = [...previewImages];
-                              newImgs.splice(idx, 1);
-                              newPrevs.splice(idx, 1);
-                              setNewImages(newImgs);
-                              setPreviewImages(newPrevs);
-                            }}
-                            style={{
-                              position: 'absolute',
-                              top: 2,
-                              right: 2,
-                              background: '#ef4444',
-                              color: '#fff',
-                              border: 'none',
-                              borderRadius: '50%',
-                              width: 22,
-                              height: 22,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                              fontWeight: 700,
-                              fontSize: 16,
-                              zIndex: 2
-                            }}
-                            aria-label="Remove image"
-                            title="Remove image"
-                          >
-                            &minus;
-                          </button>
-                      </div>
-                      ))}
+              <form onSubmit={handleEditSave} style={{ padding: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+                  {/* Row 1: Product Name, Product Stock */}
+                  <div style={{ display: 'flex', gap: 18 }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ color: '#1e3a8a', fontWeight: 600 }}>Product Name *</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={editdata.name || ''}
+                        onChange={e => seteditdata({ ...editdata, name: e.target.value })}
+                        required
+                        placeholder="Product Name"
+                        style={{ width: '100%', borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', marginTop: 4, background: '#f8fafc', transition: 'border 0.18s' }}
+                        onFocus={e => e.target.style.border = '1.5px solid #2563eb'}
+                        onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                      />
                     </div>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label className="mb-2 fw-bold text-primary-blue">Product Name</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    id="name"
-                    value={editdata.name}
-                    onChange={(e) => seteditdata({ ...editdata, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="mb-2 fw-bold text-primary-blue">Product Type</label>
-                  <input
-                    className="input-field"
-                    id="type"
-                    value={editdata.type}
-                    onChange={(e) => seteditdata({ ...editdata, type: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="mb-2 fw-bold text-primary-blue">Product Price</label>
-                  <input
-                    type="number"
-                    className="input-field"
-                    id="price"
-                    value={editdata.price}
-                    onChange={(e) => seteditdata({ ...editdata, price: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="mb-2 fw-bold text-primary-blue">Product Stock</label>
-                  <select
-                    className="input-field"
-                    id="stock"
-                    value={String(editdata.stock)}
-                    onChange={e => seteditdata({ ...editdata, stock: e.target.value === 'true' })}
-                    required
+                    <div style={{ flex: 1 }}>
+                      <label style={{ color: '#1e3a8a', fontWeight: 600 }}>Product Stock *</label>
+                      <select
+                        name="stock"
+                        value={String(editdata.stock)}
+                        onChange={e => seteditdata({ ...editdata, stock: e.target.value === 'true' })}
+                        required
+                        style={{ width: '100%', borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', marginTop: 4, background: '#f8fafc', transition: 'border 0.18s' }}
+                        onFocus={e => e.target.style.border = '1.5px solid #2563eb'}
+                        onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                      >
+                        <option value="">Select</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                    </div>
+                  </div>
+                  {/* Row 2: Product Price, Product Type */}
+                  <div style={{ display: 'flex', gap: 18 }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ color: '#1e3a8a', fontWeight: 600 }}>Product Price *</label>
+                      <input
+                        type="number"
+                        name="price"
+                        value={editdata.price || ''}
+                        onChange={e => seteditdata({ ...editdata, price: e.target.value })}
+                        required
+                        placeholder="Product Price"
+                        min="0"
+                        style={{ width: '100%', borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', marginTop: 4, background: '#f8fafc', transition: 'border 0.18s' }}
+                        onFocus={e => e.target.style.border = '1.5px solid #2563eb'}
+                        onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ color: '#1e3a8a', fontWeight: 600 }}>Product Type *</label>
+                      <input
+                        name="type"
+                        value={editdata.type || ''}
+                        onChange={e => seteditdata({ ...editdata, type: e.target.value })}
+                        required
+                        placeholder="Product Type"
+                        style={{ width: '100%', borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', marginTop: 4, background: '#f8fafc', transition: 'border 0.18s' }}
+                        onFocus={e => e.target.style.border = '1.5px solid #2563eb'}
+                        onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                      />
+                    </div>
+                  </div>
+                  {/* Row 3: Model Year, No. of Owners */}
+                  <div style={{ display: 'flex', gap: 18 }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ color: '#1e3a8a', fontWeight: 600 }}>Model Year *</label>
+                      <input
+                        type="number"
+                        name="modelYear"
+                        value={editdata.modelYear || ''}
+                        onChange={e => seteditdata({ ...editdata, modelYear: e.target.value })}
+                        required
+                        placeholder="Model Year"
+                        min="1900"
+                        max={new Date().getFullYear()}
+                        style={{ width: '100%', borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', marginTop: 4, background: '#f8fafc', transition: 'border 0.18s' }}
+                        onFocus={e => e.target.style.border = '1.5px solid #2563eb'}
+                        onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ color: '#1e3a8a', fontWeight: 600 }}>No. of Owners *</label>
+                      <input
+                        type="number"
+                        name="owners"
+                        value={editdata.owners || ''}
+                        onChange={e => seteditdata({ ...editdata, owners: e.target.value })}
+                        required
+                        placeholder="No. of Owners"
+                        min="1"
+                        style={{ width: '100%', borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', marginTop: 4, background: '#f8fafc', transition: 'border 0.18s' }}
+                        onFocus={e => e.target.style.border = '1.5px solid #2563eb'}
+                        onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                      />
+                    </div>
+                  </div>
+                  {/* Row 4: FC, Insurance */}
+                  <div style={{ display: 'flex', gap: 18 }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ color: '#1e3a8a', fontWeight: 600 }}>FC *</label>
+                      <select
+                        name="fc"
+                        value={editdata.fc === true ? 'true' : editdata.fc === false ? 'false' : ''}
+                        onChange={e => seteditdata({ ...editdata, fc: e.target.value === 'true', fcDuration: '', fcUnit: 'year' })}
+                        required
+                        style={{ width: '100%', borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', marginTop: 4, background: '#f8fafc', transition: 'border 0.18s' }}
+                        onFocus={e => e.target.style.border = '1.5px solid #2563eb'}
+                        onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                      >
+                        <option value="">Select</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                      {editdata.fc && (
+                        <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                          <input
+                            type="number"
+                            name="fcDuration"
+                            value={editdata.fcDuration || ''}
+                            onChange={e => seteditdata({ ...editdata, fcDuration: e.target.value })}
+                            required={editdata.fc}
+                            placeholder="No. of Years/Months"
+                            min="1"
+                            style={{ flex: 1, borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', background: '#f8fafc', transition: 'border 0.18s' }}
+                            onFocus={e => e.target.style.border = '1.5px solid #2563eb'}
+                            onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                          />
+                          <select
+                            name="fcUnit"
+                            value={editdata.fcUnit || 'year'}
+                            onChange={e => seteditdata({ ...editdata, fcUnit: e.target.value })}
+                            style={{ flex: 1, borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', background: '#f8fafc', transition: 'border 0.18s' }}
+                          >
+                            <option value="year">Year(s)</option>
+                            <option value="month">Month(s)</option>
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ color: '#1e3a8a', fontWeight: 600 }}>Insurance *</label>
+                      <select
+                        name="insurance"
+                        value={editdata.insurance === true ? 'true' : editdata.insurance === false ? 'false' : ''}
+                        onChange={e => seteditdata({ ...editdata, insurance: e.target.value === 'true', insuranceDuration: '', insuranceUnit: 'year' })}
+                        required
+                        style={{ width: '100%', borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', marginTop: 4, background: '#f8fafc', transition: 'border 0.18s' }}
+                        onFocus={e => e.target.style.border = '1.5px solid #2563eb'}
+                        onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                      >
+                        <option value="">Select</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                      {editdata.insurance && (
+                        <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                          <input
+                            type="number"
+                            name="insuranceDuration"
+                            value={editdata.insuranceDuration || ''}
+                            onChange={e => seteditdata({ ...editdata, insuranceDuration: e.target.value })}
+                            required={editdata.insurance}
+                            placeholder="No. of Years/Months"
+                            min="1"
+                            style={{ flex: 1, borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', background: '#f8fafc', transition: 'border 0.18s' }}
+                            onFocus={e => e.target.style.border = '1.5px solid #2563eb'}
+                            onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                          />
+                          <select
+                            name="insuranceUnit"
+                            value={editdata.insuranceUnit || 'year'}
+                            onChange={e => seteditdata({ ...editdata, insuranceUnit: e.target.value })}
+                            style={{ flex: 1, borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', background: '#f8fafc', transition: 'border 0.18s' }}
+                          >
+                            <option value="year">Year(s)</option>
+                            <option value="month">Month(s)</option>
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* Row 5: Product Images (full width) */}
+                  <div className="form-group">
+                    <label style={{ color: '#1e3a8a', fontWeight: 600 }}>Product Images</label>
+                    <input
+                      accept="image/*"
+                      type="file"
+                      multiple
+                      onChange={e => {
+                        const files = Array.from(e.target.files);
+                        setNewImages(files);
+                        setPreviewImages(files.map(file => URL.createObjectURL(file)));
+                      }}
+                      style={{ borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '10px', background: '#f8fafc', marginTop: 4 }}
+                    />
+                    {/* Only show newly selected images */}
+                    {previewImages.length > 0 && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: 12,
+                          marginTop: 14,
+                          background: '#f1f5f9',
+                          borderRadius: 12,
+                          border: '1.5px solid #c7d2fe',
+                          padding: 12,
+                        }}
+                      >
+                        {previewImages.map((src, idx) => (
+                          <div key={src} style={{ position: 'relative' }}>
+                            <img
+                              src={src}
+                              alt={`preview-${idx}`}
+                              style={{
+                                width: 80,
+                                height: 80,
+                                objectFit: 'cover',
+                                borderRadius: 8,
+                                border: '1.5px solid #e0e7ef',
+                                boxShadow: '0 2px 8px #1e3a8a11',
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newImgs = [...newImages];
+                                const newPrevs = [...previewImages];
+                                newImgs.splice(idx, 1);
+                                newPrevs.splice(idx, 1);
+                                setNewImages(newImgs);
+                                setPreviewImages(newPrevs);
+                              }}
+                              style={{
+                                position: 'absolute',
+                                top: 2,
+                                right: 2,
+                                background: '#ef4444',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: 22,
+                                height: 22,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                fontWeight: 700,
+                                fontSize: 16,
+                                zIndex: 2
+                              }}
+                              aria-label="Remove image"
+                              title="Remove image"
+                            >
+                              &minus;
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {/* Row 6: Product Description (full width) */}
+                  <div className="form-group">
+                    <label style={{ color: '#1e3a8a', fontWeight: 600 }}>Product Description *</label>
+                    <textarea
+                      name="description"
+                      value={editdata.info || editdata.description || ''}
+                      onChange={e => seteditdata({ ...editdata, info: e.target.value })}
+                      required
+                      rows={4}
+                      placeholder="Product Description"
+                      maxLength={4096}
+                      style={{ width: '100%', borderRadius: 12, border: '1.5px solid #c7d2fe', padding: '12px 14px', fontSize: 16, fontWeight: 500, outline: 'none', marginTop: 4, background: '#f8fafc', transition: 'border 0.18s' }}
+                      onFocus={e => e.target.style.border = '1.5px solid #2563eb'}
+                      onBlur={e => e.target.style.border = '1.5px solid #c7d2fe'}
+                    />
+                  </div>
+                  <button
+                    className="btn btn-primary"
+                    type="submit"
+                    style={{
+                      width: '100%',
+                      background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)',
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: 20,
+                      borderRadius: 14,
+                      padding: '14px 0',
+                      marginTop: 10,
+                      boxShadow: '0 4px 16px #1e3a8a22',
+                      border: 'none',
+                      transition: 'background 0.18s, box-shadow 0.18s',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                    }}
+                    onMouseOver={e => e.currentTarget.style.background = 'linear-gradient(90deg, #3b82f6 60%, #1e3a8a 100%)'}
+                    onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)'}
                   >
-                    <option value="">Select</option>
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="mb-2 fw-bold text-primary-blue">Model Year</label>
-                  <input
-                    type="number"
-                    className="input-field"
-                    id="modelYear"
-                    value={editdata.modelYear || ''}
-                    onChange={(e) => seteditdata({ ...editdata, modelYear: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="mb-2 fw-bold text-primary-blue">No. of Owners</label>
-                  <input
-                    type="number"
-                    className="input-field"
-                    id="owners"
-                    value={editdata.owners || ''}
-                    onChange={(e) => seteditdata({ ...editdata, owners: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="mb-2 fw-bold text-primary-blue">FC Years</label>
-                  <input
-                    type="number"
-                    className="input-field"
-                    id="fcYears"
-                    value={editdata.fcYears || ''}
-                    onChange={(e) => seteditdata({ ...editdata, fcYears: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="mb-2 fw-bold text-primary-blue">Insurance</label>
-                  <select
-                    className="input-field"
-                    id="insurance"
-                    value={editdata.insurance ? 'true' : 'false'}
-                    onChange={(e) => seteditdata({ ...editdata, insurance: e.target.value === 'true' })}
-                  >
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
-                </div>
-                <div className="form-group full-width">
-                  <label className="mb-2 fw-bold text-primary-blue">Product Description</label>
-                  <textarea
-                    className="input-field pt-2"
-                    id="info"
-                    rows="4"
-                    value={editdata.info || editdata.description || ''}
-                    onChange={(e) => seteditdata({ ...editdata, info: e.target.value })}
-                  />
-                </div>
-                <div className="col-md-12 mb-4 px-5 text-center full-width">
-                  <button className="btn btn-primary add-product-submit-btn" type="submit">Save</button>
+                    Save
+                  </button>
                 </div>
               </form>
             </div>
@@ -629,7 +778,13 @@ const Products = () => {
                   <>
                     <img
                       className="admin-modal-image"
-                      src={`${API_URL}${selectedRowData.images[slideshowIndex]}`}
+                      src={
+                        selectedRowData.images[slideshowIndex]
+                          ? selectedRowData.images[slideshowIndex].startsWith('http')
+                            ? selectedRowData.images[slideshowIndex]
+                            : `${API_URL}${selectedRowData.images[slideshowIndex]}`
+                          : ''
+                      }
                       loading="lazy"
                       alt="Product"
                       style={{ width: '100%', maxWidth: 300, height: 'auto', borderRadius: 18, boxShadow: '0 4px 24px #1e3a8a22', background: '#f1f5f9', objectFit: 'cover' }}
@@ -694,16 +849,102 @@ const Products = () => {
                   <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.owners}</div>
                 </div>
                 <div>
-                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>FC Years</div>
-                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.fcYears}</div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>FC</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>
+                    {selectedRowData.fc ? 'Yes' : 'No'}
+                    {selectedRowData.fc && selectedRowData.fcDuration && selectedRowData.fcUnit && (
+                      <span style={{ marginLeft: 8, color: '#2563eb', fontWeight: 600 }}>
+                        ({selectedRowData.fcDuration} {selectedRowData.fcUnit}{selectedRowData.fcDuration > 1 ? 's' : ''})
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Insurance</div>
-                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.insurance ? 'Yes' : 'No'}</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>
+                    {selectedRowData.insurance ? 'Yes' : 'No'}
+                    {selectedRowData.insurance && selectedRowData.insuranceDuration && selectedRowData.insuranceUnit && (
+                      <span style={{ marginLeft: 8, color: '#2563eb', fontWeight: 600 }}>
+                        ({selectedRowData.insuranceDuration} {selectedRowData.insuranceUnit}{selectedRowData.insuranceDuration > 1 ? 's' : ''})
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
                   <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Description</div>
                   <div className="admin-modal-value" style={{ fontWeight: 500, fontSize: 16, color: '#222', background: '#f9fafb', borderRadius: 10, padding: 12, marginTop: 2 }}>{selectedRowData.description || selectedRowData.info}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {deleteProductId && (
+        <div>
+          <div
+            className="modal d-block border-0 admins-modal-bg"
+            role="dialog"
+            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+          >
+            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(220,38,38,0.18)', background: '#fff' }}>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 44, color: '#dc2626', marginBottom: 12 }}>⚠️</div>
+                  <h3 style={{ color: '#dc2626', marginBottom: 10 }}>Delete Product?</h3>
+                  <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to delete this product? This action cannot be undone.</div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button onClick={() => setDeleteProductId(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={confirmDeleteProduct} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #dc2626 60%, #f87171 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Delete</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Bulk Delete Confirmation Modal */}
+      {bulkDelete && (
+        <div>
+          <div
+            className="modal d-block border-0 admins-modal-bg"
+            role="dialog"
+            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+          >
+            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(220,38,38,0.18)', background: '#fff' }}>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 44, color: '#dc2626', marginBottom: 12 }}>⚠️</div>
+                  <h3 style={{ color: '#dc2626', marginBottom: 10 }}>Delete Selected Products?</h3>
+                  <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to delete {selectedProducts.length} products? This action cannot be undone.</div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button onClick={() => setBulkDelete(false)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={confirmBulkDelete} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #dc2626 60%, #f87171 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Delete</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Status Change Confirmation Modal */}
+      {statusChange && (
+        <div>
+          <div
+            className="modal d-block border-0 admins-modal-bg"
+            role="dialog"
+            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+          >
+            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(220,38,38,0.18)', background: '#fff' }}>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 44, color: '#dc2626', marginBottom: 12 }}>⚠️</div>
+                  <h3 style={{ color: '#dc2626', marginBottom: 10 }}>Change Product Status?</h3>
+                  <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to change the status to <b>{statusChange.newStatus}</b>?</div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button onClick={() => setStatusChange(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={confirmStatusChange} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Change</button>
+                  </div>
                 </div>
               </div>
             </div>

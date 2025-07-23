@@ -47,7 +47,7 @@ const Home = () => {
           throw new Error('Failed to fetch products');
         }
         const data = await response.json();
-        setProducts(data);
+        setProducts(Array.isArray(data.data) ? data.data : []);
       } catch (err) {
         setError(err.message);
         console.error('Error fetching products:', err);
@@ -172,7 +172,13 @@ const Home = () => {
                   <div className="product-image-container">
                     {product.images && product.images.length > 0 ? (
                       <img 
-                        src={`${API_URL}${product.images[0]}`} 
+                        src={
+                          product.images[0]
+                            ? product.images[0].startsWith('http')
+                              ? product.images[0]
+                              : `${API_URL}${product.images[0]}`
+                            : ''
+                        }
                         alt={product.name}
                         className="product-image"
                         onError={(e) => {

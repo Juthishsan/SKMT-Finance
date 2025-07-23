@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
 import DataTable from 'react-data-table-component';
 import * as XLSX from 'xlsx';
 import Swal from 'sweetalert2';
 import { BsTrashFill } from 'react-icons/bs';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useAuth } from '../AuthProvider';
 
 const Orders = () => {
   const [tableData, setTableData] = useState([]);
@@ -24,6 +26,9 @@ const Orders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [loading, setLoading] = useState(true);
+  const [openDropdown, setOpenDropdown] = useState(null); // Track open dropdown by order ID
+  const [deleteOrderId, setDeleteOrderId] = useState(null);
+  const [statusChange, setStatusChange] = useState(null);
 
   const ORDER_STATUSES = ['Pending', 'Processing', 'Completed', 'Cancelled'];
 
@@ -35,6 +40,7 @@ const Orders = () => {
   };
 
   const API_URL = process.env.REACT_APP_API_URL;
+  const { authFetch } = useAuth();
 
   const openModal = (rowData) => {
     setSelectedRowData(rowData);
@@ -93,13 +99,41 @@ const Orders = () => {
     setFilteredData(filteredItems);
   };
 
-  function StatusDropdown({ value, onChange }) {
-    const [open, setOpen] = useState(false);
+  function StatusDropdown({ value, onChange, orderId }) {
+    const open = openDropdown === orderId;
+    const btnRef = useRef();
+    const [menuPos, setMenuPos] = useState(null); // null until calculated
+
+    useEffect(() => {
+      function updateMenuPos() {
+        if (open && btnRef.current) {
+          const rect = btnRef.current.getBoundingClientRect();
+          setMenuPos({
+            top: rect.bottom + window.scrollY,
+            left: rect.left + window.scrollX,
+            width: rect.width,
+          });
+        }
+      }
+      if (open) {
+        updateMenuPos();
+        window.addEventListener('scroll', updateMenuPos, true);
+        window.addEventListener('resize', updateMenuPos);
+      } else {
+        setMenuPos(null);
+      }
+      return () => {
+        window.removeEventListener('scroll', updateMenuPos, true);
+        window.removeEventListener('resize', updateMenuPos);
+      };
+    }, [open]);
+
     return (
       <div style={{ position: 'relative', minWidth: 160 }}>
         <button
+          ref={btnRef}
           type="button"
-          onClick={() => setOpen(o => !o)}
+          onClick={() => setOpenDropdown(open ? null : orderId)}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -117,6 +151,7 @@ const Orders = () => {
             minWidth: 160,
             maxWidth: 220,
             whiteSpace: 'nowrap',
+            zIndex: 20,
           }}
         >
           <span style={{
@@ -131,24 +166,23 @@ const Orders = () => {
           <span style={{ whiteSpace: 'nowrap', flex: 1 }}>{value}</span>
           <svg style={{ marginLeft: 8, flexShrink: 0 }} width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" stroke="#1e3a8a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
-        {open && (
+        {open && menuPos && ReactDOM.createPortal(
           <div style={{
             position: 'absolute',
-            top: '110%',
-            left: 0,
-            zIndex: 10,
+            top: menuPos.top,
+            left: menuPos.left,
+            minWidth: menuPos.width,
+            zIndex: 2000,
             background: '#fff',
             border: '1.5px solid #c7d2fe',
             borderRadius: 10,
             boxShadow: '0 4px 24px #1e3a8a22',
-            minWidth: 160,
-            maxWidth: 220,
             padding: 4,
           }}>
             {ORDER_STATUSES.map(status => (
               <div
                 key={status}
-                onClick={() => { setOpen(false); if (status !== value) onChange(status); }}
+                onClick={() => { setOpenDropdown(null); if (status !== value) onChange(status); }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -178,7 +212,8 @@ const Orders = () => {
                 <span style={{ whiteSpace: 'nowrap', flex: 1 }}>{status}</span>
               </div>
             ))}
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     );
@@ -220,7 +255,7 @@ const Orders = () => {
         <div className='d-flex flex-row align-items-center' style={{ gap: 12, flexWrap: 'nowrap', minWidth: 220, marginLeft: -16 }}>
           <i className='bi bi-eye-fill action-btn-view' style={{ color: '#1e3a8a', fontSize: 20, cursor: 'pointer', marginRight: 0 }} onClick={() => openModal(row)} title="View order info"></i>
           <div style={{ flex: '0 0 140px', minWidth: 140, maxWidth: 220 }}>
-            <StatusDropdown value={row.orderstatus} onChange={status => handleChangeStatus(row, status)} />
+            <StatusDropdown value={row.orderstatus} onChange={status => handleChangeStatus(row, status)} orderId={row._id} />
           </div>
         </div>
       ),
@@ -239,19 +274,22 @@ const Orders = () => {
 
   useEffect(() => {
     // Fetch orders data from backend
-    fetch(`${API_URL}/api/orders`)
+    authFetch(`${API_URL}/api/orders`)
       .then(res => res.json())
       .then(async data => {
         console.log("fetched orders", data);
+        const orders = Array.isArray(data.data) ? data.data : [];
         // For any order where productSnapshot is just an ID, fetch the full product
-        const mapped = await Promise.all(data.map(async order => {
+        const mapped = await Promise.all(orders.map(async order => {
           let product = order.productSnapshot;
+          console.log('order.productSnapshot:', order.productSnapshot);
           if (typeof product === 'string') {
             // Legacy order, fetch full product
             try {
-              const res = await fetch(`${API_URL}/api/products/${product}`);
+              const res = await authFetch(`${API_URL}/api/products/${product}`);
               if (res.ok) {
-                product = await res.json();
+                const prodRes = await res.json();
+                product = prodRes.data ? prodRes.data : prodRes;
               } else {
                 product = { name: '-', images: [], type: '-', price: '-', modelYear: '-' };
               }
@@ -259,6 +297,7 @@ const Orders = () => {
               product = { name: '-', images: [], type: '-', price: '-', modelYear: '-' };
             }
           }
+          console.log('mapped product:', product);
           return {
             _id: order._id,
             orderDate: new Date(order.orderDate).toLocaleString(),
@@ -287,97 +326,98 @@ const Orders = () => {
   // Update the handler to accept the new status
   const handleChangeStatus = async (row, newStatus) => {
     if (newStatus && newStatus !== row.orderstatus) {
-      const result = await Swal.fire({
-        title: 'Change Order Status?',
-        text: `Are you sure you want to change the status to "${newStatus}"?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#1e3a8a',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, change it!'
-      });
-      
-      if (result.isConfirmed) {
-        setLoading(true);
-        try {
-          const response = await fetch(`${API_URL}/api/orders/${row._id}/status`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus })
-          });
-          const data = await response.json();
-          setTableData(prev => prev.map(o => o._id === row._id ? { ...o, orderstatus: newStatus } : o));
-          setFilteredData(prev => prev.map(o => o._id === row._id ? { ...o, orderstatus: newStatus } : o));
-          setLoading(false);
-          setTimeout(() => {
-            Swal.fire({ icon: 'success', title: 'Updated!',text:'Order status has been changed!', timer: 1200, showConfirmButton: false });
-          }, 1000);
-        } catch (error) {
-          setLoading(false);
-          setTimeout(() => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'Failed to update order status.',
-              timer: 1200, 
-              showConfirmButton: 'false'
-            });
-          }, 1000);
-        }
-      }
+      // Custom confirmation modal
+      setStatusChange({ id: row._id, newStatus });
     }
+  };
+  const confirmStatusChange = async () => {
+    setLoading(true);
+    try {
+      const response = await authFetch(`${API_URL}/api/orders/${statusChange.id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: statusChange.newStatus })
+      });
+      const data = await response.json();
+      setTableData(prev => prev.map(o => o._id === statusChange.id ? { ...o, orderstatus: statusChange.newStatus } : o));
+      setFilteredData(prev => prev.map(o => o._id === statusChange.id ? { ...o, orderstatus: statusChange.newStatus } : o));
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'success',
+          title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Order Status Updated!</span>',
+          html: '<div style="color:#444;font-size:16px;margin-top:8px;">Order status has been changed.</div>',
+          background: '#f0fdfa',
+          showConfirmButton: false,
+          timer: 1400,
+          customClass: { popup: 'swal2-animate-success' }
+        });
+      }, 400);
+    } catch (error) {
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to update order status.',
+          timer: 1200,
+          showConfirmButton: false
+        });
+      }, 1000);
+    }
+    setStatusChange(null);
   };
 
   const handleDeleteOrder = async (orderId) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'You will not be able to recover this order!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-    });
-    
-    if (result.isConfirmed) {
-      setLoading(true);
-      try {
-        const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
-          method: 'DELETE',
-        });
-        if (response.ok) {
-          setLoading(false);
-          setTimeout(() => {
-            Swal.fire({ icon: 'success', title: 'Deleted!',text:'Order deleted successfully!', timer: 1200, showConfirmButton: false });
-          }, 1000);
-          setTableData(prev => prev.filter(o => o._id !== orderId));
-          setFilteredData(prev => prev.filter(o => o._id !== orderId));
-        } else {
-          const errorData = await response.json();
-          setLoading(false);
-          setTimeout(() => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Failed to delete order',
-              text: errorData.error || '',
-              showConfirmButton: false,
-              confirmButtonColor: 'black',
-            });
-          }, 1000);
-        }
-      } catch (error) {
+    setDeleteOrderId(orderId);
+  };
+  const confirmDeleteOrder = async () => {
+    setLoading(true);
+    try {
+      const response = await authFetch(`${API_URL}/api/orders/${deleteOrderId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setLoading(false);
+        setTimeout(() => {
+          Swal.fire({
+            icon: 'success',
+            title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Order Deleted!</span>',
+            html: '<div style="color:#444;font-size:16px;margin-top:8px;">The order was successfully deleted.</div>',
+            background: '#f0fdfa',
+            showConfirmButton: false,
+            timer: 1400,
+            customClass: { popup: 'swal2-animate-success' }
+          });
+        }, 400);
+        setTableData(prev => prev.filter(o => o._id !== deleteOrderId));
+        setFilteredData(prev => prev.filter(o => o._id !== deleteOrderId));
+      } else {
+        const errorData = await response.json();
         setLoading(false);
         setTimeout(() => {
           Swal.fire({
             icon: 'error',
-            title: 'Error',
-            text: error.message,
-            showConfirmButton: true,
+            title: 'Failed to delete order',
+            text: errorData.error || '',
+            showConfirmButton: false,
             confirmButtonColor: 'black',
           });
-        }, 100);
+        }, 1000);
       }
+    } catch (error) {
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message,
+          showConfirmButton: true,
+          confirmButtonColor: 'black',
+        });
+      }, 100);
     }
+    setDeleteOrderId(null);
   };
 
   if (loading) {
@@ -471,7 +511,7 @@ const Orders = () => {
                       <td style={{ padding: 12, fontWeight: 600 }}>{order.product?.name || '-'}</td>
                       <td style={{ padding: 12 }}>{order.user?.username || '-'}</td>
                       <td style={{ padding: 12 }}>
-                        <StatusDropdown value={order.orderstatus} onChange={status => handleChangeStatus(order, status)} />
+                        <StatusDropdown value={order.orderstatus} onChange={status => handleChangeStatus(order, status)} orderId={order._id} />
                       </td>
                       <td style={{ padding: 12 }}>
                         <div className="d-flex gap-2">
@@ -608,12 +648,22 @@ const Orders = () => {
                   <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.product?.owners}</div>
                 </div>
                 <div>
-                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>FC Years</div>
-                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.product?.fcYears}</div>
+                  <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>FC</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>
+                    {selectedRowData.product?.fc ? 'Yes' : 'No'}
+                    {selectedRowData.product?.fc && selectedRowData.product?.fcDuration && selectedRowData.product?.fcUnit && (
+                      <span> ({selectedRowData.product.fcDuration} {selectedRowData.product.fcUnit}{selectedRowData.product.fcDuration > 1 ? 's' : ''})</span>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Insurance</div>
-                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>{selectedRowData.product?.insurance ? 'Yes' : 'No'}</div>
+                  <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 17 }}>
+                    {selectedRowData.product?.insurance ? 'Yes' : 'No'}
+                    {selectedRowData.product?.insurance && selectedRowData.product?.insuranceDuration && selectedRowData.product?.insuranceUnit && (
+                      <span> ({selectedRowData.product.insuranceDuration} {selectedRowData.product.insuranceUnit}{selectedRowData.product.insuranceDuration > 1 ? 's' : ''})</span>
+                    )}
+                  </div>
                 </div>
                 <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
                   <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Description</div>
@@ -647,6 +697,54 @@ const Orders = () => {
                       <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>User Address</div>
                       <div className="admin-modal-value" style={{ fontWeight: 700, fontSize: 16 }}>{selectedRowData.user?.address}, {selectedRowData.user?.city}, {selectedRowData.user?.state} - {selectedRowData.user?.pincode}</div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {deleteOrderId && (
+        <div>
+          <div
+            className="modal d-block border-0 admins-modal-bg"
+            role="dialog"
+            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+          >
+            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(220,38,38,0.18)', background: '#fff' }}>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 44, color: '#dc2626', marginBottom: 12 }}>⚠️</div>
+                  <h3 style={{ color: '#dc2626', marginBottom: 10 }}>Delete Order?</h3>
+                  <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to delete this order? This action cannot be undone.</div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button onClick={() => setDeleteOrderId(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={confirmDeleteOrder} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #dc2626 60%, #f87171 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Delete</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Status Change Confirmation Modal */}
+      {statusChange && (
+        <div>
+          <div
+            className="modal d-block border-0 admins-modal-bg"
+            role="dialog"
+            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+          >
+            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(220,38,38,0.18)', background: '#fff' }}>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 44, color: '#dc2626', marginBottom: 12 }}>⚠️</div>
+                  <h3 style={{ color: '#dc2626', marginBottom: 10 }}>Change Order Status?</h3>
+                  <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to change the status to <b>{statusChange.newStatus}</b>?</div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button onClick={() => setStatusChange(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={confirmStatusChange} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Change</button>
                   </div>
                 </div>
               </div>

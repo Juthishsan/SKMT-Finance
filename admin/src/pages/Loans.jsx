@@ -17,13 +17,15 @@ const Loans = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const API_URL = process.env.REACT_APP_API_URL;
+  const [processId, setProcessId] = useState(null);
+  const [cancelId, setCancelId] = useState(null);
 
   const fetchApplications = async () => {
     setError('');
     try {
       const res = await authFetch(`${API_URL}/api/loan-applications`);
       const data = await res.json();
-      setApplications(data);
+      setApplications(Array.isArray(data.data) ? data.data : []);
     } catch (err) {
       setError('Failed to fetch loan applications');
     }
@@ -45,44 +47,82 @@ const Loans = () => {
     }
     setActionLoading('');
     setDeleteAppId(null);
+    setTimeout(() => {
+      Swal.fire({
+        icon: 'success',
+        title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Application Deleted!</span>',
+        html: '<div style="color:#444;font-size:16px;margin-top:8px;">The loan application was successfully deleted.</div>',
+        background: '#f0fdfa',
+        showConfirmButton: false,
+        timer: 1400,
+        customClass: { popup: 'swal2-animate-success' }
+      });
+    }, 400);
   };
 
-  const handleMarkProcessed = async (id) => {
-    setActionLoading(id + '-process');
+  const handleMarkProcessed = (id) => {
+    setProcessId(id);
+  };
+  const confirmMarkProcessed = async () => {
+    setActionLoading(processId + '-process');
     try {
-      const res = await authFetch(`${API_URL}/api/loan-applications/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' } });
+      const res = await authFetch(`${API_URL}/api/loan-applications/${processId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Processed' })
+      });
       if (!res.ok) throw new Error('Failed to mark as processed');
       const updated = await res.json();
-      setApplications(apps => apps.map(app => app._id === id ? updated : app));
+      setApplications(apps => apps.map(app => app._id === processId ? updated.data : app));
       setActionLoading('');
       setTimeout(() => {
-        Swal.fire({ icon: 'success', title: 'Loan marked as processed!', showConfirmButton: false, timer: 1200 });
-      }, 1000);
+        Swal.fire({
+          icon: 'success',
+          title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Loan Marked as Processed!</span>',
+          html: '<div style="color:#444;font-size:16px;margin-top:8px;">The loan application was marked as processed.</div>',
+          background: '#f0fdfa',
+          showConfirmButton: false,
+          timer: 1400,
+          customClass: { popup: 'swal2-animate-success' }
+        });
+      }, 400);
     } catch (err) {
       setActionLoading('');
       setTimeout(() => {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to mark as processed.' });
       }, 1000);
     }
+    setProcessId(null);
   };
-
-  const handleCancel = async (id) => {
-    setActionLoading(id + '-cancel');
+  const handleCancel = (id) => {
+    setCancelId(id);
+  };
+  const confirmCancel = async () => {
+    setActionLoading(cancelId + '-cancel');
     try {
-      const res = await authFetch(`${API_URL}/api/loan-applications/${id}/cancel`, { method: 'PATCH' });
+      const res = await authFetch(`${API_URL}/api/loan-applications/${cancelId}/cancel`, { method: 'PATCH' });
       if (!res.ok) throw new Error('Cancel failed');
       const updated = await res.json();
-      setApplications(apps => apps.map(app => app._id === id ? updated : app));
+      setApplications(apps => apps.map(app => app._id === cancelId ? updated : app));
       setActionLoading('');
       setTimeout(() => {
-        Swal.fire({ icon: 'success', title: 'Loan application cancelled!', showConfirmButton: false, timer: 1200 });
-      }, 1000);
+        Swal.fire({
+          icon: 'success',
+          title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Loan Application Cancelled!</span>',
+          html: '<div style="color:#444;font-size:16px;margin-top:8px;">The loan application was cancelled.</div>',
+          background: '#f0fdfa',
+          showConfirmButton: false,
+          timer: 1400,
+          customClass: { popup: 'swal2-animate-success' }
+        });
+      }, 400);
     } catch (err) {
       setActionLoading('');
       setTimeout(() => {
         Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to cancel application.' });
       }, 1000);
     }
+    setCancelId(null);
   };
 
   // Filter by search and status
@@ -328,6 +368,54 @@ const Loans = () => {
                   <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
                     <button onClick={() => setDeleteAppId(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
                     <button onClick={() => handleDelete(deleteAppId)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #dc2626 60%, #f87171 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }} disabled={actionLoading === deleteAppId + '-delete'}>Delete</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Mark as Processed Confirmation Modal */}
+      {processId && (
+        <div>
+          <div
+            className="modal d-block border-0 admins-modal-bg"
+            role="dialog"
+            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+          >
+            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(16,196,34,0.18)', background: '#fff' }}>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 44, color: '#16a34a', marginBottom: 12 }}>✔️</div>
+                  <h3 style={{ color: '#16a34a', marginBottom: 10 }}>Mark as Processed?</h3>
+                  <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to mark this loan application as processed?</div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button onClick={() => setProcessId(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={confirmMarkProcessed} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #16a34a 60%, #4ade80 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Mark as Processed</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Cancel Confirmation Modal */}
+      {cancelId && (
+        <div>
+          <div
+            className="modal d-block border-0 admins-modal-bg"
+            role="dialog"
+            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+          >
+            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(220,38,38,0.18)', background: '#fff' }}>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 44, color: '#dc2626', marginBottom: 12 }}>⚠️</div>
+                  <h3 style={{ color: '#dc2626', marginBottom: 10 }}>Cancel Application?</h3>
+                  <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to cancel this loan application?</div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button onClick={() => setCancelId(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={confirmCancel} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #dc2626 60%, #f87171 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Cancel Application</button>
                   </div>
                 </div>
               </div>

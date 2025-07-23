@@ -15,6 +15,7 @@ const Users = () => {
   const paginatedData = (searchText ? filteredData : tableData).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   const totalPages = Math.ceil((searchText ? filteredData.length : tableData.length) / itemsPerPage);
   const [loading, setLoading] = useState(true);
+  const [deleteUserId, setDeleteUserId] = useState(null);
   useEffect(() => { setCurrentPage(1); }, [searchText]);
 
   const openModal = (rowData) => {
@@ -28,8 +29,8 @@ const Users = () => {
       try {
         const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/users`);
         const data = await res.json();
-        setTableData(data);
-        setFilteredData(data);
+        setTableData(Array.isArray(data.data) ? data.data : []);
+        setFilteredData(Array.isArray(data.data) ? data.data : []);
       } catch (err) {
         setTableData([]);
         setFilteredData([]);
@@ -39,36 +40,37 @@ const Users = () => {
     fetchUsers();
   }, [authFetch]);
 
-  const deleteUser = async (userId) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'This action will permanently delete the user.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!'
-    });
-    if (result.isConfirmed) {
-      setLoading(true);
-      try {
-        await authFetch(`${process.env.REACT_APP_API_URL}/api/users/${userId}`, { method: 'DELETE' });
-        setLoading(false);
-        setTimeout(() => {
-        Swal.fire('Deleted!', 'User has been deleted.', 'success');
-        }, 100);
-        // Refresh user list
-        const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/users`);
-        const data = await res.json();
-        setTableData(data);
-        setFilteredData(data);
-      } catch (err) {
-        setLoading(false);
-        setTimeout(() => {
+  const deleteUser = (userId) => {
+    setDeleteUserId(userId);
+  };
+  const confirmDeleteUser = async () => {
+    setLoading(true);
+    try {
+      await authFetch(`${process.env.REACT_APP_API_URL}/api/users/${deleteUserId}`, { method: 'DELETE' });
+      setLoading(false);
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'success',
+          title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">User Deleted!</span>',
+          html: '<div style="color:#444;font-size:16px;margin-top:8px;">The user was successfully deleted.</div>',
+          background: '#f0fdfa',
+          showConfirmButton: false,
+          timer: 1400,
+          customClass: { popup: 'swal2-animate-success' }
+        });
+      }, 400);
+      // Refresh user list
+      const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/users`);
+      const data = await res.json();
+      setTableData(Array.isArray(data.data) ? data.data : []);
+      setFilteredData(Array.isArray(data.data) ? data.data : []);
+    } catch (err) {
+      setLoading(false);
+      setTimeout(() => {
         Swal.fire('Error', 'Failed to delete user.', 'error');
-        }, 100);
-      }
+      }, 100);
     }
+    setDeleteUserId(null);
   };
 
   const handleSearch = (searchQuery) => {
@@ -225,6 +227,30 @@ const Users = () => {
                 <div style={{ gridColumn: '1 / -1', marginTop: 8 }}>
                   <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Address</div>
                   <div className="admin-modal-value" style={{ fontWeight: 500, fontSize: 16, color: '#222', background: '#f9fafb', borderRadius: 10, padding: 12, marginTop: 2 }}>{selectedRowData.address || 'Not provided'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {deleteUserId && (
+        <div>
+          <div
+            className="modal d-block border-0 admins-modal-bg"
+            role="dialog"
+            style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+          >
+            <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+              <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(220,38,38,0.18)', background: '#fff' }}>
+                <div className="modal-body" style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 44, color: '#dc2626', marginBottom: 12 }}>⚠️</div>
+                  <h3 style={{ color: '#dc2626', marginBottom: 10 }}>Delete User?</h3>
+                  <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to delete this user? This action cannot be undone.</div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button onClick={() => setDeleteUserId(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={confirmDeleteUser} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #dc2626 60%, #f87171 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Delete</button>
+                  </div>
                 </div>
               </div>
             </div>

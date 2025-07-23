@@ -9,8 +9,12 @@ const ProductSchema = new mongoose.Schema({
   images: [{ type: String }], // Array of image URLs
   modelYear: { type: Number },
   owners: { type: Number },
-  fcYears: { type: Number },
+  fc: { type: Boolean },
+  fcDuration: { type: Number },
+  fcUnit: { type: String, enum: ['year', 'month'], default: 'year' },
   insurance: { type: Boolean },
+  insuranceDuration: { type: Number },
+  insuranceUnit: { type: String, enum: ['year', 'month'], default: 'year' },
 });
 
 module.exports = mongoose.model('Product', ProductSchema); 

@@ -18,6 +18,7 @@ const Admins = () => {
     const paginatedData = (searchText ? filteredData : tableData).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
     const totalPages = Math.ceil((searchText ? filteredData.length : tableData.length) / itemsPerPage);
     useEffect(() => { setCurrentPage(1); }, [searchText]);
+    const [deleteAdminId, setDeleteAdminId] = useState(null);
 
     const openModal = (rowData) => {
         setSelectedRowData(rowData);
@@ -29,8 +30,8 @@ const Admins = () => {
             try {
                 const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`);
                 const data = await res.json();
-                setTableData(data);
-                setFilteredData(data);
+                setTableData(Array.isArray(data.data) ? data.data : []);
+                setFilteredData(Array.isArray(data.data) ? data.data : []);
             } catch (err) {
                 setTableData([]);
                 setFilteredData([]);
@@ -59,14 +60,22 @@ const Admins = () => {
             if (res.ok) {
                 setLoading(false);
                 setTimeout(() => {
-                  Swal.fire({ icon: 'success', title: 'Success!',text:'Admin added successfully!', timer: 1200, showConfirmButton: false });
-                }, 1000);
+                  Swal.fire({
+                    icon: 'success',
+                    title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Admin Added!</span>',
+                    html: '<div style="color:#444;font-size:16px;margin-top:8px;">The admin was successfully added.</div>',
+                    background: '#f0fdfa',
+                    showConfirmButton: false,
+                    timer: 1400,
+                    customClass: { popup: 'swal2-animate-success' }
+                  });
+                }, 400);
                 setForm({ name: '', email: '', phone: '', password: '' });
                 setaddadmin(false);
                 const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`);
                 const data = await res.json();
-                setTableData(data);
-                setFilteredData(data);
+                setTableData(Array.isArray(data.data) ? data.data : []);
+                setFilteredData(Array.isArray(data.data) ? data.data : []);
             } else {
                 setLoading(false);
                 setTimeout(() => {
@@ -81,43 +90,44 @@ const Admins = () => {
         }
     };
 
-    const deleteAdmin = async (adminId) => {
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: 'This action will permanently delete the admin.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!'
-        });
-        if (result.isConfirmed) {
-            setLoading(true);
-            try {
-                const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins/${adminId}`, { method: 'DELETE' });
-                const data = await res.json();
-                if (res.ok) {
-                    setLoading(false);
-                    setTimeout(() => {
-                      Swal.fire({ icon: 'success', title: 'Deleted!',text:'Admin has been deleted', timer: 1200, showConfirmButton: false });
-                    }, 1000);
-                    const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`);
-                    const data = await res.json();
-                    setTableData(data);
-                    setFilteredData(data);
-                } else {
-                    setLoading(false);
-                    setTimeout(() => {
-                        Swal.fire('Error', 'Failed to delete admin.', 'error');
-                    }, 1000);
-                }
-            } catch (err) {
+    const deleteAdmin = (adminId) => {
+        setDeleteAdminId(adminId);
+    };
+    const confirmDeleteAdmin = async () => {
+        setLoading(true);
+        try {
+            const res = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins/${deleteAdminId}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (res.ok) {
+                setLoading(false);
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '<span style="color:#16a34a;font-weight:700;font-size:22px;">Admin Deleted!</span>',
+                        html: '<div style="color:#444;font-size:16px;margin-top:8px;">The admin was successfully deleted.</div>',
+                        background: '#f0fdfa',
+                        showConfirmButton: false,
+                        timer: 1400,
+                        customClass: { popup: 'swal2-animate-success' }
+                    });
+                }, 400);
+                const res2 = await authFetch(`${process.env.REACT_APP_API_URL}/api/admins`);
+                const data2 = await res2.json();
+                setTableData(Array.isArray(data2.data) ? data2.data : []);
+                setFilteredData(Array.isArray(data2.data) ? data2.data : []);
+            } else {
                 setLoading(false);
                 setTimeout(() => {
                     Swal.fire('Error', 'Failed to delete admin.', 'error');
                 }, 1000);
             }
+        } catch (err) {
+            setLoading(false);
+            setTimeout(() => {
+                Swal.fire('Error', 'Failed to delete admin.', 'error');
+            }, 1000);
         }
+        setDeleteAdminId(null);
     };
 
     const handleSearch = (searchQuery) => {
@@ -280,6 +290,30 @@ const Admins = () => {
                     </div>
                   </div>
                 </div>
+            )}
+            {/* Delete Confirmation Modal */}
+            {deleteAdminId && (
+              <div>
+                <div
+                  className="modal d-block border-0 admins-modal-bg"
+                  role="dialog"
+                  style={{ background: 'rgba(30,58,138,0.10)', backdropFilter: 'blur(2px)' }}
+                >
+                  <div className="modal-dialog modal-lg border-0 modal-dialog-centered ">
+                    <div className="modal-content border-0 rounded-4" style={{ boxShadow: '0 8px 32px rgba(220,38,38,0.18)', background: '#fff' }}>
+                      <div className="modal-body" style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: 44, color: '#dc2626', marginBottom: 12 }}>⚠️</div>
+                        <h3 style={{ color: '#dc2626', marginBottom: 10 }}>Delete Admin?</h3>
+                        <div style={{ color: '#444', marginBottom: 22 }}>Are you sure you want to delete this admin? This action cannot be undone.</div>
+                        <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                          <button onClick={() => setDeleteAdminId(null)} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#e5e7eb', color: '#222', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Cancel</button>
+                          <button onClick={confirmDeleteAdmin} style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(90deg, #dc2626 60%, #f87171 100%)', color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Delete</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
         </div>
     );

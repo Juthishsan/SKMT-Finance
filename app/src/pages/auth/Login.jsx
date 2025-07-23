@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaExclamationCircle } from 'react-icons/fa';
@@ -11,8 +11,14 @@ const Login = () => {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user, token } = useAuth();
   const API_URL = process.env.REACT_APP_API_URL;
+
+  useEffect(() => {
+    if (user && token) {
+      navigate('/');
+    }
+  }, [user, token, navigate]);
 
   const inputStyle = {
     width: '100%',
@@ -67,16 +73,16 @@ const Login = () => {
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) return;
     try {
-      const response = await fetch(`${API_URL}/api/login`, {
+      const response = await fetch(`${API_URL}/api/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
       if (response.ok) {
         const data = await response.json();
-        login(data.user, data.token);
+        login(data.data.user, data.data.token);
         toast.success('Login successful!');
-        navigate('/');
+        // navigation will now happen in useEffect
       } else {
         const data = await response.json();
         toast.error(data.error || 'Invalid email or password.');
