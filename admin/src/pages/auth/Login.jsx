@@ -110,7 +110,7 @@ const Login = ({ componentrender }) => {
       Swal.fire({
         icon: 'success',
         title: 'Logged in Successfully',
-        showConfirmButton: true,
+        showConfirmButton: false,
         timer: 2000
       });
       }, 100);
@@ -122,7 +122,7 @@ const Login = ({ componentrender }) => {
       Swal.fire({
         icon: 'error',
         title: err.response?.data?.error || 'Username or Password is Wrong',
-        showConfirmButton: true,
+        showConfirmButton: false,
         timer: 2000
       });
       }, 100);

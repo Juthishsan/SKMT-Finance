@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaExclamationCircle } from 'react-icons/fa';
 import { useAuth } from '../../AuthProvider';
+import skmtLogo from '../../assets/skmt logo (1).png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -127,6 +128,10 @@ const Login = () => {
 
   return (
     <div className="container" style={{maxWidth: 420, margin: '64px auto', padding: '40px', background: 'linear-gradient(135deg, #e0e7ff 0%, #f0fdfa 100%)', borderRadius: 24, boxShadow: '0 8px 32px rgba(30,58,138,0.13)'}}>
+      {/* Logo at the top, centered */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+        <img src={skmtLogo} alt="SKMT Logo" style={{ width: 64, height: 64, borderRadius: 16, boxShadow: '0 4px 16px #1e3a8a22', background: '#fff', objectFit: 'contain' }} />
+      </div>
       <h2 style={{textAlign: 'center', marginBottom: 28, color: '#1e3a8a', fontWeight: 700, letterSpacing: 1}}>Login to SKMT Finance</h2>
       <form onSubmit={handleSubmit}>
         <div style={{marginBottom: 22}}>
@@ -284,4 +289,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;

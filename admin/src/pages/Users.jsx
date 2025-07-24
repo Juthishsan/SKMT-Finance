@@ -96,8 +96,8 @@ const Users = () => {
           </div>
           <div style={{ padding: 32 }}>
             <div className="row mb-4">
-              <div className="col-md-6 mx-auto">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 220, maxWidth: 320, background: '#fff', borderRadius: 999, boxShadow: '0 2px 8px #1e3a8a11', border: '1.5px solid #c7d2fe', padding: '2px 10px', transition: 'border 0.18s', margin: '0 auto' }}>
+              <div className="col-md-6">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 220, maxWidth: 320, background: '#fff', borderRadius: 999, boxShadow: '0 2px 8px #1e3a8a11', border: '1.5px solid #c7d2fe', padding: '2px 10px', transition: 'border 0.18s' }}>
                   <span style={{ background: '#2563eb', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
                     <i className="bi bi-search" style={{ color: '#fff', fontSize: 18 }}></i>
                   </span>

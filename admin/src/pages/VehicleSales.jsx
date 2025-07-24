@@ -13,6 +13,7 @@ const VehicleSales = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchText, setSearchText] = useState('');
+  const [statusFilter, setStatusFilter] = useState(''); // <-- Add this line
   const [filteredVehicles, setFilteredVehicles] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
@@ -30,20 +31,23 @@ const VehicleSales = () => {
   }, []);
 
   useEffect(() => {
+    let filtered = vehicles;
     if (searchText) {
-      setFilteredVehicles(
-        vehicles.filter(
-          v =>
-            v.brand?.toLowerCase().includes(searchText.toLowerCase()) ||
-            v.title?.toLowerCase().includes(searchText.toLowerCase())
-        )
+      filtered = filtered.filter(
+        v =>
+          v.brand?.toLowerCase().includes(searchText.toLowerCase()) ||
+          v.title?.toLowerCase().includes(searchText.toLowerCase())
       );
-    } else {
-      setFilteredVehicles(vehicles);
     }
-  }, [searchText, vehicles]);
+    if (statusFilter) {
+      filtered = filtered.filter(
+        v => (v.status || 'pending').toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+    setFilteredVehicles(filtered);
+  }, [searchText, vehicles, statusFilter]);
 
-  useEffect(() => { setCurrentPage(1); }, [searchText]);
+  useEffect(() => { setCurrentPage(1); }, [searchText, statusFilter]);
 
   const fetchVehicles = async () => {
     setLoading(true);
@@ -201,10 +205,33 @@ const VehicleSales = () => {
         <div className="card" style={{ borderRadius: 18, boxShadow: '0 8px 32px rgba(30,58,138,0.10)', border: 'none', padding: 0, marginBottom: 32 }}>
           <div style={{ background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: '28px 0 18px 0', textAlign: 'center' }}>
             <h2 style={{ color: '#fff', fontWeight: 700, letterSpacing: 1, margin: 0 }}>Vehicles For Sales</h2>
-            {/* <p className="text-muted" style={{ color: '#e0e7ef', margin: 0, fontWeight: 500 }}>Review and manage vehicles submitted by users</p> */}
           </div>
           <div style={{ padding: 32 }}>
-            <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+            <div className="d-flex align-items-center mb-4 flex-wrap gap-3" style={{ justifyContent: 'flex-start' }}>
+              {/* Status Filter Dropdown */}
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                style={{
+                  border: '1.5px solid #c7d2fe',
+                  borderRadius: 8,
+                  fontSize: 15,
+                  minWidth: 120,
+                  maxWidth: 180,
+                  padding: '8px 12px',
+                  background: '#fff',
+                  color: '#1e3a8a',
+                  fontWeight: 600,
+                  outline: 'none',
+                }}
+              >
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+
+              {/* Search Input */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 220, maxWidth: 320, background: '#fff', borderRadius: 999, boxShadow: '0 2px 8px #1e3a8a11', border: '1.5px solid #c7d2fe', padding: '2px 10px', transition: 'border 0.18s' }}>
                 <span style={{ background: '#2563eb', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
                   <i className="bi bi-search" style={{ color: '#fff', fontSize: 18 }}></i>
@@ -578,4 +605,4 @@ const VehicleSales = () => {
   );
 };
 
-export default VehicleSales; 
+export default VehicleSales;

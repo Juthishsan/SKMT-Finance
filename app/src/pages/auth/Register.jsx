@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCity, FaFlag, FaLock, FaKey, FaHashtag, FaEye, FaEyeSlash, FaExclamationCircle } from 'react-icons/fa';
 import TermsModal from '../../components/TermsModal';
+import skmtLogo from '../../assets/skmt logo (1).png';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -160,6 +161,9 @@ const Register = () => {
 
   return (
     <div className="container" style={{maxWidth: 540, margin: '64px auto', padding: '40px', background: 'linear-gradient(135deg, #e0e7ff 0%, #f0fdfa 100%)', borderRadius: 24, boxShadow: '0 8px 32px rgba(30,58,138,0.13)'}}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+        <img src={skmtLogo} alt="SKMT Logo" style={{ width: 84, height: 84, objectFit: 'contain' }} />
+      </div>
       <h2 style={{textAlign: 'center', marginBottom: 28, color: '#1e3a8a', fontWeight: 700, letterSpacing: 1}}>Create Your Account</h2>
       <form onSubmit={handleSubmit}>
         <div style={{display: 'flex', gap: 18, marginBottom: 18}}>
@@ -447,4 +451,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;

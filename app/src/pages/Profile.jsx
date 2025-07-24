@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCity, FaFlag, FaHashtag, FaEdit, FaSave, FaTimes, FaMoneyCheckAlt, FaCalendarAlt, FaCheckCircle, FaClock, FaShoppingCart, FaBoxOpen } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaCity, FaFlag, FaHashtag, FaEdit, FaSave, FaTimes, FaMoneyCheckAlt, FaCalendarAlt, FaCheckCircle, FaClock, FaShoppingCart, FaBoxOpen, FaCar } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useAuth } from '../AuthProvider';
 import { useNavigate } from 'react-router-dom';
@@ -41,10 +41,12 @@ const Profile = () => {
                 const res = await fetch(`${process.env.REACT_APP_API_URL}/api/products/${order.productSnapshot}`);
                 if (res.ok) {
                   const prod = await res.json();
-                  return { ...order, productSnapshot: prod };
+                  // Use prod.data for product details
+                  return { ...order, productSnapshot: prod.data };
                 }
               } catch {}
             }
+            // If already an object, just return as is
             return order;
           }));
           setOrders(updatedOrders);
@@ -358,24 +360,37 @@ const Profile = () => {
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
-                  {orders.map((order, idx) => (
-                    <div key={order._id || idx} className="loan-item" style={{ background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 8px #1e3a8a11', padding: 20, borderLeft: '4px solid #3b82f6', transition: 'box-shadow 0.18s, transform 0.18s', cursor: 'pointer' }} onMouseOver={e => { e.currentTarget.style.boxShadow = '0 4px 16px #1e3a8a22'; e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseOut={e => { e.currentTarget.style.boxShadow = '0 2px 8px #1e3a8a11'; e.currentTarget.style.transform = 'none'; }}>
-                      <div className="loan-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <span className="loan-type" style={{ fontWeight: 700, color: '#1e3a8a', fontSize: 17 }}>{order.productSnapshot?.name || 'Product'}</span>
-                        <span className={`loan-status ${order.orderstatus ? order.orderstatus.toLowerCase() : 'pending'}`} style={{ display: 'inline-block', padding: '2px 12px', borderRadius: 8, background: order.orderstatus === 'Approved' ? '#10b981' : order.orderstatus === 'Rejected' ? '#dc2626' : '#f97316', color: '#fff', fontWeight: 600, fontSize: 15, letterSpacing: 0.5 }}>{order.orderstatus || 'Pending'}</span>
-                      </div>
-                      <div className="loan-details" style={{ marginBottom: 8 }}>
-                        <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
-                          <FaMoneyCheckAlt className="loan-detail-icon" />
-                          <span>Price: ₹{order.productSnapshot?.price?.toLocaleString() || '-'}</span>
+                  {orders.map((order, idx) => {
+                    const product = order.productSnapshot || {};
+                    return (
+                      <div key={order._id || idx} className="loan-item" style={{ background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 8px #1e3a8a11', padding: 20, borderLeft: '4px solid #3b82f6', transition: 'box-shadow 0.18s, transform 0.18s', cursor: 'pointer' }} onMouseOver={e => { e.currentTarget.style.boxShadow = '0 4px 16px #1e3a8a22'; e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseOut={e => { e.currentTarget.style.boxShadow = '0 2px 8px #1e3a8a11'; e.currentTarget.style.transform = 'none'; }}>
+                        <div className="loan-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                          <span className="loan-type" style={{ fontWeight: 700, color: '#1e3a8a', fontSize: 17 }}>
+                            {product.name || 'Product'}
+                          </span>
+                          <span className={`loan-status ${order.orderstatus ? order.orderstatus.toLowerCase() : 'pending'}`} style={{ display: 'inline-block', padding: '2px 12px', borderRadius: 8, background: order.orderstatus === 'Approved' ? '#10b981' : order.orderstatus === 'Rejected' ? '#dc2626' : '#f97316', color: '#fff', fontWeight: 600, fontSize: 15, letterSpacing: 0.5 }}>{order.orderstatus || 'Pending'}</span>
                         </div>
-                        <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
-                          <FaCalendarAlt className="loan-detail-icon" />
-                          <span>Order Date: {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : '-'}</span>
+                        <div className="loan-details" style={{ marginBottom: 8 }}>
+                          <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
+                            <FaMoneyCheckAlt className="loan-detail-icon" />
+                            <span>Price: ₹{product.price ? product.price.toLocaleString() : '-'}</span>
+                          </div>
+                          <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
+                            <FaCar className="loan-detail-icon" />
+                            <span>Type: {product.type || '-'}</span>
+                          </div>
+                          <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
+                            <FaCalendarAlt className="loan-detail-icon" />
+                            <span>Order Date: {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : '-'}</span>
+                          </div>
+                          <div className="loan-detail" style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', fontWeight: 500, fontSize: 15 }}>
+                            <FaBoxOpen className="loan-detail-icon" />
+                            <span>Model Year: {product.modelYear || '-'}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -385,4 +400,4 @@ const Profile = () => {
   );
 };
 
-export default Profile; 
+export default Profile;

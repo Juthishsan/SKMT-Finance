@@ -10,6 +10,7 @@ import { useAuth } from '../AuthProvider';
 const Orders = () => {
   const [tableData, setTableData] = useState([]);
   const [searchText, setSearchText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('All'); // New state for status filter
   const [filteredData, setFilteredData] = useState([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState(null);
@@ -26,7 +27,7 @@ const Orders = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [loading, setLoading] = useState(true);
-  const [openDropdown, setOpenDropdown] = useState(null); // Track open dropdown by order ID
+  const [openDropdown, setOpenDropdown] = useState(null);
   const [deleteOrderId, setDeleteOrderId] = useState(null);
   const [statusChange, setStatusChange] = useState(null);
 
@@ -88,7 +89,7 @@ const Orders = () => {
     XLSX.writeFile(workbook, `orders_report_${startDate}_to_${endDate}.xlsx`);
   };
 
-  const handleSearch = (searchQuery) => {
+  const handleSearch = (searchQuery, status) => {
     setSearchText(searchQuery);
     let filteredItems = tableData;
     if (searchQuery) {
@@ -96,13 +97,16 @@ const Orders = () => {
         item.orderDate.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
+    if (status && status !== 'All') {
+      filteredItems = filteredItems.filter((item) => item.orderstatus === status);
+    }
     setFilteredData(filteredItems);
   };
 
   function StatusDropdown({ value, onChange, orderId }) {
     const open = openDropdown === orderId;
     const btnRef = useRef();
-    const [menuPos, setMenuPos] = useState(null); // null until calculated
+    const [menuPos, setMenuPos] = useState(null);
 
     useEffect(() => {
       function updateMenuPos() {
@@ -234,11 +238,6 @@ const Orders = () => {
       selector: row => row.product?.name || '-',
       cell: row => <span style={{ fontWeight: 600 }}>{row.product?.name || '-'}</span>,
     },
-    // {
-    //   name: 'Model Year',
-    //   selector: row => row.product?.modelYear || '-',
-    //   cell: row => <span>{row.product?.modelYear || '-'}</span>,
-    // },
     {
       name: 'User',
       selector: row => row.user?.username,
@@ -268,23 +267,20 @@ const Orders = () => {
     rangeSeparatorText: 'of',
   };
 
-  const paginatedData = (searchText ? filteredData : tableData).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  const totalPages = Math.ceil((searchText ? filteredData.length : tableData.length) / itemsPerPage);
-  useEffect(() => { setCurrentPage(1); }, [searchText]);
+  const paginatedData = (searchText || selectedStatus !== 'All' ? filteredData : tableData).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil((searchText || selectedStatus !== 'All' ? filteredData.length : tableData.length) / itemsPerPage);
+  useEffect(() => { setCurrentPage(1); }, [searchText, selectedStatus]);
 
   useEffect(() => {
-    // Fetch orders data from backend
     authFetch(`${API_URL}/api/orders`)
       .then(res => res.json())
       .then(async data => {
         console.log("fetched orders", data);
         const orders = Array.isArray(data.data) ? data.data : [];
-        // For any order where productSnapshot is just an ID, fetch the full product
         const mapped = await Promise.all(orders.map(async order => {
           let product = order.productSnapshot;
           console.log('order.productSnapshot:', order.productSnapshot);
           if (typeof product === 'string') {
-            // Legacy order, fetch full product
             try {
               const res = await authFetch(`${API_URL}/api/products/${product}`);
               if (res.ok) {
@@ -323,10 +319,8 @@ const Orders = () => {
     }
   }, [isModalOpen, selectedRowData]);
 
-  // Update the handler to accept the new status
   const handleChangeStatus = async (row, newStatus) => {
     if (newStatus && newStatus !== row.orderstatus) {
-      // Custom confirmation modal
       setStatusChange({ id: row._id, newStatus });
     }
   };
@@ -434,27 +428,63 @@ const Orders = () => {
           <div style={{ padding: 32 }}>
             <div className="row mb-4 align-items-center">
               <div className="col-12">
-                <div className="d-flex flex-wrap align-items-center justify-content-between" style={{gap: '18px'}}>
-                  <div style={{ minWidth: 250, maxWidth: 300, flex: '1 1 250px', paddingTop: '48px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', borderRadius: 999, boxShadow: '0 2px 8px #1e3a8a11', border: '1.5px solid #c7d2fe', padding: '2px 10px', transition: 'border 0.18s' }}>
-                      <span style={{ background: '#2563eb', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
-                        <i className="bi bi-search" style={{ color: '#fff', fontSize: 18 }}></i>
-                      </span>
-                      <input
-                        type="text"
-                        placeholder="Search orders by date"
-                        style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 17, fontWeight: 500, padding: '10px 0', flex: 1, borderRadius: 999, color: '#1e293b' }}
-                        value={searchText}
-                        onChange={e => handleSearch(e.target.value)}
-                        onFocus={e => e.target.parentNode.style.border = '1.5px solid #2563eb'}
-                        onBlur={e => e.target.parentNode.style.border = '1.5px solid #c7d2fe'}
-                      />
+                <div className="d-flex flex-wrap align-items-center justify-content-between" style={{ gap: '18px' }}>
+                  <div style={{ display: 'flex', gap: 12, flex: '1 1 auto', maxWidth: 600 }}>
+                    <div style={{ minWidth: 150, maxWidth: 200 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {/* <label style={{ fontWeight: 600, color: '#1e3a8a', fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <i className="bi bi-filter" style={{ fontSize: 18, color: '#2563eb' }}></i> Status
+                        </label> */}
+                        <select
+                          value={selectedStatus}
+                          onChange={(e) => {
+                            setSelectedStatus(e.target.value);
+                            handleSearch(searchText, e.target.value);
+                          }}
+                          style={{
+                            border: '1.5px solid #c7d2fe',
+                            background: '#fff',
+                            color: '#1e3a8a',
+                            padding: '8px 14px',
+                            borderRadius: 8,
+                            outline: 'none',
+                            fontSize: 15,
+                            width: '100%',
+                            fontWeight: 600,
+                            boxShadow: '0 1px 4px #2563eb11',
+                            transition: 'border 0.18s'
+                          }}
+                          onFocus={(e) => e.target.style.border = '1.5px solid #2563eb'}
+                          onBlur={(e) => e.target.style.border = '1.5px solid #c7d2fe'}
+                        >
+                          <option value="All">All Statuses</option>
+                          {ORDER_STATUSES.map(status => (
+                            <option key={status} value={status}>{status}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div style={{ minWidth: 250, maxWidth: 300, flex: '1 1 250px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#fff', borderRadius: 999, boxShadow: '0 2px 8px #1e3a8a11', border: '1.5px solid #c7d2fe', padding: '2px 10px', transition: 'border 0.18s' }}>
+                        <span style={{ background: '#2563eb', borderRadius: '50%', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                          <i className="bi bi-search" style={{ color: '#fff', fontSize: 18 }}></i>
+                        </span>
+                        <input
+                          type="text"
+                          placeholder="Search orders by date"
+                          style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 17, fontWeight: 500, padding: '10px 0', flex: 1, borderRadius: 999, color: '#1e293b' }}
+                          value={searchText}
+                          onChange={e => handleSearch(e.target.value, selectedStatus)}
+                          onFocus={e => e.target.parentNode.style.border = '1.5px solid #2563eb'}
+                          onBlur={e => e.target.parentNode.style.border = '1.5px solid #c7d2fe'}
+                        />
+                      </div>
                     </div>
                   </div>
-                  {/* Modern Date Filter Card */}
-                  <div style={{ background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 12px rgba(30,58,138,0.07)', padding: '18px 28px', display: 'flex', alignItems: 'center', gap: 18, minWidth: 340, maxWidth: 600, flexDirection: 'row', flexWrap: 'nowrap', justifyContent: 'flex-start' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
-                      <label style={{ fontWeight: 600, color: '#1e3a8a', fontSize: 15, marginBottom: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'nowrap', justifyContent: 'flex-start', background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 12px rgba(30,58,138,0.07)', padding: '18px 28px', minWidth: '100%' }}>
+                    {/* Start Date */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <label style={{ fontWeight: 600, color: '#1e3a8a', fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
                         <i className="bi bi-calendar-event" style={{ fontSize: 18, color: '#2563eb' }}></i> Start Date
                       </label>
                       <input
@@ -465,8 +495,10 @@ const Orders = () => {
                         style={{ border: '1.5px solid #2563eb', background: '#fff', color: '#1e3a8a', padding: '8px 14px', borderRadius: 8, outline: 'none', fontSize: 15, width: 150, fontWeight: 600, boxShadow: '0 1px 4px #2563eb11', transition: 'border 0.18s' }}
                       />
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
-                      <label style={{ fontWeight: 600, color: '#1e3a8a', fontSize: 15, marginBottom: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+
+                    {/* End Date */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <label style={{ fontWeight: 600, color: '#1e3a8a', fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
                         <i className="bi bi-calendar-event" style={{ fontSize: 18, color: '#2563eb' }}></i> End Date
                       </label>
                       <input
@@ -477,9 +509,11 @@ const Orders = () => {
                         style={{ border: '1.5px solid #2563eb', background: '#fff', color: '#1e3a8a', padding: '8px 14px', borderRadius: 8, outline: 'none', fontSize: 15, width: 150, fontWeight: 600, boxShadow: '0 1px 4px #2563eb11', transition: 'border 0.18s' }}
                       />
                     </div>
+
+                    {/* Download Report Button */}
                     <button
                       onClick={() => generateExcelReport(startDate, endDate)}
-                      style={{ padding: '5px 28px', background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 16, boxShadow: '0 2px 8px rgba(30,58,138,0.10)', display: 'flex', alignItems: 'center', gap: 10 }}
+                      style={{ padding: '8px 28px', background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 16, boxShadow: '0 2px 8px rgba(30,58,138,0.10)', display: 'flex', alignItems: 'center', gap: 10 }}
                     >
                       <i className="bi bi-download" style={{ fontSize: 20 }}></i> Download Report
                     </button>
@@ -537,7 +571,6 @@ const Orders = () => {
                   ))}
                 </tbody>
               </table>
-              {/* Pagination */}
               {totalPages > 1 && (
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24 }}>
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ border: 'none', background: currentPage === 1 ? '#e5e7eb' : '#2563eb', color: '#fff', borderRadius: 8, padding: '6px 16px', fontWeight: 700, fontSize: 16, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', boxShadow: '0 2px 8px #1e3a8a11', transition: 'background 0.18s' }}>Prev</button>
@@ -669,7 +702,6 @@ const Orders = () => {
                   <div className="admin-modal-label" style={{ color: '#64748b', fontWeight: 600, fontSize: 15 }}>Description</div>
                   <div className="admin-modal-value" style={{ fontWeight: 500, fontSize: 16, color: '#222', background: '#f9fafb', borderRadius: 10, padding: 12, marginTop: 2 }}>{selectedRowData.product?.description}</div>
                 </div>
-                {/* Order Info Section */}
                 <div style={{ gridColumn: '1 / -1', borderTop: '1px solid #e5e7eb', paddingTop: 15 }}>
                   <div className="admin-modal-label" style={{ color: '#1e3a8a', fontWeight: 700, fontSize: 17, marginBottom: 8, paddingBottom: 18 }}>User Information</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -704,7 +736,6 @@ const Orders = () => {
           </div>
         </div>
       )}
-      {/* Delete Confirmation Modal */}
       {deleteOrderId && (
         <div>
           <div
@@ -728,7 +759,6 @@ const Orders = () => {
           </div>
         </div>
       )}
-      {/* Status Change Confirmation Modal */}
       {statusChange && (
         <div>
           <div

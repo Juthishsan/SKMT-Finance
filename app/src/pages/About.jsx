@@ -23,14 +23,20 @@ const About = () => {
       {/* about Section */}
       <section className="about-hero">
         <div className="container">
-          <div className="hero-content">
-            <div className="hero-text">
+          <div className="hero-content" style={{ display: 'flex', flexDirection: 'row', gap: 32, alignItems: 'center' }}>
+            <div className="hero-text" style={{ flex: 1 }}>
               <h1>About SKMT finance</h1>
-              <p>Empowering dreams and transforming lives through innovative financial solutions. We are committed to making financial services accessible, transparent, and customer-centric.</p>
+              <p>
+                Empowering dreams and transforming lives through innovative financial solutions. We are committed to making financial services accessible, transparent, and customer-centric.
+              </p>
             </div>
-            <div className="hero-image">
+            <div className="hero-image" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <AboutSlideshow />
             </div>
+          </div>
+          {/* Mobile layout: slideshow below text */}
+          <div className="about-mobile-slideshow" style={{ display: 'none', marginTop: 28 }}>
+            <AboutSlideshow />
           </div>
         </div>
       </section>
@@ -136,58 +142,8 @@ const About = () => {
             >
               <h2>Our Journey</h2>
               <p>Founded in 2010, SKMT finance has grown from a small financial services company to one of top financial company. Our journey has been marked by continuous innovation, customer-first approach, and unwavering commitment to excellence.</p>
-
-              {/* <div className="milestones">
-                <div className="milestone">
-                  <div className="milestone-year">1999</div>
-                  <div className="milestone-content">
-                    <h4>Foundation</h4>
-                    <p>Started operations with a vision to democratize financial services</p>
-                  </div>
-                </div>
-                
-                <div className="milestone">
-                  <div className="milestone-year">2005</div>
-                  <div className="milestone-content">
-                    <h4>Expansion</h4>
-                    <p>Expanded to 500+ branches across 15 states</p>
-                  </div>
-                </div>
-                
-                <div className="milestone">
-                  <div className="milestone-year">2010</div>
-                  <div className="milestone-content">
-                    <h4>Digital Transformation</h4>
-                    <p>Launched digital services and mobile banking platform</p>
-                  </div>
-                </div>
-                
-                <div className="milestone">
-                  <div className="milestone-year">2015</div>
-                  <div className="milestone-content">
-                    <h4>Market Leadership</h4>
-                    <p>Became one of the top 5 NBFCs in India</p>
-                  </div>
-                </div>
-                
-                <div className="milestone">
-                  <div className="milestone-year">2020</div>
-                  <div className="milestone-content">
-                    <h4>Innovation</h4>
-                    <p>Introduced AI-powered lending and instant approval systems</p>
-                  </div>
-                </div>
-                
-                <div className="milestone">
-                  <div className="milestone-year">2024</div>
-                  <div className="milestone-content">
-                    <h4>Present Day</h4>
-                    <p>Serving 10M+ customers with 2,500+ branches nationwide</p>
-                  </div>
-                </div>
-              </div> */}
             </motion.div>
-
+            {/* Desktop/Tablet: show image beside, Mobile: show below */}
             <motion.div
               className="story-image"
               initial={{ opacity: 0, y: 40, scale: 0.92 }}
@@ -197,6 +153,9 @@ const About = () => {
             >
               <img src={logo} alt="Our Journey" />
             </motion.div>
+            <div className="story-image-mobile" style={{ display: 'none', marginTop: 24, justifyContent: 'center' }}>
+              <img src={logo} alt="Our Journey" style={{ maxWidth: 220, width: '80%', height: 'auto', borderRadius: 16, boxShadow: '0 8px 32px rgba(30,58,138,0.10)' }} />
+            </div>
           </div>
         </div>
       </section>

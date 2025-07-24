@@ -75,7 +75,7 @@ const Products = () => {
   const confirmDeleteProduct = async () => {
     setLoading(true);
     try {
-      await fetch(`${API_URL}/api/products/${deleteProductId}`, {
+      await authFetch(`${API_URL}/api/products/${deleteProductId}`, {
         method: 'DELETE',
       });
       setLoading(false);
@@ -168,21 +168,29 @@ const Products = () => {
     }
   };
 
-  const handleSearch = (searchQuery, selectedType) => {
-    setSearchText(searchQuery);
+  // Remove handleSearch and its usages
+
+  // Instead, use controlled inputs and a useEffect for filtering:
+  const handleSearchInput = (e) => setSearchText(e.target.value);
+  const handleTypeChange = (e) => setSelectedType(e.target.value);
+
+  // Filtering logic in useEffect
+  useEffect(() => {
     let filteredItems = tableData;
-    if (searchQuery) {
+
+    if (searchText) {
       filteredItems = filteredItems.filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+        item.name && item.name.toLowerCase().includes(searchText.toLowerCase())
       );
     }
     if (selectedType) {
       filteredItems = filteredItems.filter((item) =>
-        item.type.toLowerCase() === selectedType.toLowerCase()
+        item.type && item.type.toLowerCase() === selectedType.toLowerCase()
       );
     }
     setFilteredData(filteredItems);
-  };
+    setCurrentPage(1); // Reset to first page on filter/search change
+  }, [searchText, selectedType, tableData]);
 
   const openModal = (rowData) => {
     setSelectedRowData(rowData);
@@ -298,8 +306,8 @@ const Products = () => {
     }
   };
 
-  const paginatedData = (searchText ? filteredData : tableData).slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  const totalPages = Math.ceil((searchText ? filteredData.length : tableData.length) / itemsPerPage);
+  const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   useEffect(() => { setCurrentPage(1); }, [searchText, selectedType]);
 
   if (loading) {
@@ -317,10 +325,7 @@ const Products = () => {
               <div className="d-flex align-items-center gap-2 flex-wrap" style={{ flex: 1, minWidth: 260 }}>
                 <select
                   value={selectedType}
-                  onChange={e => {
-                    setSelectedType(e.target.value);
-                    handleSearch(searchText, e.target.value);
-                  }}
+                  onChange={handleTypeChange}
                   className="form-select"
                   style={{ border: '1.5px solid #c7d2fe', borderRadius: 8, fontSize: 15, minWidth: 120, maxWidth: 180 }}
                 >
@@ -338,7 +343,7 @@ const Products = () => {
                     placeholder="Search products by name"
                     style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 17, fontWeight: 500, padding: '10px 0', flex: 1, borderRadius: 999, color: '#1e293b' }}
                     value={searchText}
-                    onChange={e => handleSearch(e.target.value, selectedType)}
+                    onChange={handleSearchInput}
                     onFocus={e => e.target.parentNode.style.border = '1.5px solid #2563eb'}
                     onBlur={e => e.target.parentNode.style.border = '1.5px solid #c7d2fe'}
                   />

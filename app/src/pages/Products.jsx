@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [productTypes, setProductTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedType, setSelectedType] = useState('All');
@@ -17,9 +18,13 @@ const Products = () => {
         const res = await axios.get(`${API_URL}/api/products`);
         const products = Array.isArray(res.data.data) ? res.data.data : [];
         setProducts(products);
+        // Extract unique product types
+        const types = [...new Set(products.map(product => product.type).filter(type => type))];
+        setProductTypes(types);
       } catch (err) {
         setError('Failed to fetch products');
         setProducts([]);
+        setProductTypes([]);
       } finally {
         setLoading(false);
       }
@@ -29,11 +34,7 @@ const Products = () => {
 
   const filterProducts = () => {
     if (selectedType === 'All') return products;
-    if (selectedType === 'Car') return products.filter(p => p.type === 'Car');
-    if (selectedType === 'Dost Van') return products.filter(p => p.type === 'Dost Van');
-    if (selectedType === 'Bike') return products.filter(p => p.type === 'Bike' || p.type === 'Scooter');
-    if (selectedType === 'Other') return products.filter(p => p.type === 'Other');
-    return products;
+    return products.filter(p => p.type === selectedType);
   };
 
   const formatPrice = (price) => {
@@ -65,30 +66,15 @@ const Products = () => {
           >
             All
           </button>
-          <button
-            className={`btn ${selectedType === 'Car' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setSelectedType('Car')}
-          >
-            Car
-          </button>
-          <button
-            className={`btn ${selectedType === 'Dost Van' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setSelectedType('Dost Van')}
-          >
-            Commercial Vehicle
-          </button>
-          <button
-            className={`btn ${selectedType === 'Bike' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setSelectedType('Bike')}
-          >
-            Bike
-          </button>
-          <button
-            className={`btn ${selectedType === 'Other' ? 'btn-primary' : 'btn-outline'}`}
-            onClick={() => setSelectedType('Other')}
-          >
-            Other
-          </button>
+          {productTypes.map(type => (
+            <button
+              key={type}
+              className={`btn ${selectedType === type ? 'btn-primary' : 'btn-outline'}`}
+              onClick={() => setSelectedType(type)}
+            >
+              {type}
+            </button>
+          ))}
         </div>
       </div>
 

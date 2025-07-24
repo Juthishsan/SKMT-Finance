@@ -5198,3 +5198,77 @@ html, body {
   color: #18181b !important;
   font-size: 1.2em;
 }
+
+/* About page: Move slideshow below text on mobile */
+@media (max-width: 700px) {
+  .about-hero .hero-content {
+    flex-direction: column !important;
+    display: flex !important;
+    gap: 0 !important;
+    align-items: stretch !important;
+  }
+  .about-hero .hero-image {
+    display: none !important;
+  }
+  .about-mobile-slideshow {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 18px;
+    margin-bottom: 8px;
+  }
+  .about-hero .hero-text {
+    width: 100%;
+    text-align: left;
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .story-section {
+    flex-direction: column !important;
+    display: flex !important;
+    align-items: stretch !important;
+  }
+  .story-image {
+    display: none !important;
+  }
+  .story-image-mobile {
+    display: flex !important;
+  }
+}
+
+/* Add or update these rules at the end of your App.css */
+
+@media (max-width: 700px) {
+  .nav-wrapper {
+    padding: 10px 4px 10px 4px !important;
+    gap: 8px !important;
+  }
+  .nav-left-group {
+    flex: 1 1 auto !important;
+    justify-content: flex-start !important;
+    min-width: 0 !important;
+    padding-right: 0 !important;
+  }
+  .logo {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    justify-content: flex-start !important;
+    min-width: 0 !important;
+  }
+  .logo-img {
+    height: 58px !important;
+    width: 180px !important;
+    min-width: 100px !important;
+    min-height: 36px !important;
+    max-width: 200px !important;
+    max-height: 60px !important;
+    object-fit: contain !important;
+  }
+  .simple-toggle-btn {
+    right: 8px !important;
+    top: 16px !important;
+  }
+}

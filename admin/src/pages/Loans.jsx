@@ -202,7 +202,7 @@ const Loans = () => {
                 </div>
               </div>
               <button onClick={handleExport} style={{ background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 28px', fontWeight: 700, fontSize: 16, boxShadow: '0 2px 8px rgba(30,58,138,0.08)', letterSpacing: 1, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg> EXPORT CSV
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg> DOWNLOAD REPORT
               </button>
             </div>
             <div className="table-responsive admins-table-responsive">

@@ -229,8 +229,13 @@ const ProductDetails = () => {
                 FC: {product.fcDuration} {product.fcUnit}{product.fcDuration > 1 ? 's' : ''}
               </span>
             )}
-            {typeof product.insurance === 'boolean' && (
-              <span style={{background: '#e1f5fe', color: '#0288d1', padding: '2px 10px', borderRadius: '12px', fontSize: '0.95rem'}}>{product.insurance ? 'Insured' : 'No Insurance'}</span>
+            {typeof product.insurance === 'boolean' && product.insurance && product.insuranceDuration && product.insuranceUnit && (
+              <span style={{background: '#e1f5fe', color: '#0288d1', padding: '2px 10px', borderRadius: '12px', fontSize: '0.95rem'}}>
+                Insurance: {product.insuranceDuration} {product.insuranceUnit}{product.insuranceDuration > 1 ? 's' : ''}
+              </span>
+            )}
+            {typeof product.insurance === 'boolean' && !product.insurance && (
+              <span style={{background: '#e1f5fe', color: '#0288d1', padding: '2px 10px', borderRadius: '12px', fontSize: '0.95rem'}}>No Insurance</span>
             )}
           </div>
           <div style={{marginBottom: 18, color: '#444', fontSize: '1.08rem', lineHeight: 1.7, background: '#f8fafc', borderRadius: 12, padding: 18, boxShadow: '0 2px 8px #1e3a8a0a'}}>
@@ -250,7 +255,14 @@ const ProductDetails = () => {
                   ? `Yes${product.fcDuration && product.fcUnit ? ` (${product.fcDuration} ${product.fcUnit}${product.fcDuration > 1 ? 's' : ''})` : ''}`
                   : 'No'}
               </li>
-              <li><strong>Insurance:</strong> {typeof product.insurance === 'boolean' ? (product.insurance ? 'Yes' : 'No') : 'N/A'}</li>
+              <li>
+                <strong>Insurance:</strong>{' '}
+                {typeof product.insurance === 'boolean'
+                  ? (product.insurance
+                      ? `Yes${product.insuranceDuration && product.insuranceUnit ? ` (${product.insuranceDuration} ${product.insuranceUnit}${product.insuranceDuration > 1 ? 's' : ''})` : ''}`
+                      : 'No')
+                  : 'N/A'}
+              </li>
               <li><strong>Status:</strong> {product.stock ? 'Available' : 'Out of Stock'}</li>
             </ul>
           </div>
@@ -282,4 +294,4 @@ const ProductDetails = () => {
   );
 };
 
-export default ProductDetails; 
+export default ProductDetails;
