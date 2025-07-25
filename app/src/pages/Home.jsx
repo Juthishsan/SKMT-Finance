@@ -168,6 +168,7 @@ const Home = () => {
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ type: 'spring', duration: 0.05, delay: idx * 0.07 }}
                   viewport={{ once: true, amount: 0.2 }}
+                  onClick={() => window.location.href = `/products/${product._id}`} // Redirect on click
                 >
                   <div className="product-image-container">
                     {product.images && product.images.length > 0 ? (
@@ -225,13 +226,6 @@ const Home = () => {
                         </span>
                       )}
                     </div>
-                    
-                    <Link 
-                      to={`/products/${product._id}`} 
-                      className="btn btn-primary product-view-btn"
-                    >
-                      View Details
-                    </Link>
                   </div>
                 </motion.div>
               ))}

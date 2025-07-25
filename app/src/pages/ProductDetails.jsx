@@ -268,7 +268,32 @@ const ProductDetails = () => {
           </div>
           <div style={{display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24}}>
             <button type="button" className="btn btn-primary" style={{fontSize: '1.1rem', minWidth: 160}} onClick={handlePlaceOrder}>Place Order</button>
-            <a href={window.location.href} className="btn btn-outline" style={{fontSize: '1.1rem', minWidth: 120}} target="_blank" rel="noopener noreferrer">Share</a>
+            <button
+              type="button"
+              className="btn btn-outline"
+              style={{ fontSize: '1.1rem', minWidth: 120 }}
+              onClick={() => {
+                const shareUrl = `${window.location.origin}/products/${id}`;
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Link copied!',
+                    text: 'Product link has been copied to your clipboard.',
+                    confirmButtonColor: '#1e3a8a',
+                    timer: 1500,
+                  });
+                }).catch(() => {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to copy',
+                    text: 'Could not copy the product link.',
+                    confirmButtonColor: '#dc3545',
+                  });
+                });
+              }}
+            >
+              Share
+            </button>
           </div>
           {/* Trust/Why Buy Section */}
           <div style={{background: '#f1f8e9', borderRadius: 10, padding: 16, marginBottom: 8, color: '#33691e', fontWeight: 500, fontSize: '1rem', boxShadow: '0 2px 8px #388e3c11'}}>
