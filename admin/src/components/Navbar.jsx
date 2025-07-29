@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import skmtLogo from '../assets/skmt logo (1).png';
+import skmtLogo from '../assets/SKMT Logo (3).png';
 import {
-  BsGrid1X2Fill, BsFillArchiveFill, BsPeopleFill, BsPersonCircle, BsCartFill, BsCurrencyRupee, BsEnvelopeFill, BsCarFrontFill
+  BsGrid1X2Fill, BsFillArchiveFill, BsPeopleFill, BsPersonCircle, BsCartFill, BsCurrencyRupee, BsEnvelopeFill, BsCarFrontFill, BsBell
 } from 'react-icons/bs';
+import { HiMenuAlt3 } from 'react-icons/hi';
 import { useAuth } from '../AuthProvider';
 import Swal from 'sweetalert2';
 
@@ -34,16 +35,16 @@ const Navbar = ({ componentrender, component }) => {
       showConfirmButton: false,
       timer: 2000,
       background: '#fff',
-      // iconColor: '#22c55e',
-    }).then(async (result) => {
-      if (result.isDismissed) {
-        await logout();
-      }
-    }, 1000);
+    }).then(async () => {
+      await logout();
+      componentrender('Login');
+      document.querySelector('#offcanvasDarkNavbar .btn-close')?.click();
+    });
   };
 
   return (
     <>
+      {/* Desktop Sidebar */}
       <aside
         style={{
           height: '100vh',
@@ -61,7 +62,7 @@ const Navbar = ({ componentrender, component }) => {
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 32 }}>
-          <img src={skmtLogo} alt="SKMT Logo" style={{ width: 70, height: 70, objectFit: 'contain', borderRadius: 16, marginBottom: 8, boxShadow: '0 2px 8px #1e3a8a22' }} />
+          <img src={skmtLogo} alt="SKMT Logo" style={{ width: 160, height: 100, objectFit: 'contain', borderRadius: 16, marginBottom: 8, boxShadow: '0 2px 8px #1e3a8a22' }} />
           <span style={{ fontWeight: 700, fontSize: 20, color: '#1e3a8a', letterSpacing: 1, marginBottom: 2 }}>SKMT Admin</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, width: '100%' }}>
@@ -120,6 +121,65 @@ const Navbar = ({ componentrender, component }) => {
           </button>
         </div>
       </aside>
+      {/* Mobile Navbar */}
+      <div className="d-lg-none d-block" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', zIndex: 1200 }}>
+        <div style={{ background: '#fff', border: '4px solid #fff', borderRadius: 24, boxShadow: '0 2px 24px rgba(30,58,138,0.13)', margin: 6, padding: 0 }}>
+          <nav className="navbar text-bg-white" style={{ boxShadow: 'none', minHeight: 60, borderRadius: 24, padding: 0 }}>
+            <div className="container-fluid d-flex align-items-center justify-content-between" style={{ padding: '0 10px' }}>
+              <div>
+                <img src={skmtLogo} width="60" height="60" alt="Logo" style={{ objectFit: 'contain', borderRadius: 16, boxShadow: '0 4px 16px #1e3a8a22', border: '3px solid #fff' }} />
+              </div>
+              <div className='d-flex flex-row justify-content-center'>
+                <button className="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation" style={{ border: 'none', background: 'none', fontSize: 32, color: '#1e3a8a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, margin: 0, height: 60, width: 60, boxShadow: 'none' }}>
+                  <HiMenuAlt3 size={38} />
+                </button>
+              </div>
+              <div className="offcanvas offcanvas-end custom-offcanvas w-75" tabIndex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel" style={{ borderRadius: 24, border: '4px solid #fff', boxShadow: '0 2px 24px rgba(30,58,138,0.13)' }}>
+                <div className="offcanvas-header" style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <img src={skmtLogo} width="60" height="60" alt="Logo" style={{ objectFit: 'contain', borderRadius: 16, boxShadow: '0 4px 16px #1e3a8a22', border: '3px solid #fff' }} />
+                  <button type="button" className="btn-close btn-close-dark" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div className="offcanvas-body p-0" style={{ padding: 0 }}>
+                  <ul className="navbar-nav gap-2 flex-grow-1 pe-3" style={{ padding: 16 }}>
+                    {navItems.map((item) => (
+                      <li
+                        key={item.key}
+                        className={`sidebar-list-item py-3 px-2 ${component === item.key ? 'text-coral' : ''}`}
+                        style={{ borderRadius: 10, fontWeight: 600, fontSize: 18, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', transition: 'background 0.18s' }}
+                        onClick={() => { componentrender(item.key); document.querySelector('#offcanvasDarkNavbar .btn-close')?.click(); }}
+                      >
+                        {item.icon}
+                        {item.label}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      width: '90%',
+                      margin: '24px auto 18px auto',
+                      display: 'block',
+                      background: 'linear-gradient(90deg, #1e3a8a 60%, #3b82f6 100%)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '14px 0',
+                      fontWeight: 700,
+                      fontSize: 18,
+                      letterSpacing: 1,
+                      boxShadow: '0 2px 8px rgba(30,58,138,0.08)',
+                      cursor: 'pointer',
+                      transition: 'background 0.2s, transform 0.2s',
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </div>
+      </div>
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div>
