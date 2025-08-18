@@ -201,9 +201,9 @@ const Home = () => {
                       {product.name}
                     </h3>
                     
-                    <p className="product-description">
+                    {/* <p className="product-description">
                       {product.description || 'No description available'}
-                    </p>
+                    </p> */}
                     
                     <div className="product-price">
                         {formatPrice(product.price)}

@@ -148,9 +148,9 @@ const Products = () => {
                       {product.name}
                     </h3>
                     
-                    <p className="product-description" style={{ textTransform: 'capitalize' }}>
+                    {/* <p className="product-description" style={{ textTransform: 'capitalize' }}>
                       {product.description || 'No description available'}
-                    </p>
+                    </p> */}
                     
                     <div className="product-price">
                         {formatPrice(product.price)}
