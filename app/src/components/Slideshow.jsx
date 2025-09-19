@@ -8,8 +8,9 @@ import img6 from '../assets/Slideshow/image 6.jpg';
 import img7 from '../assets/Slideshow/image 7.jpg'; 
 
 const images = [
-  { src: img1, objectPosition: 'center top' },
+  
   { src: img2, objectPosition: 'center' },
+  { src: img1, objectPosition: 'center top' },
   { src: img3, objectPosition: 'center' },
   // { src: img4, objectPosition: 'center top' },
   // { src: img5, objectPosition: 'center' },

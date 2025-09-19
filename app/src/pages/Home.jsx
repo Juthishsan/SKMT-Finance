@@ -17,13 +17,14 @@ const Home = () => {
   const API_URL = process.env.REACT_APP_API_URL;
 
   const heroSlides = [
-    {
-      heading: 'Drive Your Dreams with Our Car Loans',
-      paragraph: 'Get behind the wheel of your dream car with flexible car loan options, low interest rates, and quick approvals. Experience hassle-free financing for new and used cars at SKMT Finance.'
-    },
+    
     {
       heading: 'Personal Loans for Every Need',
       paragraph: 'Whether it\'s a wedding, travel, education, or emergency, our personal loans offer fast disbursal, minimal paperwork, and competitive rates. Fulfill your aspirations with SKMT Finance.'
+    },
+    {
+      heading: 'Drive Your Dreams with Our Car Loans',
+      paragraph: 'Get behind the wheel of your dream car with flexible car loan options, low interest rates, and quick approvals. Experience hassle-free financing for new and used cars at SKMT Finance.'
     },
     {
       heading: 'Make Your Dream Home a Reality',
