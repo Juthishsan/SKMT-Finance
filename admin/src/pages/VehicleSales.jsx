@@ -255,45 +255,45 @@ const VehicleSales = () => {
                 <table className="table table-bordered table-striped" style={{ borderRadius: 16, overflow: 'hidden', marginBottom: 0 }}>
                   <thead style={{ background: '#f1f5f9' }}>
                     <tr>
-                      <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Image</th>
-                      <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Brand</th>
-                      <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Year</th>
-                      <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Price</th>
-                      <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>User</th>
-                      <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Status</th>
-                      <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>FC</th>
-                      <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Insurance</th>
-                      <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Actions</th>
+                      <th className="mobile-visible" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Image</th>
+                      <th className="mobile-visible" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Brand</th>
+                      <th className="mobile-hidden" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Year</th>
+                      <th className="mobile-hidden" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Price</th>
+                      <th className="mobile-visible" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>User</th>
+                      <th className="mobile-visible" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Status</th>
+                      <th className="mobile-hidden" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>FC</th>
+                      <th className="mobile-hidden" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Insurance</th>
+                      <th className="mobile-visible" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {paginatedData.map(vehicle => (
                       <tr key={vehicle._id} style={{ borderBottom: '1px solid #f1f5f9', verticalAlign: 'top' }}>
-                        <td style={{ padding: 12, textAlign: 'center' }}>
+                        <td className="mobile-visible" style={{ padding: 12, textAlign: 'center' }}>
                           {(vehicle.images && vehicle.images.length > 0) ? (
                             <img src={vehicle.images[0]} alt={vehicle.title} style={{ width: 48, height: 48, objectFit: 'cover' }} />
                           ) : (
                             <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                           )}
                         </td>
-                        <td style={{ padding: 12, fontWeight: 600 }}>{vehicle.brand}</td>
-                        <td style={{ padding: 12 }}>{vehicle.year}</td>
-                        <td style={{ padding: 12, fontWeight: 700 }}>₹{vehicle.price?.toLocaleString?.() || vehicle.price}</td>
-                        <td style={{ padding: 12 }}>
+                        <td className="mobile-visible" style={{ padding: 12, fontWeight: 600 }}>{vehicle.brand}</td>
+                        <td className="mobile-hidden" style={{ padding: 12 }}>{vehicle.year}</td>
+                        <td className="mobile-hidden" style={{ padding: 12, fontWeight: 700 }}>₹{vehicle.price?.toLocaleString?.() || vehicle.price}</td>
+                        <td className="mobile-visible" style={{ padding: 12 }}>
                           {vehicle.user && typeof vehicle.user === 'object'
                             ? (vehicle.user.username || vehicle.user.email || vehicle.user._id || '-')
                             : '-'}
                         </td>
-                        <td style={{ fontWeight: 600, color: vehicle.status === 'approved' ? '#10b981' : vehicle.status === 'rejected' ? '#dc2626' : '#1e3a8a', padding: 12 }}>
+                        <td className="mobile-visible" style={{ fontWeight: 600, color: vehicle.status === 'approved' ? '#10b981' : vehicle.status === 'rejected' ? '#dc2626' : '#1e3a8a', padding: 12 }}>
                           {vehicle.status || 'pending'}
                         </td>
-                        <td style={{ padding: 12 }}>
+                        <td className="mobile-hidden" style={{ padding: 12 }}>
                           {vehicle.fc === 'Yes' ? `Yes (${vehicle.fcDuration || '-'} ${vehicle.fcUnit || ''})` : 'No'}
                         </td>
-                        <td style={{ padding: 12 }}>
+                        <td className="mobile-hidden" style={{ padding: 12 }}>
                           {vehicle.insurance === 'Yes' ? `Yes (${vehicle.insuranceDuration || '-'} ${vehicle.insuranceUnit || ''})` : 'No'}
                         </td>
-                        <td style={{ padding: 12 }}>
+                        <td className="mobile-visible" style={{ padding: 12 }}>
                           <div className="d-flex gap-2">
                             <button
                               className="btn btn-sm action-btn-view"
