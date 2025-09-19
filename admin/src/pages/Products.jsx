@@ -360,31 +360,31 @@ const Products = () => {
               <table className="table table-bordered table-striped" style={{ borderRadius: 16, overflow: 'hidden', marginBottom: 0 }}>
                 <thead style={{ background: '#f1f5f9' }}>
                   <tr>
-                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Image</th>
-                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Name</th>
-                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Type</th>
-                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Price</th>
-                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Stock</th>
-                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Model Year</th>
-                    <th style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Action</th>
+                    <th className="mobile-visible" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Image</th>
+                    <th className="mobile-visible" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Name</th>
+                    <th className="mobile-hidden" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Type</th>
+                    <th className="mobile-visible" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Price</th>
+                    <th className="mobile-hidden" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Stock</th>
+                    <th className="mobile-hidden" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Model Year</th>
+                    <th className="mobile-visible" style={{ padding: 14, textAlign: 'left', fontWeight: 600, color: '#1e3a8a' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedData.map(product => (
                     <tr key={product._id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: 12, textAlign: 'center' }}>
+                      <td className="mobile-visible" style={{ padding: 12, textAlign: 'center' }}>
                         {(product.images && product.images.length > 0) ? (
                           <img src={product.images[0]} alt="Product" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1.5px solid var(--border-gray)', background: '#fff' }} />
                         ) : (
                           <div style={{ color: '#aaa', fontSize: 22 }}>No Image</div>
                         )}
                       </td>
-                      <td style={{ padding: 12, fontWeight: 600 }}>{product.name}</td>
-                      <td style={{ padding: 12 }}>{product.type}</td>
-                      <td style={{ padding: 12, fontWeight: 700 }}>₹ {product.price}</td>
-                      <td style={{ padding: 12 }}>{product.stock === true ? 'Yes' : 'No'}</td>
-                      <td style={{ padding: 12 }}>{product.modelYear}</td>
-                      <td style={{ padding: 12 }}>
+                      <td className="mobile-visible" style={{ padding: 12, fontWeight: 600 }}>{product.name}</td>
+                      <td className="mobile-hidden" style={{ padding: 12 }}>{product.type}</td>
+                      <td className="mobile-visible" style={{ padding: 12, fontWeight: 700 }}>₹ {product.price}</td>
+                      <td className="mobile-hidden" style={{ padding: 12 }}>{product.stock === true ? 'Yes' : 'No'}</td>
+                      <td className="mobile-hidden" style={{ padding: 12 }}>{product.modelYear}</td>
+                      <td className="mobile-visible" style={{ padding: 12 }}>
                         <div className="d-flex gap-2">
                           <button
                             className="btn btn-sm action-btn-view"

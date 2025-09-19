@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Navbar from './components/Navbar';
+import MobileNavbar from './components/MobileNavbar';
 import Account from './pages/Account';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
@@ -77,9 +78,12 @@ const Engine = ({ component, componentrender }) => {
                 </div>
             )}
 
-            {/* Fixed Sidebar */}
+            {/* Mobile Navbar - Always rendered but only visible on mobile */}
+            <MobileNavbar componentrender={componentrender} component={component} />
+
+            {/* Fixed Sidebar - Desktop only */}
             <div style={{ width: 240, minWidth: 220, maxWidth: 260, height: '100vh', position: 'fixed', left: 0, top: 0, zIndex: 101, background: '#fff', borderRight: '1.5px solid #e5e7eb', boxShadow: '2px 0 16px rgba(30,58,138,0.06)' }} className='d-none d-lg-block'>
-                <Navbar componentrender={componentrender} component={component} />
+                <Navbar componentrender={componentrender} component={component} isMobile={false} />
             </div>
             
             {/* Main Content Area */}
@@ -87,7 +91,7 @@ const Engine = ({ component, componentrender }) => {
                 style={{ marginLeft: 240, flex: 1, minWidth: 0 }}
                 className='pt-0 pb-0 main-content-area'
             >
-                <div className='mt-lg-4 container mt-5 pt-3'>
+                <div className='mt-lg-4 container mt-5 pt-3' style={{ paddingTop: '80px' }}>
                     {render()}
                 </div>
             </div>

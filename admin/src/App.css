@@ -965,6 +965,24 @@ input[type="file"].input-field {
 @media (max-width: 991px) {
   .main-content-area {
     margin-left: 0 !important;
+    padding-top: 80px !important;
+  }
+  
+  /* Add extra spacing for mobile navbar */
+  .main-content-area .container {
+    padding-top: 20px !important;
+    margin-top: 0 !important;
+  }
+  
+  /* Improve mobile content spacing */
+  .main-content-area {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    min-height: 100vh;
+  }
+  
+  /* Add smooth transitions for mobile */
+  .main-content-area .container {
+    transition: all 0.3s ease;
   }
   .custom-offcanvas {
     border-top-left-radius: 24px;
@@ -1014,6 +1032,110 @@ input[type="file"].input-field {
   to {
     transform: translateX(0);
     opacity: 1;
+  }
+}
+
+/* Hamburger Icon Animations */
+@keyframes hamburgerPulse {
+  0% {
+    box-shadow: 0 8px 25px rgba(30,58,138,0.4), 0 4px 12px rgba(30,58,138,0.3);
+  }
+  50% {
+    box-shadow: 0 12px 35px rgba(30,58,138,0.6), 0 8px 20px rgba(30,58,138,0.4);
+  }
+  100% {
+    box-shadow: 0 8px 25px rgba(30,58,138,0.4), 0 4px 12px rgba(30,58,138,0.3);
+  }
+}
+
+
+@keyframes lineRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Mobile navbar toggle button enhancements */
+@media (max-width: 991.98px) {
+  .navbar-toggler {
+    animation: hamburgerPulse 3s ease-in-out infinite;
+  }
+  
+  .navbar-toggler:hover {
+    animation: none;
+  }
+  
+  .navbar-toggler:active {
+    animation: none;
+    transform: scale(0.95) rotate(-2deg) !important;
+  }
+}
+
+/* Responsive table columns for mobile devices */
+@media (max-width: 767.98px) {
+  /* Hide columns on mobile devices */
+  .mobile-hidden {
+    display: none !important;
+  }
+  
+  /* Ensure visible columns are properly displayed */
+  .mobile-visible {
+    display: table-cell !important;
+  }
+  
+  /* Adjust table layout for mobile */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Optimize table for mobile viewing */
+  .table th.mobile-visible,
+  .table td.mobile-visible {
+    padding: 8px 6px !important;
+    font-size: 14px;
+  }
+  
+  /* Make action buttons more touch-friendly on mobile */
+  .table td.mobile-visible .d-flex.gap-2 {
+    gap: 8px !important;
+  }
+  
+  .table td.mobile-visible .btn {
+    padding: 8px !important;
+    min-width: 36px;
+    min-height: 36px;
+  }
+  
+  /* Adjust image size for mobile */
+  .table td.mobile-visible img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+/* Tablet view - show more columns */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .mobile-hidden {
+    display: table-cell !important;
+  }
+  
+  .mobile-visible {
+    display: table-cell !important;
   }
 }
 
