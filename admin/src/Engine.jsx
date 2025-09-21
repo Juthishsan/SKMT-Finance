@@ -38,7 +38,8 @@ const Engine = ({ component, componentrender }) => {
             } catch {}
         };
         fetchLoanApps();
-        const interval = setInterval(() => fetchLoanApps(true), 5000);
+    // Reduced polling interval from 5 seconds to 2 minutes to avoid rate limiting
+    const interval = setInterval(() => fetchLoanApps(true), 120000);
         return () => clearInterval(interval);
     }, [authFetch]);
 

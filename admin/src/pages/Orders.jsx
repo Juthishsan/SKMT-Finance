@@ -306,9 +306,26 @@ const Orders = () => {
         setFilteredData(mapped);
         setLoading(false);
       })
-      .catch(error => {
+      .catch(async error => {
+        let errorMsg = 'Failed to fetch orders. Please try again later.';
+        if (error && error.response && error.response.status === 429) {
+          errorMsg = 'Too many requests. Please wait a moment and try again.';
+        } else if (error && error.message && error.message.includes('429')) {
+          errorMsg = 'Too many requests. Please wait a moment and try again.';
+        } else {
+          // Try to parse response if available
+          try {
+            const res = error.response || error;
+            if (res && res.status === 429) {
+              errorMsg = 'Too many requests. Please wait a moment and try again.';
+            } else if (res && typeof res.json === 'function') {
+              const data = await res.json();
+              if (data && data.error) errorMsg = data.error;
+            }
+          } catch {}
+        }
         console.error("Error fetching orders:", error);
-        Swal.fire('Error', 'Failed to fetch orders. Please try again later.', 'error');
+        Swal.fire('Error', errorMsg, 'error');
         setLoading(false);
       });
   }, []);
